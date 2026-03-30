@@ -32,9 +32,9 @@ Realiza o build de todos os projetos
 
 ## Aviso
 Ao adicionar algo ao pacote shared (componente, interface, etc.) é necessário:
-    - Exportar o item no próprio arquivo
-    - Exportar item no arquivo index.ts
-    - Realizar o build do pacote para que as modificações/adições entrem em vigor com o comando.
+- Exportar o item no próprio arquivo
+- Exportar item no arquivo index.ts
+- Realizar o build do pacote para que as modificações/adições entrem em vigor com o comando:
 ```bash
     cd packages/shared
     pnpm run build
