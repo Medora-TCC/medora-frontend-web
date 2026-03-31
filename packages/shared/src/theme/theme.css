@@ -1,0 +1,75 @@
+@theme {
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-ring: var(--ring);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-text: var(--primary-text);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-text: var(--accent-text);
+
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-text: var(--success-text);
+
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-text: var(--warning-text);
+
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-text: var(--danger-text);
+}
+
+:root {
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --surface-raised: #f1f5f9;
+  --surface-overlay: #e2e8f0;
+
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --ring: #2563eb40;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-subtle: #eff6ff;
+  --primary-text: #1e40af;
+
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
+  --accent-subtle: #f0fdfa;
+  --accent-text: #0f766e;
+
+  --success: #16a34a;
+  --success-subtle: #f0fdf4;
+  --success-text: #15803d;
+
+  --warning: #f59e0b;
+  --warning-subtle: #fffbeb;
+  --warning-text: #92400e;
+
+  --danger: #dc2626;
+  --danger-subtle: #fef2f2;
+  --danger-text: #991b1b;
+}
