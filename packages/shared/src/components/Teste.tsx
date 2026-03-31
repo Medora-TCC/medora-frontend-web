@@ -1,3 +1,6 @@
+import { useTheme } from "../theme/ThemeContext"
+
 export function Teste() {
-    return <div className="bg-red-500">Teste</div>
+    const {toggleTheme} = useTheme();
+    return <div className="bg-surface text-accent">Teste <button onClick={toggleTheme}>Trocar</button></div>
 }
