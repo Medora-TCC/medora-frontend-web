@@ -29,6 +29,7 @@ Realiza o build de todos os projetos
 - /packages -> Local onde os pacotes/bibliotecas estão localizados
 - /packages/shared -> Biblioteca a ser usada no projeto
 - /packages/shared/src/components -> Componentes reutilizáveis
+- /packages/shared/src/theme -> Componentes e configurações do ThemeContext
 
 ## Aviso
 Ao adicionar algo ao pacote shared (componente, interface, etc.) é necessário:
