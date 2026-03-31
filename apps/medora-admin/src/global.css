@@ -1,2 +1,4 @@
 @import "tailwindcss";
 @source "../../../packages/shared/src";
+
+@import "@medora_web/shared/theme.css"
