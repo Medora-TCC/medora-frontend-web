@@ -1,4 +1,4 @@
-import React, { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 interface ButtonProps extends ComponentProps<'button'> {
     isLoading?: boolean;
