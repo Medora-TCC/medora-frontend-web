@@ -1,3 +1,4 @@
+import { MailQuestionMark } from "lucide-react";
 import { useEffect, useRef, useState } from "react"
 
 export function TelaVerificacaoEmail() {
@@ -90,7 +91,7 @@ export function TelaVerificacaoEmail() {
         <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
             <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-primary-subtle text-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                    Icone de email
+                    <MailQuestionMark size={40}/>
                 </div>
                 <h2 className="text-2xl font-bold text-text-primary mb-2">Verifique seu e-mail</h2>
                 <p className="text-text-secondary text-sm">Enviamos um código de 6 digitos para <br />
