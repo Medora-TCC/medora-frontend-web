@@ -25,6 +25,7 @@
     "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.2",
     "tailwindcss": "^4.2.2"
   }
 }
