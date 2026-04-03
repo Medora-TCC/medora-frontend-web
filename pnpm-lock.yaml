@@ -185,6 +185,9 @@ importers:
 
   packages/shared:
     dependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.2.2
+        version: 4.2.2(vite@8.0.3(@types/node@24.12.0)(jiti@2.6.1))
       react:
         specifier: ^19.2.4
         version: 19.2.4
