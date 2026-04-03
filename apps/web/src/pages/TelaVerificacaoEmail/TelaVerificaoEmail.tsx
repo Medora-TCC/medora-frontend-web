@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 
 export function TelaVerificacaoEmail() {
+
     const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
     const [timeLeft, setTimeLeft] = useState(60);
     const [isVerifying, setIsVerifying] = useState(false);
+    const [isValid, setIsValid] = useState<boolean | null>(null);
+
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
@@ -36,10 +39,6 @@ export function TelaVerificacaoEmail() {
         if (e.key === "Backspace" && !code[index] && index > 0) {
             inputRefs.current[index - 1]?.focus();
         }
-
-        if (e.key === "Ctrl+V") {
-
-        }
     }
 
     const handlePaste = (e: React.ClipboardEvent) => {
@@ -65,11 +64,27 @@ export function TelaVerificacaoEmail() {
         inputRefs.current[nextFocusIndex]?.focus();
     }
 
-    const onSubmit = () => { }
+    const onSubmit = async (e: React.SubmitEvent) => {
+        e.preventDefault();
+        setIsValid(null);
+        setIsVerifying(true);
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+
+        // Mockando dados
+        if (code.join('') !== "123456") {
+            setIsVerifying(false)
+            setIsValid(false);
+            setCode(['', '', '', '', '', '']);
+        } else {
+            setIsValid(true);
+        }
+    }
 
     const handleResend = () => {
         setTimeLeft(60);
+        setIsValid(null);
     }
+
 
     return <section className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-4">
         <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
@@ -83,7 +98,7 @@ export function TelaVerificacaoEmail() {
                 </p>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(), onSubmit() }}>
+            <form onSubmit={(e) => { e.preventDefault(); onSubmit(e); }}>
                 <div className="flex justify-between gap-2 mb-8 px-4 ">
                     {code.map((digit, index) => (
                         <input
@@ -106,12 +121,14 @@ export function TelaVerificacaoEmail() {
                 <button
                     type="submit"
                     disabled={code.join('').length < 6 || isVerifying}
-                    className="w-full bg-primary hover:bg-primary-hover text-text-inverse font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+                    className="w-full bg-primary hover:bg-primary-hover text-text-inverse font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex justify-center items-center"
                 >
                     {isVerifying ? (
                         <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
                     ) : ("Verificar Código")}
                 </button>
+
+                {isValid === false  && (<div className="bg-danger text-danger-text p-4 mt-4 text-center rounded-2xl">Código inválido</div>)}
             </form>
 
             <div className="mt-8 text-center text-sm">
