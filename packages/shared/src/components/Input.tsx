@@ -24,7 +24,6 @@ export function Input({label, id, ...restProps }: InputProps) {
                     absolute left-0 -top-3.5 text-(--text-muted) text-sm 
                     transition-all cursor-text
                     
-                    /* Lógica do Peer */
                     peer-placeholder-shown:text-base 
                     peer-placeholder-shown:text-(--text-muted) 
                     peer-placeholder-shown:top-2
