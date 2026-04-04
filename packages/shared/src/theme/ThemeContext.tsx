@@ -1,5 +1,4 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
-import { type ThemeName, themes } from "./themeColors";
 
 interface ThemeContextProps {
   theme: ThemeName;
@@ -7,33 +6,32 @@ interface ThemeContextProps {
   setTheme: (theme: ThemeName) => void;
 }
 
+type ThemeName = "light" | "dark";
+
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<ThemeName>("dark");
-
-  useEffect(() => {
-    const localStorageTheme = localStorage.getItem("medora-theme") as ThemeName;
-    console.log(localStorageTheme)
-    if (localStorageTheme && themes[localStorageTheme]) {
-      setTheme(localStorageTheme);
+  const [theme, setTheme] = useState<ThemeName>(() => {
+    if (typeof window !== 'undefined') {
+      const storedTheme = localStorage.getItem('app-theme') as ThemeName;
+      if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-  }, []);
+    return 'light';
+  });
 
   useEffect(() => {
     const root = document.documentElement;
-    root.setAttribute("data-theme", theme);
-    localStorage.setItem("medora-theme", theme);
-
-    const currentPallete = themes[theme];
-    Object.entries(currentPallete).forEach(([cssVariable, colorValue]) => {
-      root.style.setProperty(cssVariable, colorValue)
-    });
+    root.setAttribute('data-theme', theme);
+    localStorage.setItem('app-theme', theme);
   }, [theme]);
 
   const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>)
 };
 
 export function useTheme() {
