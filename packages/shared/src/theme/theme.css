@@ -1,40 +1,4 @@
-@theme {
-  --color-surface: var(--surface);
-  --color-surface-alt: var(--surface-alt);
-  --color-surface-raised: var(--surface-raised);
-  --color-surface-overlay: var(--surface-overlay);
-
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  --color-text-inverse: var(--text-inverse);
-
-  --color-border: var(--border);
-  --color-border-hover: var(--border-hover);
-  --color-ring: var(--ring);
-
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-subtle: var(--primary-subtle);
-  --color-primary-text: var(--primary-text);
-
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-subtle: var(--accent-subtle);
-  --color-accent-text: var(--accent-text);
-
-  --color-success: var(--success);
-  --color-success-subtle: var(--success-subtle);
-  --color-success-text: var(--success-text);
-
-  --color-warning: var(--warning);
-  --color-warning-subtle: var(--warning-subtle);
-  --color-warning-text: var(--warning-text);
-
-  --color-danger: var(--danger);
-  --color-danger-subtle: var(--danger-subtle);
-  --color-danger-text: var(--danger-text);
-}
+@import "@heroui/styles"; 
 
 :root {
   --surface: #ffffff;
@@ -72,4 +36,81 @@
   --danger: #dc2626;
   --danger-subtle: #fef2f2;
   --danger-text: #991b1b;
+}
+
+[data-theme="dark"] {
+  --surface: #0F172A;
+  --surface-alt: #1E293B;
+  --surface-raised: #334155;
+  --surface-overlay: #475569;
+
+  --text-primary: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #64748B;
+  --text-inverse: #0F172A;
+
+  --border: #334155;
+  --border-hover: #475569;
+  --ring: #60A5FA40;
+
+  --primary: #FF0000;
+  --primary-hover: #93C5FD;
+  --primary-subtle: #1E3A8A30;
+  --primary-text: ##93C5FD;
+
+  --accent: #2DD4BF;
+  --accent-hover: #5EEAD4;
+  --accent-subtle: #0F766E20;
+  --accent-text: #5EEAD4;
+
+  --success: #FBBF24;
+  --success-subtle: #4ADE80;
+  --success-text: #86EFAC;
+
+  --warning: #f59e0b;
+  --warning-subtle: #fffbeb;
+  --warning-text: #FDE68A;
+
+  --danger: #F87171;
+  --danger-subtle: #DC262620;
+  --danger-text: #FCA5A5;
+}
+
+
+@theme {
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-ring: var(--ring);
+
+  --color-primary-color: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-text: var(--primary-text);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-text: var(--accent-text);
+
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-text: var(--success-text);
+
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-text: var(--warning-text);
+
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-text: var(--danger-text);
 }
