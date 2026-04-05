@@ -5,7 +5,6 @@ function App() {
     <>
       <ThemeProvider>
         <Teste/>
-        <TelaLogin/>
       </ThemeProvider>
     </>
   )
