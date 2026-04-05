@@ -1,12 +1,12 @@
 import { Teste, ThemeProvider } from '@medora_web/shared'
-import TelaLogin from './pages/TelaLogin/TelaLogin'
+import LoginScreen from './pages/LoginScreen/LoginScreen'
 
 function App() {
   return (
     <>
       <ThemeProvider>
         <Teste/>
-        <TelaLogin/>
+        <LoginScreen/>
       </ThemeProvider>
     </>
   )

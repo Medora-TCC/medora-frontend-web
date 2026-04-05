@@ -215,12 +215,6 @@ importers:
 
   packages/shared:
     dependencies:
-      '@heroui/react':
-        specifier: ^3.0.2
-        version: 3.0.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)
-      '@heroui/styles':
-        specifier: ^3.0.2
-        version: 3.0.2(tailwind-merge@3.4.0)(tailwindcss@4.2.2)
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.2(vite@8.0.3(@types/node@24.12.0)(jiti@2.6.1))
@@ -237,6 +231,12 @@ importers:
         specifier: ^4.2.2
         version: 4.2.2
     devDependencies:
+      '@heroui/react':
+        specifier: ^3.0.2
+        version: 3.0.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)
+      '@heroui/styles':
+        specifier: ^3.0.2
+        version: 3.0.2(tailwind-merge@3.4.0)(tailwindcss@4.2.2)
       '@types/react':
         specifier: ^19.2.4
         version: 19.2.14
