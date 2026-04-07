@@ -1,14 +1,13 @@
-import { MailQuestionMark } from "lucide-react";
-import { useEffect, useRef, useState } from "react"
+import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS, ToastProvider, toast } from "@heroui/react";
+import { CircleCheckBig, MailQuestionMark } from "lucide-react";
+import { useEffect, useState } from "react"
 
 export function TelaVerificacaoEmail() {
 
-    const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
+    const [code, setCode] = useState("");
     const [timeLeft, setTimeLeft] = useState(60);
     const [isVerifying, setIsVerifying] = useState(false);
     const [isValid, setIsValid] = useState<boolean | null>(null);
-
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
         if (timeLeft < 0) {
@@ -21,127 +20,104 @@ export function TelaVerificacaoEmail() {
 
     }, [timeLeft]);
 
-    const handleChange = (index: number, value: string) => {
-
-        if (!/^[0-9]*$/.test(value)) {
-            return;
-        }
-
-        const newCode = [...code];
-        newCode[index] = value.substring(value.length - 1);
-        setCode(newCode);
-
-        if (value && index < 5) {
-            inputRefs.current[index + 1]?.focus()
-        }
-    }
-
-    const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Backspace" && !code[index] && index > 0) {
-            inputRefs.current[index - 1]?.focus();
-        }
-    }
-
-    const handlePaste = (e: React.ClipboardEvent) => {
-
-        e.preventDefault();
-
-        var data = e.clipboardData.getData("text");
-        var formatedData = data.replace(/\D/g, '').substring(0, 6);
-
-        if (!formatedData) {
-            return;
-        };
-
-        const newCode = ['', '', '', '', '', '']
-
-        formatedData.split('').forEach((char, i) => {
-            newCode[i] = char;
-        })
-
-        setCode(newCode)
-
-        const nextFocusIndex = formatedData.length < 6 ? formatedData.length : 5;
-        inputRefs.current[nextFocusIndex]?.focus();
-    }
-
-    const onSubmit = async (e: React.SubmitEvent) => {
-        e.preventDefault();
+    const onSubmit = async () => {
         setIsValid(null);
         setIsVerifying(true);
         await new Promise((resolve) => setTimeout(resolve, 2000))
-
+        // TODO: Logica para verificacao
         // Mockando dados
-        if (code.join('') !== "123456") {
+        console.log(code);
+        if (code !== "123456") {
             setIsVerifying(false)
             setIsValid(false);
-            setCode(['', '', '', '', '', '']);
+            setCode("");
         } else {
             setIsValid(true);
         }
     }
 
-    const handleResend = () => {
+    const handleResend = async () => {
         setTimeLeft(60);
         setIsValid(null);
+        setCode("");
+        
+       toast.promise(new Promise((resolve) => setTimeout(() => resolve("Ok"), 2000)), {error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso"})
+        // TODO: Lógica para envio de email
     }
 
-
-    return <section className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-4">
-        <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
-            <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-primary-subtle text-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MailQuestionMark size={40}/>
+    return (<section className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-4">
+        <ToastProvider maxVisibleToasts={1} placement="bottom"/>
+        {isValid === true ?
+            (<div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
+                <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-primary-subtle text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CircleCheckBig size={35} className="text-success-text" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-text-primary mb-2">E-mail verificado</h2>
+                    <p className="text-text-secondary text-sm">
+                        Seu e-email <span className="font-semibold text-text-primary">user@teste.com</span> foi verificado com sucesso
+                    </p>
                 </div>
-                <h2 className="text-2xl font-bold text-text-primary mb-2">Verifique seu e-mail</h2>
-                <p className="text-text-secondary text-sm">Enviamos um código de 6 digitos para <br />
-                    <span className="font-semibold text-text-primary">user@teste.com</span>
-                </p>
-            </div>
-
-            <form onSubmit={(e) => { e.preventDefault(); onSubmit(e); }}>
-                <div className="flex justify-between gap-2 mb-8 px-4 ">
-                    {code.map((digit, index) => (
-                        <input
-                            key={index}
-                            // @ts-ignore
-                            ref={(el) => (inputRefs.current[index] = el)}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => handleChange(index, e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(index, e)}
-                            onPaste={handlePaste}
-                            className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-                            disabled={isVerifying}
-                        />
-                    ))}
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={code.join('').length < 6 || isVerifying}
-                    className="w-full bg-primary hover:bg-primary-hover text-text-inverse font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex justify-center items-center"
+                <Button
+                    type="button"
+                    className="w-full bg-primary-color hover:bg-primary-hover text-text-inverse font-semibold py-3 px-4 rounded-lg transition-colors cursor-pointer flex justify-center items-center"
                 >
-                    {isVerifying ? (
-                        <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-                    ) : ("Verificar Código")}
-                </button>
+                    Continuar
+                </Button>
+            </div>) : <>
+                {isValid === false && (
+                    <Alert status="danger" className="absolute top-6 w-fit p-4 transform duration-150 animate-fade-in">
+                        <Alert.Indicator />
+                        <Alert.Content>
+                            <Alert.Title className="font-semibold text-[16px]">Código inválido</Alert.Title>
+                            <Alert.Description>Por favor, tente novamente.</Alert.Description>
+                        </Alert.Content>
+                    </Alert>
+                )}
 
-                {isValid === false  && (<div className="bg-danger text-danger-text p-4 mt-4 text-center rounded-2xl">Código inválido</div>)}
-            </form>
+                <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-primary-subtle text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                            <MailQuestionMark size={35} />
+                        </div>
+                        <h2 className="text-2xl font-bold text-text-primary mb-2">Verifique seu e-mail</h2>
+                        <p className="text-text-secondary text-sm">Enviamos um código de 6 digitos para <br />
+                            <span className="font-semibold text-text-primary">user@teste.com</span>
+                        </p>
+                    </div>
 
-            <div className="mt-8 text-center text-sm">
-                <p className="text-text-secondary">
-                    Não recebeu o e-mail?{' '}
-                    {timeLeft > 0 ?
-                        (<span>Reenviar em {timeLeft}s</span>) :
-                        (<button onClick={handleResend} className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer">
-                            Reenviar agora
-                        </button>)}
-                </p>
-            </div>
-        </div>
-    </section>
+                    <Form className="" render={(props) => <form {...props} />} onSubmit={(e) => { e.preventDefault(); onSubmit() }}>
+                        <div className="flex justify-between gap-2 mb-8 px-4">
+                            <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS} value={code} onChange={setCode} className="mx-auto">
+                                <InputOTP.Group>
+                                    <InputOTP.Slot index={0} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
+                                    <InputOTP.Slot index={1} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
+                                    <InputOTP.Slot index={2} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
+                                    <InputOTP.Slot index={3} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
+                                    <InputOTP.Slot index={4} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
+                                    <InputOTP.Slot index={5} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
+                                </InputOTP.Group>
+                            </InputOTP>
+                        </div>
+                        <Button
+                            type="submit"
+                            isDisabled={code.length < 6 || isVerifying}
+                            className="w-full bg-primary-color hover:bg-primary-hover text-text-inverse font-semibold py-3 px-4 rounded-lg transition-colors cursor-pointer flex justify-center items-center"
+                        >
+                            {isVerifying ? <Spinner color="current" /> : "Verificar código"}
+                        </Button>
+                    </Form>
+                    <div className="my-8 text-center text-sm">
+                        <p className="text-text-secondary">
+                            Não recebeu o email? {' '}
+                            {timeLeft > 0 ?
+                                (<span>Reenviar em {timeLeft}s</span>) :
+                                (<Link onClick={handleResend} className="text-primary-color hover:text-primary-hover font-semibold transition-colors cursor-pointer">
+                                    Reenviar Agora
+                                </Link>)
+                            }
+                        </p>
+                    </div>
+                </div></>}
+    </section>)
 }
