@@ -1,4 +1,4 @@
-import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS } from "@heroui/react";
+import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS, ToastProvider, toast } from "@heroui/react";
 import { CircleCheckBig, MailQuestionMark } from "lucide-react";
 import { useEffect, useState } from "react"
 
@@ -36,14 +36,17 @@ export function TelaVerificacaoEmail() {
         }
     }
 
-    const handleResend = () => {
+    const handleResend = async () => {
         setTimeLeft(60);
         setIsValid(null);
         setCode("");
+        
+       toast.promise(new Promise((resolve) => setTimeout(() => resolve("Ok"), 2000)), {error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso"})
         // TODO: Lógica para envio de email
     }
 
     return (<section className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-4">
+        <ToastProvider maxVisibleToasts={1} placement="bottom"/>
         {isValid === true ?
             (<div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
                 <div className="text-center mb-8">
