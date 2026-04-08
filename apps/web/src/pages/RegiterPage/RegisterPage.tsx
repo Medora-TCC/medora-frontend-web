@@ -1,14 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
 import { Input, Button, Separator, Select, toast } from "@heroui/react";
 import { AbsoluteCenter } from "@medora_web/shared";
 import doctorImage from '../../assets/DoctorRegisterPage.jpeg';
 import type { RegisterDoctorDto } from "../../api/dtos/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
     
-const ArrowRightIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>;
-const ArrowLeftIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>;
-
-// Helper local para renderizar labels com erro visual
 const FieldWrapper = ({ label, error, children, description }: any) => (
     <div className="flex flex-col w-full">
         {label && <label className="text-sm font-medium mb-1 text-default-700">{label}</label>}
@@ -20,12 +16,19 @@ const FieldWrapper = ({ label, error, children, description }: any) => (
 
 export function RegisterPage() {
     const [formData, setFormData] = useState<RegisterDoctorDto>({
-        name: '', email: '', password: '', state: 'PR', crm: '', rqe: '', cpf: ''
+        name: '',
+        email: '',
+        password: '',
+        state: 'PR',
+        crm: '',
+        rqe: '', 
+        cpf: ''
     });
     
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [currentStep, setCurrentStep] = useState(1);
+    
     
     const [isVisible, setIsVisible] = useState(false);
     const [isConfirmVisible, setIsConfirmVisible] = useState(false);
@@ -33,11 +36,20 @@ export function RegisterPage() {
     const toggleConfirmVisibility = () => setIsConfirmVisible(!isConfirmVisible);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData, [id]: value
-        }));
-    };
+    const { id, value } = e.target;
+    
+    setFormData((prevData) => ({
+        ...prevData, [id]: value
+    }));
+
+    if (errors[id]) {
+        setErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[id];
+            return newErrors;
+        });
+    }
+};
 
     const states = [
         { label: 'Paraná (PR)', value: 'PR' },
@@ -46,25 +58,17 @@ export function RegisterPage() {
         { label: 'Rio de Janeiro (RJ)', value: 'RJ' }
     ];
 
-    const passwordSuggestions = (
-        <div className="mt-2 text-default-500">
-            <Separator className="mb-2 bg-default-200" />
-            <p className="text-xs font-semibold mb-1">Sugestões para senha:</p>
-            <ul className="pl-4 m-0 text-xs list-disc">
-                <li>Contenha 1 letra maiúscula ABC</li>
-                <li>Contenha 1 caracter especial !@#$%^&*()-+</li>
-                <li>Contenha 1 número 123</li>
-            </ul>
-        </div>
-    );
-
     const handleStateChange = () => {
         const newErrors: Record<string, string> = {};
         
-        if (formData.name === '') newErrors.name = 'Nome é obrigatório';
-        if (formData.email === '' || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email válido é obrigatório';
-        if (formData.password === '' || formData.password.length < 6) newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
-        if (confirmPassword === '' || confirmPassword !== formData.password) newErrors.confirmPassword = 'As senhas devem coincidir';
+        if (formData.name === '') 
+            newErrors.name = 'Nome é obrigatório';
+        if (formData.email === '' || !/\S+@\S+\.\S+/.test(formData.email)) 
+            newErrors.email = 'Email válido é obrigatório';
+        if (formData.password === '' || formData.password.length < 6) 
+            newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
+        if (confirmPassword === '' || confirmPassword !== formData.password) 
+            newErrors.confirmPassword = 'As senhas devem coincidir';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -78,10 +82,14 @@ export function RegisterPage() {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
         
-        if (formData.state === '') newErrors.state = 'Estado é obrigatório';
-        if (formData.crm === '') newErrors.crm = 'CRM é obrigatório';
-        if (formData.rqe === '') newErrors.rqe = 'RQE é obrigatório';
-        if (formData.cpf === '') newErrors.cpf = 'CPF é obrigatório';
+        if (formData.state === '') 
+            newErrors.state = 'Estado é obrigatório';
+        if (formData.crm === '') 
+            newErrors.crm = 'CRM é obrigatório';
+        if (formData.rqe === '') 
+            newErrors.rqe = 'RQE é obrigatório';
+        if (formData.cpf === '') 
+            newErrors.cpf = 'CPF é obrigatório';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -126,9 +134,9 @@ export function RegisterPage() {
                                         <Input id="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full border rounded p-2" />
                                     </FieldWrapper>
 
-                                    <FieldWrapper label="Senha" error={errors.password} description={passwordSuggestions}>
+                                    <FieldWrapper label="Senha" error={errors.password} >
                                         <div className="relative w-full">
-                                            <Input id="password" type={isVisible ? "text" : "password"} value={formData.password} onChange={handleInputChange} className="w-full border rounded p-2 pr-10" />
+                                            <Input id="password" type={"password"} value={formData.password} onChange={handleInputChange} className="w-full border rounded p-2 pr-10" />
                                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={toggleVisibility}>
                                             </div>
                                         </div>
@@ -136,16 +144,27 @@ export function RegisterPage() {
 
                                     <FieldWrapper label="Confirmar Senha" error={errors.confirmPassword}>
                                         <div className="relative w-full">
-                                            <Input id="confirmPassword" type={isConfirmVisible ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full border rounded p-2 pr-10" />
+                                            <Input 
+                                            id="confirmPassword" 
+                                            type={"password"} 
+                                            value={confirmPassword} 
+                                            onChange={(e) => {setConfirmPassword(e.target.value);
+                                                                if (errors.confirmPassword) {
+                                                                    setErrors((prev) => {
+                                                                        const newErrors = { ...prev };
+                                                                        delete newErrors.confirmPassword;
+                                                                        return newErrors;
+                                                                    });
+                                                                }}}
+                                            className="w-full border rounded p-2 pr-10" />
                                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={toggleConfirmVisibility}>
                                             </div>
                                         </div>
                                     </FieldWrapper>
 
-                                    {/* onPress mudado para onClick */}
                                     <Button variant="primary" size="lg" className="w-full mt-2 font-medium" onClick={handleStateChange}>
                                         <div className="flex items-center justify-center gap-2">
-                                            Próximo <ArrowRightIcon />
+                                            Próximo
                                         </div>
                                     </Button>
                                 </div>
@@ -186,7 +205,7 @@ export function RegisterPage() {
                                     <div className="flex gap-4 mt-2">
                                         <Button variant="outline" size="lg" className="w-1/2 font-medium" onClick={() => setCurrentStep(1)}>
                                             <div className="flex items-center justify-center gap-2">
-                                                <ArrowLeftIcon /> Voltar
+                                                 Voltar
                                             </div>
                                         </Button>
                                         <Button 
