@@ -4,6 +4,7 @@ import { AbsoluteCenter } from "@medora_web/shared";
 import doctorImage from '../../assets/DoctorRegisterPage.jpeg';
 import type { RegisterDoctorDto } from "../../api/dtos/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
+import { PasswordInput, type PasswordRules } from "@medora_web/shared";
     
 const FieldWrapper = ({ label, error, children, description }: any) => (
     <div className="flex flex-col w-full">
@@ -13,6 +14,7 @@ const FieldWrapper = ({ label, error, children, description }: any) => (
         {description && <div className="mt-1">{description}</div>}
     </div>
 );
+
 
 export function RegisterPage() {
     const [formData, setFormData] = useState<RegisterDoctorDto>({
@@ -30,10 +32,10 @@ export function RegisterPage() {
     const [currentStep, setCurrentStep] = useState(1);
     
     
-    const [isVisible, setIsVisible] = useState(false);
-    const [isConfirmVisible, setIsConfirmVisible] = useState(false);
-    const toggleVisibility = () => setIsVisible(!isVisible);
-    const toggleConfirmVisibility = () => setIsConfirmVisible(!isConfirmVisible);
+    // const [isVisible, setIsVisible] = useState(false);
+    // const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+    // const toggleVisibility = () => setIsVisible(!isVisible);
+    // const toggleConfirmVisibility = () => setIsConfirmVisible(!isConfirmVisible);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -47,9 +49,27 @@ export function RegisterPage() {
             const newErrors = { ...prevErrors };
             delete newErrors[id];
             return newErrors;
-        });
-    }
-};
+            });
+        }
+    };
+
+    const myCustomRules: PasswordRules[] = [
+        { 
+            id: 'crm-rule', 
+            label: 'A senha não pode ser igual ao seu nome', 
+            validate: (v: string) => v.length > 0 && formData.name.length > 0 ? !v.toLowerCase().includes(formData.name.toLowerCase()) : true 
+        },
+        { 
+            id: 'strong', 
+            label: 'Ter pelo menos 8 caracteres', 
+            validate: (v: string) => v.length >= 8 
+        },
+        { 
+            id: 'special', 
+            label: 'Símbolos (!@#$)', 
+            validate: (v: string) => /[!@#$%^&*()]/.test(v) 
+        }
+    ];
 
     const states = [
         { label: 'Paraná (PR)', value: 'PR' },
@@ -134,32 +154,27 @@ export function RegisterPage() {
                                         <Input id="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full border rounded p-2" />
                                     </FieldWrapper>
 
-                                    <FieldWrapper label="Senha" error={errors.password} >
-                                        <div className="relative w-full">
-                                            <Input id="password" type={"password"} value={formData.password} onChange={handleInputChange} className="w-full border rounded p-2 pr-10" />
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={toggleVisibility}>
-                                            </div>
-                                        </div>
-                                    </FieldWrapper>
+                                    <PasswordInput
+                                        id="password"
+                                        label="Senha"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        error={errors.password}
+                                    />
 
                                     <FieldWrapper label="Confirmar Senha" error={errors.confirmPassword}>
-                                        <div className="relative w-full">
-                                            <Input 
+                                        <Input 
                                             id="confirmPassword" 
-                                            type={"password"} 
+                                            type="password" 
                                             value={confirmPassword} 
-                                            onChange={(e) => {setConfirmPassword(e.target.value);
-                                                                if (errors.confirmPassword) {
-                                                                    setErrors((prev) => {
-                                                                        const newErrors = { ...prev };
-                                                                        delete newErrors.confirmPassword;
-                                                                        return newErrors;
-                                                                    });
-                                                                }}}
-                                            className="w-full border rounded p-2 pr-10" />
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={toggleConfirmVisibility}>
-                                            </div>
-                                        </div>
+                                            onChange={(e) => {
+                                                setConfirmPassword(e.target.value);
+                                                if (errors.confirmPassword) {
+                                                    setErrors(prev => ({ ...prev, confirmPassword: '' }));
+                                                }
+                                            }} 
+                                            className="w-full border rounded p-2" 
+                                        />
                                     </FieldWrapper>
 
                                     <Button variant="primary" size="lg" className="w-full mt-2 font-medium" onClick={handleStateChange}>
