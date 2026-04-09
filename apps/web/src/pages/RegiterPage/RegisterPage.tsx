@@ -23,10 +23,6 @@ export function RegisterPage() {
     const [currentStep, setCurrentStep] = useState(1);
     
     
-    // const [isVisible, setIsVisible] = useState(false);
-    // const [isConfirmVisible, setIsConfirmVisible] = useState(false);
-    // const toggleVisibility = () => setIsVisible(!isVisible);
-    // const toggleConfirmVisibility = () => setIsConfirmVisible(!isConfirmVisible);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
