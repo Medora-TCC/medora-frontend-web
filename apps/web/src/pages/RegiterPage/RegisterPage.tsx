@@ -4,17 +4,8 @@ import { AbsoluteCenter } from "@medora_web/shared";
 import doctorImage from '../../assets/DoctorRegisterPage.jpeg';
 import type { RegisterDoctorDto } from "../../api/dtos/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
-import { PasswordInput, type PasswordRules } from "@medora_web/shared";
-    
-const FieldWrapper = ({ label, error, children, description }: any) => (
-    <div className="flex flex-col w-full">
-        {label && <label className="text-sm font-medium mb-1 text-default-700">{label}</label>}
-        {children}
-        {error && <span className="text-xs text-danger mt-1">{error}</span>}
-        {description && <div className="mt-1">{description}</div>}
-    </div>
-);
-
+import { PasswordInput } from "@medora_web/shared";
+import { FieldWrapper } from "@medora_web/shared";
 
 export function RegisterPage() {
     const [formData, setFormData] = useState<RegisterDoctorDto>({
@@ -53,24 +44,6 @@ export function RegisterPage() {
         }
     };
 
-    const myCustomRules: PasswordRules[] = [
-        { 
-            id: 'crm-rule', 
-            label: 'A senha não pode ser igual ao seu nome', 
-            validate: (v: string) => v.length > 0 && formData.name.length > 0 ? !v.toLowerCase().includes(formData.name.toLowerCase()) : true 
-        },
-        { 
-            id: 'strong', 
-            label: 'Ter pelo menos 8 caracteres', 
-            validate: (v: string) => v.length >= 8 
-        },
-        { 
-            id: 'special', 
-            label: 'Símbolos (!@#$)', 
-            validate: (v: string) => /[!@#$%^&*()]/.test(v) 
-        }
-    ];
-
     const states = [
         { label: 'Paraná (PR)', value: 'PR' },
         { label: 'São Paulo (SP)', value: 'SP' },
@@ -92,8 +65,10 @@ export function RegisterPage() {
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
+            const firstErrorMessage = Object.values(newErrors)[0];
+            toast.warning(firstErrorMessage);
             return;
-        }
+        }   
         setErrors({});
         setCurrentStep(2);
     }   
@@ -146,12 +121,31 @@ export function RegisterPage() {
                             {currentStep === 1 && (
                                 <div className="flex flex-col gap-5 animate-appearance-in">
                                     
-                                    <FieldWrapper label="Nome" error={errors.name}>
-                                        <Input id="name" value={formData.name} onChange={handleInputChange} className="w-full border rounded p-2" />
+                                    <FieldWrapper 
+                                    label="Nome" 
+                                    >
+                                        <Input 
+                                        id="name" 
+                                        value={formData.name} 
+                                        onChange={handleInputChange} 
+                                        className={`w-full border rounded p-2 transition-colors ${
+                                            errors.name ? 'border-danger text-danger' : 'border-default-200'
+                                                }`}
+                                        />
                                     </FieldWrapper>
 
-                                    <FieldWrapper label="Email" error={errors.email}>
-                                        <Input id="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full border rounded p-2" />
+                                    <FieldWrapper 
+                                    label="Email" 
+                                    >
+                                        <Input 
+                                        id="email" 
+                                        type="email" 
+                                        value={formData.email} 
+                                        onChange={handleInputChange} 
+                                        className={`w-full border rounded p-2 transition-colors ${
+                                                errors.email ? 'border-danger text-danger' : 'border-default-200'
+                                            }`}
+                                         />
                                     </FieldWrapper>
 
                                     <PasswordInput
@@ -159,10 +153,10 @@ export function RegisterPage() {
                                         label="Senha"
                                         value={formData.password}
                                         onChange={handleInputChange}
-                                        error={errors.password}
+                                        hasError={!!errors.password}
                                     />
 
-                                    <FieldWrapper label="Confirmar Senha" error={errors.confirmPassword}>
+                                    <FieldWrapper label="Confirmar Senha">
                                         <Input 
                                             id="confirmPassword" 
                                             type="password" 
@@ -173,11 +167,17 @@ export function RegisterPage() {
                                                     setErrors(prev => ({ ...prev, confirmPassword: '' }));
                                                 }
                                             }} 
-                                            className="w-full border rounded p-2" 
+                                            className={`w-full border rounded p-2 transition-colors ${
+                                                errors.confirmPassword ? 'border-danger text-danger' : 'border-default-200'
+                                            }`}
                                         />
                                     </FieldWrapper>
 
-                                    <Button variant="primary" size="lg" className="w-full mt-2 font-medium" onClick={handleStateChange}>
+                                    <Button 
+                                    variant="primary" 
+                                    size="lg" 
+                                    className="w-full mt-2 font-medium" 
+                                    onClick={handleStateChange}>
                                         <div className="flex items-center justify-center gap-2">
                                             Próximo
                                         </div>
@@ -188,7 +188,7 @@ export function RegisterPage() {
                             {currentStep === 2 && (
                                 <div className="flex flex-col gap-5 animate-appearance-in">
                                     <div className="flex gap-2 w-full items-start">
-                                        <FieldWrapper label="UF" error={errors.state}>
+                                        <FieldWrapper label="UF">
                                             <Select selectedKey={formData.state} onSelectionChange={(key) => setFormData({...formData, state: key as string})} className="w-full border rounded p-2">
                                                 {states.map((state) => (
                                                     <option key={state.value} value={state.value}>{state.label}</option>
@@ -196,29 +196,46 @@ export function RegisterPage() {
                                             </Select>
                                         </FieldWrapper>
 
-                                        <FieldWrapper label="CRM" error={errors.crm}>
-                                            <Input id="crm" value={formData.crm} onChange={handleInputChange} className="w-full border rounded p-2" />
+                                        <FieldWrapper 
+                                        label="CRM" 
+                                        >
+                                            <Input 
+                                                id="crm" 
+                                                value={formData.crm} 
+                                                onChange={handleInputChange} 
+                                                className={`w-full border rounded p-2 transition-colors ${
+                                                errors.crm ? 'border-danger text-danger' : 'border-default-200'
+                                                }`} 
+                                            />
                                         </FieldWrapper>
                                     </div>
 
-                                    <FieldWrapper label="RQE" error={errors.rqe}>
+                                    <FieldWrapper label="RQE">
                                         <Input 
                                         id="rqe"
                                         value={formData.rqe}
                                         onChange={handleInputChange}
-                                        className="w-full border rounded p-2" />
+                                        className={`w-full border rounded p-2 transition-colors ${
+                                            errors.rqe ? 'border-danger text-danger' : 'border-default-200'
+                                        }`} />
                                     </FieldWrapper>
 
-                                    <FieldWrapper label="CPF" error={errors.cpf}>
+                                    <FieldWrapper label="CPF">
                                         <Input 
                                         id="cpf"
                                         value={formData.cpf}
                                         onChange={handleInputChange}
-                                        className="w-full border rounded p-2" />
+                                        className={`w-full border rounded p-2 transition-colors ${
+                                            errors.cpf ? 'border-danger text-danger' : 'border-default-200'
+                                        }`} />
                                     </FieldWrapper>
 
                                     <div className="flex gap-4 mt-2">
-                                        <Button variant="outline" size="lg" className="w-1/2 font-medium" onClick={() => setCurrentStep(1)}>
+                                        <Button 
+                                        variant="outline" 
+                                        size="lg" 
+                                        className="w-1/2 font-medium" 
+                                        onClick={() => setCurrentStep(1)}>
                                             <div className="flex items-center justify-center gap-2">
                                                  Voltar
                                             </div>
