@@ -1,10 +1,13 @@
-import { Teste, ThemeProvider } from '@medora_web/shared'
+import { Layout, ThemeProvider } from '@medora_web/shared'
+import { TelaVerificacaoEmail } from './pages/TelaVerificacaoEmail/TelaVerificaoEmail'
 
 function App() {
   return (
     <>
       <ThemeProvider>
-        <Teste/>
+        <Layout>
+          <TelaVerificacaoEmail />
+        </Layout>
       </ThemeProvider>
     </>
   )

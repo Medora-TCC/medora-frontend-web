@@ -40,13 +40,13 @@ export function TelaVerificacaoEmail() {
         setTimeLeft(60);
         setIsValid(null);
         setCode("");
-        
-       toast.promise(new Promise((resolve) => setTimeout(() => resolve("Ok"), 2000)), {error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso"})
+
+        toast.promise(new Promise((resolve) => setTimeout(() => resolve("Ok"), 2000)), { error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso" })
         // TODO: Lógica para envio de email
     }
 
     return (<section className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-4">
-        <ToastProvider maxVisibleToasts={1} placement="bottom"/>
+        <ToastProvider maxVisibleToasts={1} placement="bottom" />
         {isValid === true ?
             (<div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
                 <div className="text-center mb-8">
@@ -75,8 +75,8 @@ export function TelaVerificacaoEmail() {
                     </Alert>
                 )}
 
-                <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
-                    <div className="text-center mb-8">
+                <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-2 sm:p-4">
+                    <div className="text-center mb-8 mt-2">
                         <div className="w-16 h-16 bg-primary-subtle text-primary rounded-full flex items-center justify-center mx-auto mb-4">
                             <MailQuestionMark size={35} />
                         </div>
@@ -86,16 +86,26 @@ export function TelaVerificacaoEmail() {
                         </p>
                     </div>
 
-                    <Form className="" render={(props) => <form {...props} />} onSubmit={(e) => { e.preventDefault(); onSubmit() }}>
-                        <div className="flex justify-between gap-2 mb-8 px-4">
-                            <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS} value={code} onChange={setCode} className="mx-auto">
-                                <InputOTP.Group>
-                                    <InputOTP.Slot index={0} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
-                                    <InputOTP.Slot index={1} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
-                                    <InputOTP.Slot index={2} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
-                                    <InputOTP.Slot index={3} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
-                                    <InputOTP.Slot index={4} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
-                                    <InputOTP.Slot index={5} className="w-12 h-14 text-center text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all" />
+                    <Form
+                        className="w-full max-w-sm mx-auto flex flex-col"
+                        render={(props) => <form {...props} />}
+                        onSubmit={(e) => { e.preventDefault(); onSubmit() }}
+                    >
+                        <div className="flex justify-center w-full mb-8">
+                            <InputOTP
+                                maxLength={6}
+                                pattern={REGEXP_ONLY_DIGITS}
+                                value={code}
+                                onChange={setCode}
+                            >
+                                <InputOTP.Group className="flex gap-2 sm:gap-3">
+                                    {[0, 1, 2, 3, 4, 5].map((index) => (
+                                        <InputOTP.Slot
+                                            key={index}
+                                            index={index}
+                                            className="w-10 sm:w-12 h-12 sm:h-14 text-center text-xl sm:text-2xl font-bold text-text-primary bg-surface-raised border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                                        />
+                                    ))}
                                 </InputOTP.Group>
                             </InputOTP>
                         </div>
