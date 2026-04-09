@@ -1,11 +1,12 @@
 import { useState, useEffect, use } from "react";
 import { Input, Button, Separator, Select, toast } from "@heroui/react";
-import { AbsoluteCenter } from "@medora_web/shared";
+import { AbsoluteCenter, FloatingCard, FormStepper } from "@medora_web/shared";
 import doctorImage from '../../assets/medicoSegurandoTable.png';
 import type { RegisterDoctorDto } from "../../api/dtos/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
 import { PasswordInput } from "@medora_web/shared";
 import { FieldWrapper } from "@medora_web/shared";
+import { ChevronDown } from "lucide-react";
 
 export function RegisterPage() {
     const [formData, setFormData] = useState<RegisterDoctorDto>({
@@ -84,8 +85,10 @@ export function RegisterPage() {
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
+            const firstErrorMessage = Object.values(newErrors)[0];
+            toast.warning(firstErrorMessage);
             return;
-        }
+        }   
 
         fetch(Endpoints.REGISTER_DOCTOR, {
             method: 'POST',
@@ -103,11 +106,12 @@ export function RegisterPage() {
     }
 
     return (
-        <AbsoluteCenter className="bg-background-tertiary"> 
-            <div className="flex flex-col md:flex-row w-full max-w-7xl h-fit md:h-[90vh] bg-background-secondary rounded-2xl shadow-2xl overflow-hidden m-4">
+        <AbsoluteCenter className="bg-surface-overlay">
+           <div className="flex flex-col md:flex-row w-full max-w-7xl h-fit md:h-[90vh] bg-surface rounded-3xl shadow-2xl overflow-hidden m-4 border border-border/50">
                 
-                <div className="w-full md:w-1/2 flex justify-center items-center p-8 sm:p-12 lg:p-16">
-                    <div className="w-full max-w-md flex flex-col gap-6">
+                <div className="w-full md:w-1/2 flex justify-center items-center p-8 sm:p-12 lg:p-16 relative z-10">
+                    <div className="w-full max-w-md flex flex-col gap-4">
+                        <FormStepper currentStep={currentStep} />
                         <div>
                             <h1 className="text-primary-text text-3xl font-bold text-center mb-1">Crie sua conta médica</h1>
                             <h3 className="text-center mb-1 text-text-secondary">Junte-se a milhares de profissionais...</h3>
@@ -210,25 +214,19 @@ export function RegisterPage() {
                                                 ))}
                                             </select>
                                             <div className="absolute right-3 pointer-events-none text-text-muted">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
+                                                <ChevronDown />
                                             </div>
                                         </div>
                                         <Input
                                             id="crm"
                                             placeholder="Digite o CRM"
-                                            className="w-2/3"
+                                            className={`w-full border rounded p-2 transition-colors ${
+                                                errors.email ? 'border-danger text-danger' : 'border-default-200'
+                                            }`}
                                             value={formData.crm}
                                             onChange={handleInputChange}
                                         />
                                     </div>
-                                            
-                                    {(errors.crm || errors.state) && (
-                                        <span className="text-tiny text-danger mt-1">
-                                            {errors.crm || errors.state}
-                                        </span>
-                                    )}
                                 </FieldWrapper>
 
                                     <FieldWrapper label="RQE">
@@ -278,8 +276,29 @@ export function RegisterPage() {
                     </div>
                 </div>
 
-                <div className="hidden md:flex md:w-1/2 bg-primary">
-                    <img src={doctorImage} alt="Imagem de registro" className="h-full w-full object-cover" />
+                <div className="hidden md:flex md:w-1/2 relative bg-surface-alt items-center justify-center overflow-hidden">
+                    
+                    <div className="absolute w-[150%] h-[150%] bg-linear-to-br from-primary-color/10 via-accent-subtle/40 to-transparent rounded-full -top-20 -right-20 z-0 animate-pulse-slow"></div>
+                    
+                    <FloatingCard 
+                        className="top-20 left-10 delay-100"
+                        icon="⭐"
+                        title="4.9/5"
+                        subtitle="Avaliação Média dos Pacientes"
+                    />
+
+                    <FloatingCard 
+                        className="bottom-32 right-10 delay-300"
+                        icon="📅"
+                        title="+10k"
+                        subtitle="Consultas Agendadas"
+                    />
+
+                    <img 
+                        src={doctorImage} 
+                        alt="Médica usando tablet" 
+                        className="h-[90%] w-auto object-contain relative z-10 drop-shadow-2xl" 
+                    />
                 </div>
             
             </div>
