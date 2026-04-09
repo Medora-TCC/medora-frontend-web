@@ -1,7 +1,7 @@
 import { useState, useEffect, use } from "react";
 import { Input, Button, Separator, Select, toast } from "@heroui/react";
 import { AbsoluteCenter } from "@medora_web/shared";
-import doctorImage from '../../assets/DoctorRegisterPage.jpeg';
+import doctorImage from '../../assets/medicoSegurandoTable.png';
 import type { RegisterDoctorDto } from "../../api/dtos/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
 import { PasswordInput } from "@medora_web/shared";
@@ -187,28 +187,53 @@ export function RegisterPage() {
 
                             {currentStep === 2 && (
                                 <div className="flex flex-col gap-5 animate-appearance-in">
-                                    <div className="flex gap-2 w-full items-start">
-                                        <FieldWrapper label="UF">
-                                            <Select selectedKey={formData.state} onSelectionChange={(key) => setFormData({...formData, state: key as string})} className="w-full border rounded p-2">
+                                  <FieldWrapper label="UF e CRM">
+                                    <div className="flex gap-3 h-10">
+                                        <div className={`relative w-1/3 flex items-center border-2 rounded-xl transition-colors bg-surface ${
+                                                'border-border focus-within:border-primary-hover'
+                                            }`}>
+                                            <select
+                                                aria-label="Estado do CRM"
+                                                value={formData.state}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, state: e.target.value });
+                                                    if (errors.state) {
+                                                        setErrors((prev) => {
+                                                            const newErrors = { ...prev };
+                                                            delete newErrors.state;
+                                                            return newErrors;
+                                                        });
+                                                    }
+                                                }}
+                                                className="w-full h-full px-3 bg-transparent outline-none text-text-primary text-sm cursor-pointer appearance-none z-10"
+                                            >
                                                 {states.map((state) => (
-                                                    <option key={state.value} value={state.value}>{state.label}</option>
+                                                    <option key={state.value} value={state.value} className="bg-surface text-text-primary">
+                                                        {state.value}
+                                                    </option>
                                                 ))}
-                                            </Select>
-                                        </FieldWrapper>
-
-                                        <FieldWrapper 
-                                        label="CRM" 
-                                        >
-                                            <Input 
-                                                id="crm" 
-                                                value={formData.crm} 
-                                                onChange={handleInputChange} 
-                                                className={`w-full border rounded p-2 transition-colors ${
-                                                errors.crm ? 'border-danger text-danger' : 'border-default-200'
-                                                }`} 
-                                            />
-                                        </FieldWrapper>
+                                            </select>
+                                            <div className="absolute right-3 pointer-events-none text-text-muted">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <Input
+                                            id="crm"
+                                            placeholder="Digite o CRM"
+                                            className="w-2/3"
+                                            value={formData.crm}
+                                            onChange={handleInputChange}
+                                        />
                                     </div>
+                                            
+                                    {(errors.crm || errors.state) && (
+                                        <span className="text-tiny text-danger mt-1">
+                                            {errors.crm || errors.state}
+                                        </span>
+                                    )}
+                                </FieldWrapper>
 
                                     <FieldWrapper label="RQE">
                                         <Input 
