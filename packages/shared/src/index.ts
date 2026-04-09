@@ -6,3 +6,4 @@ export * from "./components/AbsoluteCenter";
 export * from "./components/PasswordInput";
 export * from "./components/FieldWrapper";
 export * from "./components/FormStepper";
+export * from "./components/FloatingCard";
