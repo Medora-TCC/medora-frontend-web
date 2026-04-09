@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Input } from "@heroui/react";
+import {Eye, EyeOff} from 'lucide-react';
 
 export interface PasswordRules {
     id: string;
@@ -12,7 +13,7 @@ interface PasswordInputProps {
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     label?: string;
-    error?: string;
+    hasError?: boolean;
     placeholder?: string;
     rules?: PasswordRules[];
 }
@@ -24,7 +25,7 @@ const defaultRules: PasswordRules[] = [
     { id: 'length', label: 'Mínimo de 6 caracteres', validate: (v: string) => v.length >= 6 },
 ];
 
-export function PasswordInput({ id, value, onChange, label, error, placeholder, rules = defaultRules }: PasswordInputProps) {
+export function PasswordInput({ id, value, onChange, label, hasError, placeholder, rules = defaultRules }: PasswordInputProps) {
 
     const [isVisible, setIsVisible] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -77,7 +78,11 @@ export function PasswordInput({ id, value, onChange, label, error, placeholder, 
                     onChange={handleTyping}
                     onFocus={() => setShowPopover(true)}
                     placeholder={placeholder || "Digite sua senha"}
-                    className="w-full border rounded p-2 pr-10"
+                    className={`w-full border rounded p-2 pr-10 transition-colors ${
+                        hasError 
+                            ? 'border-danger text-danger focus:border-danger' 
+                            : 'border-default-200 focus:border-primary'
+                    }`}
                 />
                 
                 <div 
@@ -85,19 +90,17 @@ export function PasswordInput({ id, value, onChange, label, error, placeholder, 
                     onClick={toggleVisibility}
                 >
                     {isVisible ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <Eye className="w-5 h-5" />
                     ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                        <EyeOff className="w-5 h-5" />
                     )}
                 </div>
             </div>
 
-            {error && <span className="text-xs text-danger mt-1">{error}</span>}
-
             {showPopover && (
                 <div 
                     className="absolute top-full mt-2 left-0 w-full z-50 p-4 bg-white border border-gray-200 rounded-xl shadow-xl animate-appearance-in cursor-pointer"
-                    onClick={() => setShowPopover(false)} // <-- A MÁGICA DE FECHAR AO CLICAR EM CIMA ESTÁ AQUI
+                    onClick={() => setShowPopover(false)}
                     title="Clique para fechar"
                 >
                     <p className="text-sm font-medium text-gray-700 mb-2">Força da senha</p>
@@ -113,7 +116,7 @@ export function PasswordInput({ id, value, onChange, label, error, placeholder, 
                     <ul className="text-xs space-y-2">
                         {evaluatedRules.map((rule) => (
                             <li key={rule.id} className={`flex items-start gap-2 transition-colors ${rule.isValid ? 'text-success' : 'text-gray-500'}`}>
-                                <span className="text-sm leading-none mt-[2px]">
+                                <span className="text-sm leading-none mt-0.5">
                                     {rule.isValid ? '✓' : '•'}
                                 </span> 
                                 <span>{rule.label}</span>
