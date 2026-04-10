@@ -1,6 +1,6 @@
-import { useState, useEffect, use } from "react";
-import { Input, Button, Separator, Select, toast } from "@heroui/react";
-import { AbsoluteCenter, FloatingCard, FormStepper } from "@medora_web/shared";
+import { useState } from "react";
+import { Input, Button, toast, ToastProvider } from "@heroui/react";
+import { FloatingCard, FormStepper } from "@medora_web/shared";
 import doctorImage from '../../assets/medicoSegurandoTable.png';
 import type { RegisterDoctorDto } from "../../api/dtos/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
@@ -106,8 +106,9 @@ export function RegisterPage() {
     }
 
     return (
-        <AbsoluteCenter className="bg-surface-overlay">
-           <div className="flex flex-col md:flex-row w-full max-w-7xl h-fit md:h-[90vh] bg-surface rounded-3xl shadow-2xl overflow-hidden m-4 border border-border/50">
+            <>
+            <ToastProvider/>
+           <div className="flex flex-col md:flex-row w-full max-w-7xl h-fit md:h-[90vh] bg-surface rounded-3xl shadow-2xl overflow-hidden m-4 border border-border/50 mx-auto">
                 
                 <div className="w-full md:w-1/2 flex justify-center items-center p-8 sm:p-12 lg:p-16 relative z-10">
                     <div className="w-full max-w-md flex flex-col gap-4">
@@ -302,6 +303,6 @@ export function RegisterPage() {
                 </div>
             
             </div>
-        </AbsoluteCenter>
+        </>
     )
 }

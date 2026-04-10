@@ -1,14 +1,15 @@
-import { Teste, ThemeProvider } from '@medora_web/shared'
+import { Layout, Teste, ThemeProvider } from '@medora_web/shared'
 import { RegisterPage } from './pages/RegiterPage/RegisterPage'
-import {  ToastProvider } from "@heroui/react";
+
 
 function App() {
   return (
     <>
       <ThemeProvider>
+        <Layout>|
         <Teste/>
         <RegisterPage/>
-        <ToastProvider />
+        </Layout>
       </ThemeProvider>
     </>
   )
