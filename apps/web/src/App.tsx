@@ -3,13 +3,16 @@ import {
   ThemeProvider,
   TelaVerificacaoEmail,
 } from "@medora_web/shared";
+import { RegisterPage } from './pages/RegiterPage/RegisterPage'
+
 
 function App() {
   return (
     <>
       <ThemeProvider>
-        <Layout>
-          <TelaVerificacaoEmail />
+        <Layout>|
+          <Teste/>
+          <RegisterPage/>
         </Layout>
       </ThemeProvider>
     </>
