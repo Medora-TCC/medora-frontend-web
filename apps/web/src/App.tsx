@@ -1,4 +1,8 @@
-import { Layout, Teste, ThemeProvider } from '@medora_web/shared'
+import {
+  Layout,
+  ThemeProvider,
+  TelaVerificacaoEmail,
+} from "@medora_web/shared";
 import { RegisterPage } from './pages/RegiterPage/RegisterPage'
 
 
@@ -7,12 +11,12 @@ function App() {
     <>
       <ThemeProvider>
         <Layout>|
-        <Teste/>
-        <RegisterPage/>
+          <Teste/>
+          <RegisterPage/>
         </Layout>
       </ThemeProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

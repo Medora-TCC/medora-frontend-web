@@ -7,3 +7,4 @@ export * from "./components/FieldWrapper";
 export * from "./components/FormStepper";
 export * from "./components/FloatingCard";
 export * from "./components/Layout";
+export * from "./pages/pages"
