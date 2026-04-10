@@ -1,5 +1,8 @@
-import { Layout, ThemeProvider } from '@medora_web/shared'
-import { TelaVerificacaoEmail } from './pages/TelaVerificacaoEmail/TelaVerificaoEmail'
+import {
+  Layout,
+  ThemeProvider,
+  TelaVerificacaoEmail,
+} from "@medora_web/shared";
 
 function App() {
   return (
@@ -10,7 +13,7 @@ function App() {
         </Layout>
       </ThemeProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
