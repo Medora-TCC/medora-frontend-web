@@ -1,3 +1,6 @@
+
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword'
+import LoginScreen from './pages/LoginScreen/LoginScreen'
 import {
   Layout,
   Teste,
@@ -5,12 +8,11 @@ import {
 } from "@medora_web/shared";
 import { RegisterPage } from './pages/RegiterPage/RegisterPage'
 
-
 function App() {
   return (
     <>
       <ThemeProvider>
-        <Layout>|
+        <Layout>
           <Teste/>
           <RegisterPage/>
         </Layout>
