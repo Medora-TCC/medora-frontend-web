@@ -1,6 +1,6 @@
 import {
   Layout,
-  Teste,
+  Maintenance,
   ThemeProvider
 } from "@medora_web/shared";
 
@@ -10,7 +10,7 @@ function App() {
     <>
       <ThemeProvider>
         <Layout>
-          <Teste />
+            <Maintenance/>
         </Layout>
       </ThemeProvider>
     </>
