@@ -1,7 +1,7 @@
 import { Button, Input, Label } from "@heroui/react";
 import { ShieldPlus } from "lucide-react";
 
-export default function ForgotPassword() {
+export function ForgotPassword() {
   return (
     <div className="h-[calc(100vh-24px)] w-full p-5 flex items-center justify-center bg-surface">
       <div className="md:w-1/2 flex flex-col h-full items-center">
