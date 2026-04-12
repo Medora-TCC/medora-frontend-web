@@ -3,5 +3,5 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-    return (<main className="min-h-screen min-w-screen antialiased lg:max-w-7xl mx-auto w-full">{children}</main>)
-}
+    return (<main className="min-h-screen min-w-screen antialiased lg:max-w-7xl mx-auto w-full bg-surface-alt flex flex-col items-center justify-center ">{children}</main>)
+}/*  */
