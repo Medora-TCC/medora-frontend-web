@@ -12,12 +12,7 @@ const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<ThemeName>(() => {
-    if (typeof window !== 'undefined') {
-      const storedTheme = localStorage.getItem('app-theme') as ThemeName;
-      if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'light';
+    return (document.documentElement.getAttribute('data-theme') as ThemeName) || 'light';
   });
 
   useEffect(() => {

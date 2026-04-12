@@ -1,16 +1,24 @@
-import { Teste, ThemeProvider } from '@medora_web/shared'
+
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword'
 import LoginScreen from './pages/LoginScreen/LoginScreen'
+import {
+  Layout,
+  Teste,
+  ThemeProvider,
+} from "@medora_web/shared";
+import { RegisterPage } from './pages/RegiterPage/RegisterPage'
 
 function App() {
   return (
     <>
       <ThemeProvider>
-        <Teste/>
-        <LoginScreen/>
+        <Layout>
+          <Teste/>
+          <RegisterPage/>
+        </Layout>
       </ThemeProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
