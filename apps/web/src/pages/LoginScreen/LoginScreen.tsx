@@ -1,6 +1,6 @@
 import { Button, Input, Label } from "@heroui/react";
 import { ShieldPlus, Stethoscope } from "lucide-react";
-import { useState } from "react";
+import { Carousel } from "@medora_web/shared";
 
 export default function LoginScreen() {
     return (
@@ -37,11 +37,39 @@ export default function LoginScreen() {
             </div>
             <div className="bg-primary-color w-1/2 rounded-xl h-full p-15 flex-col items-center gap-5 hidden md:flex">
                 <div id="login-panel-title" className="flex gap-2 h-full items-center justify-center">
-                    <Stethoscope size={100} color="#ffffff" strokeWidth={1.75}  />
+                    <Stethoscope size={100} color="#ffffff" strokeWidth={1.75} />
                     <h1 className="font-bold text-4xl text-center text-white">Portal do Médico</h1>
                 </div>
-                <div id="login-panel-content" className="h-full">
-                    <p className="text-white text-center">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Qui voluptate et, iure adipisci, dolorem autem asperiores consequatur veritatis consectetur voluptatibus esse, quis molestias. Architecto alias perferendis non veritatis quos sunt!</p>
+                <div id="login-panel-content" className="h-full flex flex-col gap-5 justify-evenly">
+                    <p className="text-white text-center text-2xl">Acesse suas consultas, teleconsultas e prontuários em um único ambiente. <span className="font-bold">Seguro, fácil e rápido</span></p>
+                    <div>
+
+                        <Carousel
+                            autoplayMs={20000}
+                            bordered={false}
+                            showControls
+                            showProgress
+                            showNav
+                            
+                        >
+                            <div className="p-8">
+                                <h2>IMAGEM DO DASHBOARD</h2>
+                                <p>IMAGEM</p>
+                            </div>
+
+                            <div className="p-8">
+                                <h2>IMAGEM DO AGENDADOR DE CONSULTAS</h2>
+                                <p>IMAGEM</p>
+                            </div>
+
+                            <div className="p-8">
+                                <h2>IMAGEM DA TELECONSULTA</h2>
+                                <p>IMAGEM</p>
+                            </div>
+
+                        </Carousel>
+
+                    </div>
                 </div>
             </div>
         </div>
