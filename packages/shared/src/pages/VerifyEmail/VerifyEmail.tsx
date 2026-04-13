@@ -2,7 +2,7 @@ import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS, Toast
 import { CircleCheckBig, MailQuestionMark } from "lucide-react";
 import { useEffect, useState } from "react"
 
-export function TelaVerificacaoEmail() {
+export function VerifyEmailScreen() {
 
     const [code, setCode] = useState("");
     const [timeLeft, setTimeLeft] = useState(60);
