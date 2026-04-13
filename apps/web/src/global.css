@@ -1,4 +1,12 @@
 @import "tailwindcss";
 @source "../../../packages/shared/src";
 
-@import "@medora_web/shared/theme.css"
+@import "@medora_web/shared/theme.css";
+
+@theme {
+  --animate-fade-in: fadeIn 1s ease-in-out;
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+};
