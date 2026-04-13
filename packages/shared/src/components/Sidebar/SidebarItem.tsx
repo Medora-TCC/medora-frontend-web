@@ -14,15 +14,15 @@ export function SidebarItem({ icon: Icon, label, children, isActive }: SidebarIt
   const hasChildren = !!children;
 
   return (
-    <div className="px-3 w-full overflow-hidden">
+    <div 
+    className="px-3 w-full overflow-hidden"
+    onMouseLeave={() => setIsOpen(false)}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
           w-full flex items-center p-3 rounded-lg transition-all
           ${isActive 
-            /* Quando ativo, usamos um fundo sutil e o texto da cor primária para destacar sem pesar */
-            ? 'bg-primary-subtle text-primary-text' 
-            /* Quando inativo, usamos texto secundário e um fundo "raised" no hover */
+            ? 'bg-primary-subtle text-primary-text'
             : 'text-text-secondary hover:bg-surface-raised hover:text-text-primary'
           }
         `}
@@ -46,7 +46,7 @@ export function SidebarItem({ icon: Icon, label, children, isActive }: SidebarIt
               ml-auto transition-all duration-300
               md:opacity-0 md:group-hover:opacity-100
               max-md:opacity-100 
-              ${isOpen ? 'rotate-180' : ''}
+              ${isOpen ? 'rotate-180' : 'rotate-0'}
             `} 
           />
         )}
