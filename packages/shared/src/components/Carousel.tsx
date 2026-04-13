@@ -1,4 +1,5 @@
-import { Children, ReactNode, useRef } from "react";
+import { Children } from "react";
+import type { ReactNode } from "react";
 import { useCarousel } from "./useCarousel";
 import { Pause, Play, ChevronLeft, ChevronRight } from "lucide-react";
 
