@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { type ReactNode } from "react";
 
 interface SidebarFooterProps {
   children: ReactNode;
@@ -6,7 +6,7 @@ interface SidebarFooterProps {
 
 export function SidebarFooter({ children }: SidebarFooterProps) {
   return (
-    <div className="mt-auto p-4 border-t border-white/5 overflow-hidden shrink-0">
+    <div className="mt-auto p-4 border-t border-border overflow-hidden shrink-0">
       {children}
     </div>
   );

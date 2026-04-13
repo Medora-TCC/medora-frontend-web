@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactNode, ElementType } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface SidebarItemProps {
-  icon: React.ElementType;
+  icon: ElementType;
   label: string;
   children?: ReactNode;
   isActive?: boolean;
@@ -19,7 +19,12 @@ export function SidebarItem({ icon: Icon, label, children, isActive }: SidebarIt
         onClick={() => setIsOpen(!isOpen)}
         className={`
           w-full flex items-center p-3 rounded-lg transition-all
-          ${isActive ? 'bg-[#2b2b40] text-white' : 'text-gray-400 hover:bg-[#2b2b40] hover:text-white'}
+          ${isActive 
+            /* Quando ativo, usamos um fundo sutil e o texto da cor primária para destacar sem pesar */
+            ? 'bg-primary-subtle text-primary-text' 
+            /* Quando inativo, usamos texto secundário e um fundo "raised" no hover */
+            : 'text-text-secondary hover:bg-surface-raised hover:text-text-primary'
+          }
         `}
       >
         <div className="flex items-center justify-center w-8 shrink-0">
@@ -28,9 +33,7 @@ export function SidebarItem({ icon: Icon, label, children, isActive }: SidebarIt
         
         <span className={`
           text-sm font-medium transition-all duration-300 whitespace-nowrap
-          
           md:ml-0 md:opacity-0 md:group-hover:ml-4 md:group-hover:opacity-100
-          
           max-md:ml-4 max-md:opacity-100
         `}>
           {label}

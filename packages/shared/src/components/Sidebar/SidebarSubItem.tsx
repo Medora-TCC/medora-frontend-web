@@ -1,6 +1,7 @@
+import type { ElementType } from 'react';
 
 interface SidebarSubItemProps {
-  icon?: React.ElementType;
+  icon?: ElementType;
   label: string;
   href?: string;
 }
@@ -10,7 +11,7 @@ export function SidebarSubItem({ icon: Icon, label, href }: SidebarSubItemProps)
     <a
       href={href}
       className="flex items-center gap-3 py-2 pl-12 pr-4 
-      text-sm text-gray-400 hover:text-white transition-colors"
+      text-sm text-text-muted hover:text-text-primary hover:bg-surface-raised rounded-md transition-colors"
     >
       {Icon && <Icon size={18} />}
       <span>{label}</span>

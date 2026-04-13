@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface SidebarHeaderProps {
   children: ReactNode;
@@ -6,8 +6,7 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ children }: SidebarHeaderProps) {
   return (
-    <div className="flex items-center h-20 
-    px-6 overflow-hidden shrink-0 border-b border-white/5">
+    <div className="flex items-center h-20 px-6 overflow-hidden shrink-0 border-b border-border">
       {children}
     </div>
   );

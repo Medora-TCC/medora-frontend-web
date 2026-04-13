@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sidebar, SidebarToggle, ThemeProvider, Layout } from '@medora_web/shared'
+import { Sidebar, SidebarToggle, ThemeProvider, Layout, Teste } from '@medora_web/shared'
 import { 
   LayoutDashboard, 
   Users, 
@@ -7,7 +7,6 @@ import {
   MessageSquare, 
   Settings, 
   LogOut,
-  ChevronRight,
   Stethoscope,
   ClipboardList,
   UserCircle
@@ -20,7 +19,11 @@ function App() {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
+    <>
+    
+    
     <ThemeProvider>
+      <Teste />
       <Layout>
         <div className="flex min-h-screen w-full bg-[#151521] overflow-x-hidden font-sans">
           
@@ -84,32 +87,34 @@ function App() {
 
           </Sidebar.Root>
 
-          <main className="flex-1 flex flex-col min-w-0">
-            <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 bg-[#1e1e2d]/30 backdrop-blur-md sticky top-0 z-30">
-              <h1 className="text-xl font-semibold text-white">Dashboard de Visão Geral</h1>
-              <div className="hidden md:flex items-center gap-4 text-sm text-gray-400">
+          <main className="flex-1 flex flex-col min-w-0 bg-surface">
+            <header className="h-20 flex items-center justify-between px-8 border-b border-border bg-surface/80 backdrop-blur-md sticky top-0 z-30">
+              <h1 className="text-xl font-semibold text-text-primary">Dashboard de Visão Geral</h1>
+              <div className="hidden md:flex items-center gap-4 text-sm text-text-muted">
                 <span>12 de Abril, 2024</span>
               </div>
             </header>
 
             <div className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="h-32 bg-[#1e1e2d] rounded-2xl border border-white/5 p-6 shadow-sm">
-                   <p className="text-gray-500 text-sm">Consultas de Hoje</p>
-                   <p className="text-white text-3xl font-bold mt-2">14</p>
+                <div className="h-32 bg-surface-alt rounded-2xl border border-border p-6 shadow-sm">
+                   <p className="text-text-secondary text-sm">Consultas de Hoje</p>
+                   <p className="text-text-primary text-3xl font-bold mt-2">14</p>
                 </div>
-                <div className="h-32 bg-[#1e1e2d] rounded-2xl border border-white/5 p-6 shadow-sm">
-                   <p className="text-gray-500 text-sm">Pacientes Novos</p>
-                   <p className="text-white text-3xl font-bold mt-2">08</p>
+
+                <div className="h-32 bg-surface-alt rounded-2xl border border-border p-6 shadow-sm">
+                   <p className="text-text-secondary text-sm">Pacientes Novos</p>
+                   <p className="text-text-primary text-3xl font-bold mt-2">08</p>
                 </div>
-                <div className="h-32 bg-[#1e1e2d] rounded-2xl border border-white/5 p-6 shadow-sm">
-                   <p className="text-gray-500 text-sm">Pendências</p>
-                   <p className="text-white text-3xl font-bold mt-2">03</p>
+
+                <div className="h-32 bg-surface-alt rounded-2xl border border-border p-6 shadow-sm">
+                   <p className="text-text-secondary text-sm">Pendências</p>
+                   <p className="text-text-primary text-3xl font-bold mt-2">03</p>
                 </div>
               </div>
 
-              <div className="mt-8 h-96 bg-[#1e1e2d] rounded-2xl border border-white/5 p-6 shadow-sm flex items-center justify-center">
-                 <p className="text-gray-600 italic">Área de gráficos e tabelas do healthConnect...</p>
+              <div className="mt-8 h-96 bg-surface-alt rounded-2xl border border-border p-6 shadow-sm flex items-center justify-center">
+                 <p className="text-text-muted italic">Área de gráficos e tabelas do healthConnect...</p>
               </div>
             </div>
           </main>
@@ -117,6 +122,7 @@ function App() {
         </div>
       </Layout>
     </ThemeProvider>
+    </>
   );
 }
 
