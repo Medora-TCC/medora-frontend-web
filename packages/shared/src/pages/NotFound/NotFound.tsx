@@ -1,4 +1,5 @@
 import notFoundIcon from "../../assets/notFound.svg";
+import { useNavigate } from "react-router";
 import { Button } from "@heroui/react";
 
 interface NotFoundProps {
@@ -6,7 +7,9 @@ interface NotFoundProps {
 }
 
 export function NotFound() {
-  //   const navigate = useNavigate();
+
+  const navigate = useNavigate();
+
   return (
     <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4 mx-2 md:p-8 md:mx-0 flex flex-col gap-4 items-center text-center">
       <img
@@ -21,7 +24,7 @@ export function NotFound() {
         <p className="text-muted-foreground opacity-80 leading-relaxed">
           O recurso que você buscou não foi encontrado.
         </p>
-        <Button className="mx-auto" size="lg">Voltar para home</Button>
+        <Button className="mx-auto" size="lg" onClick={() => navigate("/")}>Voltar para home</Button>
       </div>
     </div>
   );
