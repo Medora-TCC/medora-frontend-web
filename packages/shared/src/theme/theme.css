@@ -1,116 +1,184 @@
-@import "@heroui/styles"; 
+@import "@heroui/styles";
 
-:root {
-  --surface: #ffffff;
-  --surface-alt: #f8fafc;
-  --surface-raised: #f1f5f9;
-  --surface-overlay: #e2e8f0;
+/* ============================================================
+   THEME.CSS — HeroUI v3 Custom Theme
+   Marca: #2563eb (Azul)  |  Fundo escuro: #121212  |  Fundo claro: #ffffff
+   
+   Referência de variáveis HeroUI v3:
+   https://heroui.com/docs/react/getting-started/colors
 
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-inverse: #ffffff;
+   Para converter cores HEX → oklch: https://oklch.com
+   ============================================================ */
 
-  --border: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --ring: #2563eb40;
+/* ------------------------------------------------------------
+   TEMA CLARO (padrão)
+   ------------------------------------------------------------ */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
 
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-subtle: #eff6ff;
-  --primary-text: #1e40af;
+  /* Background & Surface
+     Fundo base branco, superfícies com leve elevação neutra */
+  --background:         oklch(1.00 0.000 0);       /* #ffffff */
+  --foreground:         oklch(0.20 0.020 264);      /* cinza-azulado escuro */
 
-  --accent: #0d9488;
-  --accent-hover: #0f766e;
-  --accent-subtle: #f0fdfa;
-  --accent-text: #0f766e;
+  --surface:            oklch(0.97 0.005 264);      /* #f5f7fa — card/panel */
+  --surface-foreground: oklch(0.20 0.020 264);
 
-  --success: #16a34a;
-  --success-subtle: #f0fdf4;
-  --success-text: #15803d;
+  --overlay:            oklch(0.93 0.010 264);      /* dropdown, popover */
+  --overlay-foreground: oklch(0.20 0.020 264);
 
-  --warning: #f59e0b;
-  --warning-subtle: #fffbeb;
-  --warning-text: #92400e;
+  /* Accent — Cor da marca (#2563eb)
+     oklch aproximado: L=0.51 C=0.24 H=264 */
+  --accent:             oklch(0.51 0.240 264);      /* #2563eb */
+  --accent-foreground:  oklch(1.00 0.000 0);        /* branco */
+  --accent-soft:        oklch(0.94 0.060 264);      /* azul bem clarinho */
+  --accent-soft-foreground: oklch(0.38 0.180 264);  /* texto sobre fundo suave */
 
-  --danger: #dc2626;
-  --danger-subtle: #fef2f2;
-  --danger-text: #991b1b;
+  /* Default — Cor neutra para botões/badges secundários */
+  --default:            oklch(0.91 0.008 264);
+  --default-foreground: oklch(0.30 0.020 264);
+
+  /* Muted — texto apagado, placeholders */
+  --muted:              oklch(0.60 0.015 264);
+
+  /* Border / Focus / Link */
+  --border:             oklch(0.87 0.012 264);
+  --focus:              oklch(0.51 0.240 264);      /* mesmo que accent */
+  --link:               oklch(0.51 0.240 264);
+
+  /* Backdrop (modal overlay) */
+  --backdrop:           oklch(0.00 0.000 0 / 0.40);
+
+  /* Scrollbar */
+  --scrollbar:          oklch(0.82 0.010 264);
+
+  /* Form Fields */
+  --field-background:   oklch(1.00 0.000 0);
+  --field-foreground:   oklch(0.20 0.020 264);
+  --field-placeholder:  oklch(0.65 0.015 264);
+  --field-border:       oklch(0.82 0.015 264);
+
+  /* Status — Success */
+  --success:            oklch(0.53 0.150 155);      /* verde */
+  --success-foreground: oklch(1.00 0.000 0);
+
+  /* Status — Warning */
+  --warning:            oklch(0.72 0.170 65);       /* âmbar */
+  --warning-foreground: oklch(0.20 0.020 65);
+
+  /* Status — Danger */
+  --danger:             oklch(0.56 0.215 25);       /* vermelho */
+  --danger-foreground:  oklch(1.00 0.000 0);
 }
 
+
+/* ------------------------------------------------------------
+   TEMA ESCURO
+   Fundo base: #121212 → oklch(0.11 0.000 0)
+   ------------------------------------------------------------ */
+.dark,
 [data-theme="dark"] {
-  --surface: #0F172A;
-  --surface-alt: #1E293B;
-  --surface-raised: #334155;
-  --surface-overlay: #475569;
+  color-scheme: dark;
 
-  --text-primary: #F1F5F9;
-  --text-secondary: #CBD5E1;
-  --text-muted: #64748B;
-  --text-inverse: #0F172A;
+  /* Background & Surface
+     Camadas com leve elevação sobre o fundo #121212 */
+  --background:         oklch(0.11 0.000 0);        /* #121212 */
+  --foreground:         oklch(0.93 0.010 264);      /* quase branco azulado */
 
-  --border: #334155;
-  --border-hover: #475569;
-  --ring: #60A5FA40;
+  --surface:            oklch(0.15 0.008 264);      /* card/panel */
+  --surface-foreground: oklch(0.93 0.010 264);
 
-  --primary: #60A5FA;
-  --primary-hover: #93C5FD;
-  --primary-subtle: #1E3A8A30;
-  --primary-text: ##93C5FD;
+  --overlay:            oklch(0.19 0.012 264);      /* dropdown, popover */
+  --overlay-foreground: oklch(0.93 0.010 264);
 
-  --accent: #2DD4BF;
-  --accent-hover: #5EEAD4;
-  --accent-subtle: #0F766E20;
-  --accent-text: #5EEAD4;
+  /* Accent — versão clara do azul para contraste no escuro
+     Azul mais vibrante: #60a5fa → oklch(0.71 0.19 264) */
+  --accent:             oklch(0.68 0.185 264);      /* azul claro vibrante */
+  --accent-foreground:  oklch(0.10 0.010 264);      /* escuro para contraste */
+  --accent-soft:        oklch(0.22 0.070 264);      /* fundo suave azul */
+  --accent-soft-foreground: oklch(0.75 0.150 264);
 
-  --success: #FBBF24;
-  --success-subtle: #4ADE80;
-  --success-text: #86EFAC;
+  /* Default */
+  --default:            oklch(0.24 0.012 264);
+  --default-foreground: oklch(0.88 0.010 264);
 
-  --warning: #f59e0b;
-  --warning-subtle: #fffbeb;
-  --warning-text: #FDE68A;
+  /* Muted */
+  --muted:              oklch(0.50 0.015 264);
 
-  --danger: #F87171;
-  --danger-subtle: #DC262620;
-  --danger-text: #FCA5A5;
+  /* Border / Focus / Link */
+  --border:             oklch(0.28 0.015 264);
+  --focus:              oklch(0.68 0.185 264);
+  --link:               oklch(0.72 0.170 264);
+
+  /* Backdrop */
+  --backdrop:           oklch(0.00 0.000 0 / 0.60);
+
+  /* Scrollbar */
+  --scrollbar:          oklch(0.30 0.010 264);
+
+  /* Form Fields */
+  --field-background:   oklch(0.15 0.008 264);
+  --field-foreground:   oklch(0.93 0.010 264);
+  --field-placeholder:  oklch(0.48 0.015 264);
+  --field-border:       oklch(0.30 0.018 264);
+
+  /* Status — Success */
+  --success:            oklch(0.70 0.160 155);
+  --success-foreground: oklch(0.10 0.020 155);
+
+  /* Status — Warning */
+  --warning:            oklch(0.80 0.155 65);
+  --warning-foreground: oklch(0.15 0.020 65);
+
+  /* Status — Danger */
+  --danger:             oklch(0.68 0.205 25);
+  --danger-foreground:  oklch(0.10 0.010 25);
 }
 
 
-@theme {
-  --color-surface: var(--surface);
-  --color-surface-alt: var(--surface-alt);
-  --color-surface-raised: var(--surface-raised);
-  --color-surface-overlay: var(--surface-overlay);
+/* ------------------------------------------------------------
+   MAPEAMENTO PARA TAILWIND CSS v4
+   Expõe as variáveis como classes utilitárias (bg-*, text-*, etc.)
+   ------------------------------------------------------------ */
+@theme inline {
+  /* Background & Surface */
+  --color-background:         var(--background);
+  --color-foreground:         var(--foreground);
+  --color-surface:            var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-overlay:            var(--overlay);
+  --color-overlay-foreground: var(--overlay-foreground);
 
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  --color-text-inverse: var(--text-inverse);
+  /* Accent (marca) */
+  --color-accent:                  var(--accent);
+  --color-accent-foreground:       var(--accent-foreground);
+  --color-accent-soft:             var(--accent-soft);
+  --color-accent-soft-foreground:  var(--accent-soft-foreground);
 
-  --color-border: var(--border);
-  --color-border-hover: var(--border-hover);
-  --color-ring: var(--ring);
+  /* Default / Muted */
+  --color-default:            var(--default);
+  --color-default-foreground: var(--default-foreground);
+  --color-muted:              var(--muted);
 
-  --color-primary-color: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-subtle: var(--primary-subtle);
-  --color-primary-text: var(--primary-text);
+  /* Utilitários */
+  --color-border:             var(--border);
+  --color-focus:              var(--focus);
+  --color-link:               var(--link);
+  --color-backdrop:           var(--backdrop);
+  --color-scrollbar:          var(--scrollbar);
 
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-subtle: var(--accent-subtle);
-  --color-accent-text: var(--accent-text);
+  /* Form Fields */
+  --color-field-background:   var(--field-background);
+  --color-field-foreground:   var(--field-foreground);
+  --color-field-placeholder:  var(--field-placeholder);
+  --color-field-border:       var(--field-border);
 
-  --color-success: var(--success);
-  --color-success-subtle: var(--success-subtle);
-  --color-success-text: var(--success-text);
-
-  --color-warning: var(--warning);
-  --color-warning-subtle: var(--warning-subtle);
-  --color-warning-text: var(--warning-text);
-
-  --color-danger: var(--danger);
-  --color-danger-subtle: var(--danger-subtle);
-  --color-danger-text: var(--danger-text);
+  /* Status */
+  --color-success:            var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning:            var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger:             var(--danger);
+  --color-danger-foreground:  var(--danger-foreground);
 }
