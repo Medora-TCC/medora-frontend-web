@@ -13,7 +13,7 @@ function App() {
         <Layout>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<h1></h1>}/>
+              <Route path="/" />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
