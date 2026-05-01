@@ -5,11 +5,11 @@ import {
 } from 'lucide-react';
 import { 
   Button,
-  Card,
   Accordion,
   AccordionItem,
   Chip 
 } from '@heroui/react';
+import { FloatingCard } from '../../components/FloatingCard';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -79,22 +79,25 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className="max-w-6xl mx-auto py-24 px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard 
-              icon={<ShieldCheck className="text-blue-600"/>} 
+        <section className="max-w-6xl mx-auto py-24 px-6 md:h-80">
+          <div className="relative w-full h-full flex flex-col md:flex-row gap-6 md:gap-0 justify-center items-center">
+            <FloatingCard 
+              className="md:relative static -rotate-6 hover:rotate-0 hover:z-30 transition-transform cursor-pointer md:-top-4 shadow-xl"
+              icon={<ShieldCheck className="text-primary"/>} 
               title="Segurança Máxima"
-              desc="Prontuários criptografados e armazenamento em nuvem seguindo padrões internacionais."
+              subtitle="Prontuários criptografados e seguros."
             />
-            <FeatureCard 
-              icon={<Zap className="text-amber-500"/>} 
+            <FloatingCard 
+              className="md:relative static z-10 scale-110 hover:z-30 transition-transform cursor-pointer shadow-2xl"
+              icon={<Zap className="text-accent"/>} 
               title="Agilidade no Fluxo"
-              desc="Interface intuitiva que reduz em 40% o tempo de preenchimento de documentos."
+              subtitle="Preencha documentos mais rápido."
             />
-            <FeatureCard 
-              icon={<Users className="text-emerald-600"/>} 
+            <FloatingCard 
+              className="md:relative static rotate-6 hover:rotate-0 hover:z-30 transition-transform cursor-pointer md:top-4 shadow-xl"
+              icon={<Users className="text-success"/>} 
               title="Foco no Paciente"
-              desc="Histórico completo acessível em um clique para um diagnóstico mais preciso."
+              subtitle="Passe tempo com quem importa."
             />
           </div>
         </section>
@@ -137,20 +140,4 @@ export function HomePage() {
       </footer>
     </div>
   );
-};
-
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
 }
-
-const FeatureCard = ({ icon, title, desc }: FeatureCardProps) => (
-  <Card className="border-none bg-white hover:bg-white/90 transition-all shadow-sm hover:shadow-xl p-8 flex flex-col items-start gap-4">
-    <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-primary-50 transition-colors">
-      {icon}
-    </div>
-    <h4 className="text-xl font-bold">{title}</h4>
-    <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
-  </Card>
-);
