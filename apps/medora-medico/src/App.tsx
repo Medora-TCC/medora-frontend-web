@@ -1,4 +1,4 @@
-import { ThemeProvider, Layout, NotFound, HomePage, AuthLayout } from "@medora_web/shared";
+import { ThemeProvider, Layout, NotFound, HomePage } from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
