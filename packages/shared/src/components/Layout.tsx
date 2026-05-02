@@ -1,7 +1,9 @@
-interface LayoutProps {
-    children: React.ReactNode;
-}
+import { Outlet } from "react-router";
 
-export function Layout({ children }: LayoutProps) {
-    return (<main className="min-h-screen min-w-screen antialiased lg:max-w-7xl mx-auto w-full bg-surface-alt flex flex-col items-center justify-center ">{children}</main>)
-}/*  */
+export function Layout() {
+ return (
+    <div className="min-h-screen w-full bg-surface text-text-primary flex items-center justify-center antialiased selection:bg-primary-subtle selection:text-primary-text">
+       <Outlet />
+    </div>
+  );
+}
