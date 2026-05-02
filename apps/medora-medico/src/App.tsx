@@ -15,13 +15,14 @@ function App() {
           <BrowserRouter>
           <Routes>
           <Route element={<MainLayout />}>
-            <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
             <Route path="/" element={<AvailabilityPage />} />
             <Route path="*" element={<NotFound />} />
-            <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
+            
           </Route>
 
           <Route element={<Layout />}>
+          <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
+          <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
             <Route path="/login" element={<LoginScreen />} />
             <Route path="/cadastro" element={<RegisterPage />} />
           </Route>
