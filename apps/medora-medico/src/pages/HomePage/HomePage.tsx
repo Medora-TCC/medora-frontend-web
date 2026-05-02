@@ -9,7 +9,7 @@ import {
   AccordionItem,
   Chip 
 } from '@heroui/react';
-import { FloatingCard } from '../../components/FloatingCard';
+import { FloatingCard } from '../../../../../packages/shared/src/components/FloatingCard';
 
 export function HomePage() {
   const navigate = useNavigate();
