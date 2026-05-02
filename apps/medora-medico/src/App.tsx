@@ -13,11 +13,11 @@ function App() {
           <BrowserRouter>
           <Routes>
           <Route element={<Layout />}>
-            <Route path="politica-de-privacidade" element={<PrivacyPolicyPage />} />
+            <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
             <Route path="/" element={<HomePage />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/cadastro" element={<RegisterPage />} />
-            <Route path="termos-de-uso" element={<TermsOfUsePage />} />
+            <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
             <Route path="/login" element={<LoginScreen />} />
           </Route>
         </Routes>
