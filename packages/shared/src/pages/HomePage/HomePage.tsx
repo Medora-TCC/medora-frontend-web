@@ -36,8 +36,7 @@ export function HomePage() {
         </div>
       </nav>
 
-      
-
+  
       <main>
         <section className="relative px-6 pt-24 pb-16 text-center overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-primary-50/50 via-transparent to-transparent -z-10" />
@@ -58,8 +57,9 @@ export function HomePage() {
           </p>
 
           <div className="flex gap-4 justify-center">
-            <Button className="bg-slate-900 text-white px-8">Começar Agora</Button>
-            <Button variant="outline" className="border-slate-200">Ver Demonstração</Button>
+            <Button 
+            className="bg-slate-900 text-white px-8"
+            onPress={() => navigate('/cadastro')}>Começar Agora</Button>
           </div>
         </section>
 
@@ -127,9 +127,10 @@ export function HomePage() {
             <p className="text-sm">Transformando a gestão em saúde através da tecnologia.</p>
           </div>
           <div className="flex flex-col gap-2 text-sm">
-            <p className="text-white font-semibold mb-2">Links</p>
-            <a href="#" className="hover:text-primary-400">Privacidade</a>
-            <a href="#" className="hover:text-primary-400">Termos de Uso</a>
+            <p className="text-white font-semibold mb-2"
+            >Links</p>
+            <a href="/politica-de-privacidade" className="hover:text-primary-400">Privacidade</a>
+            <a href="/termos-de-uso" className="hover:text-primary-400">Termos de Uso</a>
           </div>
           <div className="text-sm">
             <p className="text-white font-semibold mb-2">Contato</p>
