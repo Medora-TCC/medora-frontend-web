@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
@@ -7,16 +7,21 @@ import { useState } from "react";
 
 export default function MainLayout() {
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
   
+  const hideSidebar = location.pathname === '/' || location.pathname === '/home';
+
   return (
     <div className="flex h-screen overflow-hidden bg-surface text-text-primary antialiased selection:bg-primary-subtle selection:text-primary-text">
-      <SidebarToggle isOpen={isSidebarOpen} onOpen={toggleSidebar} />
+      {!hideSidebar && (
+        <>
+          <SidebarToggle isOpen={isSidebarOpen} onOpen={toggleSidebar} />
 
-      <Sidebar.Root isOpen={isSidebarOpen} onClose={closeSidebar}>
+          <Sidebar.Root isOpen={isSidebarOpen} onClose={closeSidebar}>
             
             <Sidebar.Header>
               <div className="flex items-center gap-3">
@@ -31,26 +36,30 @@ export default function MainLayout() {
             </Sidebar.Header>
 
             <div className="flex-1 py-4">
-              <Sidebar.Section title="Principal" />
-              <Sidebar.Item icon={LayoutDashboard} label="Dashboard" isActive />
-              <Sidebar.Item icon={Calendar} label="Agenda Médica" />
-              
-              <Sidebar.Section title="Gestão" />
-              <Sidebar.Item icon={Users} label="Pacientes">
-                <Sidebar.SubItem label="Listagem Geral" href="/pacientes" />
-                <Sidebar.SubItem label="Prontuários" href="/prontuarios" />
-                <Sidebar.SubItem label="Novo Cadastro" href="/pacientes/novo" />
-              </Sidebar.Item>
+                <Sidebar.Section title="Principal" />
+                <Sidebar.Item icon={LayoutDashboard} label="Dashboard" isActive />
+                <Sidebar.Section title="Agenda" />
+                    <Sidebar.Item icon={Users} label="Disponibilidade">
+                    <Sidebar.SubItem label="Cadastrar Disponibilidade" href="/agenda" />
+                    <Sidebar.SubItem label="Histórico" href="/agenda/historico" />
+                </Sidebar.Item>
+                
 
-              <Sidebar.Item icon={ClipboardList} label="Consultas">
-                <Sidebar.SubItem label="Hoje" href="/consultas/hoje" />
-                <Sidebar.SubItem label="Histórico" href="/consultas/historico" />
-              </Sidebar.Item>
+                <Sidebar.Section title="Gestão" />
+                    <Sidebar.Item icon={Users} label="Pacientes">
+                    <Sidebar.SubItem label="Listagem Geral" href="/pacientes" />
+                    <Sidebar.SubItem label="Prontuários" href="/prontuarios" />
+                    <Sidebar.SubItem label="Novo Cadastro" href="/pacientes/novo" />
+                </Sidebar.Item>
 
-              <Sidebar.Item icon={MessageSquare} label="Mensagens" />
-              
-              <Sidebar.Section title="Configurações" />
-              <Sidebar.Item icon={Settings} label="Ajustes" />
+                <Sidebar.Item icon={ClipboardList} label="Consultas">
+                    <Sidebar.SubItem label="Hoje" href="/consultas/hoje" />
+                    <Sidebar.SubItem label="Histórico" href="/consultas/historico" />
+                </Sidebar.Item>
+
+                <Sidebar.Item icon={MessageSquare} label="Mensagens" />
+                <Sidebar.Section title="Configurações" />
+                <Sidebar.Item icon={Settings} label="Ajustes" />
             </div>
 
             <Sidebar.Footer>
@@ -73,6 +82,8 @@ export default function MainLayout() {
             </Sidebar.Footer>
 
           </Sidebar.Root>
+        </>
+      )}
     
     
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
