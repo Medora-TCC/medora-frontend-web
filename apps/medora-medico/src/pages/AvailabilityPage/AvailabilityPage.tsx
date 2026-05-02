@@ -3,6 +3,7 @@ import { Card, toast, ToastProvider } from '@heroui/react';
 import { Clock, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
 import { Button, Input } from '@medora_web/shared';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
+import { useNavigate } from 'react-router';
 
 export default function AvailabilityPage() {
   const [startTime, setStartTime] = useState('08:00');
@@ -13,6 +14,7 @@ export default function AvailabilityPage() {
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [generatedSlots, setGeneratedSlots] = useState<string[]>([]);
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
+  const navigate = useNavigate();
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDayData, setEditingDayData] = useState<any>(null);
@@ -303,7 +305,7 @@ export default function AvailabilityPage() {
         <div className="mt-6 flex justify-center">
             <Button 
               className="bg-transparent text-(--primary) border border-(--primary) hover:bg-primary-50 w-full md:w-auto"
-              onClick={() => console.log('Navegar para Gestão de Agenda')}
+                onClick={() => navigate('/agenda/historico')}   
             >
               Ver agenda completa e editar horários &rarr;
             </Button>
