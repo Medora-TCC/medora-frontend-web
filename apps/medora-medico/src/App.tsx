@@ -4,7 +4,7 @@ import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
 import LoginScreen from "./pages/LoginScreen/LoginScreen";
 import {RegisterPage} from "./pages/RegisterPage/RegisterPage";
-
+import { MedicalRecordPage } from "./pages/MedicalRecordPage/MedicalRecordPage";
 
 function App() {
   return (
@@ -18,6 +18,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
             <Route path="/cadastro" element={<RegisterPage />} />
             <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
+            <Route path="/prontuario" element={<MedicalRecordPage />} />
             <Route path="/login" element={<LoginScreen />} />
           </Route>
         </Routes>
