@@ -4,6 +4,7 @@ import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
 import LoginScreen from "./pages/LoginScreen/LoginScreen";
 import {RegisterPage} from "./pages/RegisterPage/RegisterPage";
+import Dashboard from "./pages/Dashboard/Dashboard";
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
             <Route path="/cadastro" element={<RegisterPage />} />
             <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
             <Route path="/login" element={<LoginScreen />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Route>
         </Routes>
           </BrowserRouter>
