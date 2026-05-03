@@ -9,14 +9,12 @@ import {
   Chip 
 } from '@heroui/react';
 import { FloatingCard } from '../../../../../packages/shared/src/components/FloatingCard';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
+
 export function HomePage() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-neutral-50 text-slate-900 selection:bg-primary-100 selection:text-primary-700 w-full">
-      <Navbar />
       <main>
         <section className="relative px-6 pt-24 pb-16 text-center overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-primary-50/50 via-transparent to-transparent -z-10" />
@@ -100,7 +98,6 @@ export function HomePage() {
         </section>
       </main>
 
-      <Footer />
     </div>
   );
 }
