@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Card, toast, ToastProvider } from '@heroui/react';
+import { Card, toast, ToastProvider, Button } from '@heroui/react';
 import { Clock, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
-import { Button, Input } from '@medora_web/shared';
+import { Input } from '@medora_web/shared';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
-import { useNavigate } from 'react-router';
 
 export default function AvailabilityPage() {
   const [startTime, setStartTime] = useState('08:00');
@@ -14,7 +13,6 @@ export default function AvailabilityPage() {
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [generatedSlots, setGeneratedSlots] = useState<string[]>([]);
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
-  const navigate = useNavigate();
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDayData, setEditingDayData] = useState<any>(null);
@@ -181,7 +179,7 @@ export default function AvailabilityPage() {
           
           <Button 
             onClick={handleGenerateSlots}
-            className="w-full md:w-auto flex items-center justify-center gap-2 mt-4"
+            className="w-full md:w-auto flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] transition-all"
           >
             <Clock size={20} />
             Gerar Template de Horários
@@ -223,7 +221,7 @@ export default function AvailabilityPage() {
 
           <div className="flex justify-end pt-4">
             <Button 
-              className="w-full md:w-auto bg-(--primary) text-white flex items-center justify-center gap-2"
+              className="w-full md:w-auto bg-(--primary) text-white flex items-center justify-center gap-2 hover:scale-[1.02] hover:opacity-90 transition-all"
               onClick={handleSave}
             >
               <CheckCircle2 size={20} />
@@ -277,16 +275,22 @@ export default function AvailabilityPage() {
 
               <div className="flex justify-end items-center gap-2 pt-2 border-t border-default-100 pl-2">
                 <Button 
-                    className="p-2 min-w-0 h-auto bg-transparent text-primary hover:bg-primary-50 rounded"
+                    isIconOnly
+                    variant="ghost"
+                    className="text-primary hover:bg-primary/20 hover:scale-105 transition-all"
                     onClick={() => {
                         setEditingDayData(item);
                         setIsEditModalOpen(true);
                     }}
                 >
-                    <Pencil size={16} />
+                    <Pencil size={18} />
                 </Button>
-                <Button className="p-2 min-w-0 h-auto bg-transparent text-danger hover:bg-danger-50 rounded">
-                    <Trash2 size={16} />
+                <Button 
+                    isIconOnly
+                    variant="ghost"
+                    className="text-danger hover:bg-danger-soft-hover hover:scale-105 transition-all"
+                >
+                    <Trash2 size={18} />
                 </Button>
               </div>
             </Card>
@@ -305,7 +309,7 @@ export default function AvailabilityPage() {
         <div className="mt-6 flex justify-center">
             <Button 
               className="bg-transparent text-(--primary) border border-(--primary) hover:bg-primary-50 w-full md:w-auto"
-                onClick={() => navigate('/agenda/historico')}   
+              onClick={() => console.log('Navegar para Gestão de Agenda')}
             >
               Ver agenda completa e editar horários &rarr;
             </Button>
