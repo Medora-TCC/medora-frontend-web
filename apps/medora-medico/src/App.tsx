@@ -6,8 +6,8 @@ import LoginScreen from "./pages/LoginScreen/LoginScreen";
 import {RegisterPage} from "./pages/RegisterPage/RegisterPage";
 import { HomePage } from "./pages/HomePage/HomePage";
 import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
-import AvailabilityHistorical from "./pages/AvailabilityPage/AvailabilityHistorical";
 import MainLayout from "./components/MainLayout/MainLayout";
+import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilityHistorical";
 
 function App() {
   return (
@@ -16,9 +16,10 @@ function App() {
           <BrowserRouter>
           <Routes>
           <Route element={<MainLayout />}>
-            <Route path="/agenda" element={<AvailabilityPage />} />
-            <Route path="/agenda/historico" element={<AvailabilityHistorical />} />
-            <Route path="/" element={<HomePage />} />
+          <Route path="/agenda" element={< AvailabilityPage />} />
+          <Route path="/agenda/historico" element={< AvailabilityHistorical />} />
+            <Route path="/" element={< HomePage  />} />
+            
             
           </Route>
 
