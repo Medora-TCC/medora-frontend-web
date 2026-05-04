@@ -5,6 +5,7 @@ import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
 import LoginScreen from "./pages/LoginScreen/LoginScreen";
 import {RegisterPage} from "./pages/RegisterPage/RegisterPage";
+import Dashboard from "./pages/Dashboard/Dashboard";
 import { HomePage } from "./pages/HomePage/HomePage";
 import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
 import MainLayout from "./components/MainLayout/MainLayout";
@@ -21,6 +22,7 @@ function App() {
                 <Route path="/agenda/historico" element={< AvailabilityHistorical />} />
          
                 <Route path="consulta" element={<ConsultaScreen/>} />
+                <Route path="/dashboard" element={<Dashboard />} />
               </Route>
 
               <Route element={<Layout />}>
@@ -31,7 +33,6 @@ function App() {
                   <Route path="/cadastro" element={<RegisterPage />} />
                   <Route path="/" element={< HomePage  />} />
               </Route>
-              
              </Routes>
           </BrowserRouter>
       </ThemeProvider>
