@@ -10,6 +10,7 @@ import { HomePage } from "./pages/HomePage/HomePage";
 import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
 import MainLayout from "./components/MainLayout/MainLayout";
 import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilityHistorical";
+import { MedicalRecordPage } from "./pages/MedicalRecordPage/MedicalRecordPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
          
                 <Route path="consulta" element={<ConsultaScreen/>} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/prontuario" element={<MedicalRecordPage />} />
               </Route>
 
               <Route element={<Layout />}>

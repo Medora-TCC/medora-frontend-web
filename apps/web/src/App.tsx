@@ -10,14 +10,14 @@ function App() {
   return (
     <>
       <ThemeProvider>
-        <Layout>
-          <BrowserRouter>
-            <Routes>
+        <BrowserRouter>
+          <Routes >
+            <Route element={<Layout />}>
               <Route path="/" />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </Layout>
+            </Route>
+          </Routes>
+        </BrowserRouter>
       </ThemeProvider>
     </>
   );

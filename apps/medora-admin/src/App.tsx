@@ -5,14 +5,13 @@ function App() {
   return (
     <>
       <ThemeProvider>
-        <Layout>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/"/>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </Layout>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}></Route>
+            <Route path="/" />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
       </ThemeProvider>
     </>
   )
