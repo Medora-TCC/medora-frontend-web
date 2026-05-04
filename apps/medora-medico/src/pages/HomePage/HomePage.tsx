@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router';
-import { 
-  Activity, 
-  ShieldCheck, Zap, Users, ChevronRight 
+import {  
+  ShieldCheck, Zap, Users 
 } from 'lucide-react';
 import { 
   Button,
@@ -9,34 +8,13 @@ import {
   AccordionItem,
   Chip 
 } from '@heroui/react';
-import { FloatingCard } from '../../components/FloatingCard';
+import { FloatingCard } from '../../../../../packages/shared/src/components/FloatingCard';
 
 export function HomePage() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-neutral-50 text-slate-900 selection:bg-primary-100 selection:text-primary-700 w-full">
-      
-      <nav className="flex justify-between items-center p-6 bg-white/70 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-200">
-        <div className="flex items-center gap-2">
-          <Activity className="w-8 h-8 text-primary-600" />
-          <h1 className="text-2xl font-bold text-primary-900">Medora</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onPress={() => navigate('/sobre')} className="hidden sm:flex">
-            Conheça a Solução
-          </Button>
-          <Button 
-            variant="primary"
-            className="bg-primary-600 text-white shadow-lg shadow-primary-200" 
-            onPress={() => navigate('/login')}
-          >
-            Acessar Sistema <ChevronRight size={16}/>
-          </Button>
-        </div>
-      </nav>
-
-  
       <main>
         <section className="relative px-6 pt-24 pb-16 text-center overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-primary-50/50 via-transparent to-transparent -z-10" />
@@ -58,8 +36,11 @@ export function HomePage() {
 
           <div className="flex gap-4 justify-center">
             <Button 
-            className="bg-slate-900 text-white px-8"
+            className="bg-slate-900 text-white px-8 hover:bg-slate-800"
             onPress={() => navigate('/cadastro')}>Começar Agora</Button>
+            <Button 
+            className="bg-slate-500 text-white px-8 hover:bg-slate-600"
+            onPress={() => navigate('/login')}>Já tenho uma conta</Button>
           </div>
         </section>
 
@@ -117,28 +98,6 @@ export function HomePage() {
         </section>
       </main>
 
-      <footer className="bg-slate-950 text-slate-400 py-16 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 border-b border-slate-800 pb-12 mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Activity className="w-6 h-6 text-primary-500" />
-              <span className="text-white font-bold text-xl">Medora</span>
-            </div>
-            <p className="text-sm">Transformando a gestão em saúde através da tecnologia.</p>
-          </div>
-          <div className="flex flex-col gap-2 text-sm">
-            <p className="text-white font-semibold mb-2"
-            >Links</p>
-            <a href="/politica-de-privacidade" className="hover:text-primary-400">Privacidade</a>
-            <a href="/termos-de-uso" className="hover:text-primary-400">Termos de Uso</a>
-          </div>
-          <div className="text-sm">
-            <p className="text-white font-semibold mb-2">Contato</p>
-            <p>contato@medora.com.br</p>
-          </div>
-        </div>
-        <p className="text-center text-xs tracking-widest">© 2026 MEDORA - CURITIBA/PR</p>
-      </footer>
     </div>
   );
 }
