@@ -8,7 +8,7 @@ const mockConsulta: IConsulta = {
     pacienteId: "pac-123",
     pacienteNome: "João Silva",
     medicoId: "med-456",
-    dataHorario: "2026-05-10T14:00:00.000Z",
+    dataHorario: "2026-05-13T14:00:00.000Z",
     status: "agendado",
     observacoes: "Paciente com histórico de hipertensão",
     tags: ["hipertensão", "retorno"],

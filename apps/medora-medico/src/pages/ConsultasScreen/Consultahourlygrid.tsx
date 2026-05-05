@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Avatar, Button, Chip } from "@heroui/react";
 import { Video } from "lucide-react";
 import type { IConsulta, StatusConsulta } from "@medora_web/shared";
+import openConsultaModal from "./ConsultaModal";
 
 // ─── Re-usa helpers e config do projeto ────────────────────────────────────────
 
@@ -114,6 +115,8 @@ interface ConsultaHourlyGridProps {
   /** Hora final do grid (padrão 20) */
   endHour?: number;
   /** Duração padrão em minutos quando não informada na consulta (padrão 30) */
+  startDay?: number;
+  endDay?: number;
   defaultDuration?: number;
   onEntrar: (id: string) => void;
 }
@@ -124,6 +127,8 @@ export function ConsultaHourlyGrid({
   consultas,
   startHour = 7,
   endHour = 20,
+  startDay = 1,
+  endDay = 5,
   defaultDuration = DEFAULT_DURATION_MIN,
   onEntrar,
 }: ConsultaHourlyGridProps) {
@@ -131,9 +136,15 @@ export function ConsultaHourlyGrid({
     () => Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i),
     [startHour, endHour],
   );
+  const WEEK_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  const days = useMemo(
+    () => WEEK_DAYS.slice(startDay, endDay + 1),
+    [startDay, endDay],
+  );
 
   const totalH = hours.length * ROW_H;
-  const totalW = hours.length * COL_W;
+  const totalW = days.length * COL_W;
 
   // Filtra consultas que estão dentro do range de horas visível
   const visible = useMemo(
@@ -159,7 +170,7 @@ export function ConsultaHourlyGrid({
   const nowLeft  = ((nowMin - startMin) / 60) * COL_W;
 
   return (
-    <div className="w-screen overflow-x-auto rounded-xl border border-border bg-surface">
+    <div className="max-w-screen overflow-x-auto rounded-xl border border-border bg-surface">
       <div style={{ minWidth: LABEL_W + totalW }}>
 
         {/* ── Header de horas ─────────────────────────────── */}
@@ -169,13 +180,13 @@ export function ConsultaHourlyGrid({
             className="shrink-0 border-r border-border"
             style={{ width: LABEL_W }}
           />
-          {hours.map((h) => (
+          {days.map((day) => (
             <div
-              key={h}
+              key={day}
               className="shrink-0 flex items-center justify-center text-xs text-fg-muted border-r border-border last:border-r-0"
               style={{ width: COL_W, height: 36 }}
             >
-              {String(h).padStart(2, "0")}:00
+              {day}
             </div>
           ))}
         </div>
@@ -204,7 +215,7 @@ export function ConsultaHourlyGrid({
 
             {/* Grade de fundo zebrada */}
             <div className="absolute inset-0 flex pointer-events-none">
-              {hours.map((_, i) => (
+              {days.map((_, i) => (
                 <div
                   key={i}
                   className={`shrink-0 border-r border-border/40 ${
@@ -247,20 +258,24 @@ export function ConsultaHourlyGrid({
               const cfg       = statusBlock[c.status];
               const chipCfg   = statusCfg[c.status];
               const { col, totalCols } = layout[c.id];
-              const colW      = (totalW - 4) / totalCols;
-              const left      = ((startM - startMin) / 60) * COL_W + col * colW + 2;
+              const colW      = COL_W / totalCols;
+              // const left      = ((startM - startMin) / 60) * COL_W + col * colW + 2;
               const entrar    = canEnter(c);
               const tall      = height >= 48;
+              const date      = new Date(c.dataHorario)
+              const dateDay   = date.getDay();
+              const left = (dateDay - 1)  * COL_W + col * colW + 2;
 
               return (
                 <div
                   key={c.id}
                   className={`
                     absolute rounded-lg border overflow-hidden
-                    transition-opacity hover:opacity-90
+                    transition-opacity hover:opacity-90 cursor-pointer
                     ${cfg.bg} ${cfg.border}
                     ${entrar ? "ring-1 ring-success/50 shadow-sm" : ""}
                   `}
+                  onClick={() => openConsultaModal(c)}
                   style={{
                     top:    top,
                     left,
@@ -280,7 +295,7 @@ export function ConsultaHourlyGrid({
                       <span
                         className={`text-[11px] font-medium truncate leading-tight ${cfg.text}`}
                       >
-                        {c.pacienteNome}
+                        {c.pacienteNome} {WEEK_DAYS[dateDay]}
                       </span>
                     </div>
 

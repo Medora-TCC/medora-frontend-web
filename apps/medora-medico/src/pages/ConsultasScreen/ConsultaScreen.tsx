@@ -17,6 +17,7 @@ import type { ITeleConsulta, StatusConsulta } from "@medora_web/shared"
 import { fetchConsultas } from "./Consulta";
 import { Calendar, RotateCcw,  Video } from "lucide-react";
 import { ConsultaHourlyGrid } from "./Consultahourlygrid";
+import openConsultaModal from "./ConsultaModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
@@ -100,6 +101,7 @@ function ConsultaCard({
 
   return (
     <Card
+    onClick={() => openConsultaModal(consulta)}
       className={`
         transition-all duration-300 shadow-md h-60
         ${entrar
@@ -254,7 +256,7 @@ export function TeleconsultaScreen() {
   ];
 
   return (
-    <div className="min-h-screen min-w-screen bg-surface">
+    <div className="min-h-screen max-w-screen bg-surface">
       <div className="px-4 py-8 flex flex-col gap-6">
         {/* ── Header ───────────────────────────────────── */}
         <div className="flex items-start justify-between gap-4">
