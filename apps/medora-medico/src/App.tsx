@@ -25,6 +25,7 @@ function App() {
                 <Route path="consulta" element={<ConsultaScreen/>} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/prontuario" element={<MedicalRecordPage />} />
+                <Route path="/" element={< HomePage  />} />
               </Route>
 
               <Route element={<Layout />}>
@@ -33,7 +34,7 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                   <Route path="/login" element={<LoginScreen />} />
                   <Route path="/cadastro" element={<RegisterPage />} />
-                  <Route path="/" element={< HomePage  />} />
+                  
               </Route>
              </Routes>
           </BrowserRouter>
