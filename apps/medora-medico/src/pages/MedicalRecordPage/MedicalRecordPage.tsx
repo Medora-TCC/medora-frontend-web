@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, toast, ToastProvider } from "@heroui/react";
 import { ArrowRight } from "lucide-react";
 import { ModalConfirmacao } from "@medora_web/shared";
+import { Editor } from "../../components/RichTextEditor/Editor";
 
 export function MedicalRecordPage() {
   const paciente = {
@@ -38,7 +39,7 @@ export function MedicalRecordPage() {
   };
 
   return (
-    <section className="w-full min-h-screen max-h-screen bg-surface overflow-hidden flex flex-col">
+    <section className="w-full max-h-[95vh] min-h-full bg-surface overflow-hidden flex flex-col">
       <ToastProvider
         maxVisibleToasts={1}
         placement="bottom end"
@@ -46,15 +47,11 @@ export function MedicalRecordPage() {
       />
       <section className="w-full px-6 py-4 shrink-0 shadow-md z-10 font-semibold">
         <section className="flex flex-col">
-          <span className="text-[20px] truncate">
-            {paciente.nome}
-          </span>
+          <span className="text-[20px] truncate">{paciente.nome}</span>
 
           <div className="flex flex-row gap-2">
             <span className="">{paciente.idade}</span>
-            <span className="">
-              Nascimento: {paciente.dataNascimento}
-            </span>
+            <span className="">Nascimento: {paciente.dataNascimento}</span>
           </div>
         </section>
       </section>
@@ -86,7 +83,7 @@ export function MedicalRecordPage() {
             ))}
           </div>
         </section>
-        <section className="flex-1 flex flex-col bg-gray-50 overflow-hidden py-4 pb-4">
+        <section className="flex-1 flex flex-col bg-gray-50 py-4 pb-4">
           <div className="flex justify-between px-4 pt-2 pb-4">
             <h2 className="text-2xl font-bold text-gray-700">
               Novo prontuário
@@ -96,15 +93,9 @@ export function MedicalRecordPage() {
               texto="Deseja mesmo salvar? ATENÇÃO: Após salvo o prontuário não pode mais ser alterado"
             />
           </div>
-          <textarea
-            name="novoProntuario"
-            id="novoProntuario"
-            aria-label="Escreva o novo prontuário médico aqui"
-            value={novoProntuario}
-            onChange={(e) => setNovoProntuario(e.target.value)}
-            placeholder="Descreva as observações clínicas do paciente..."
-            className="flex-1 w-full bg-white border border-gray-300 rounded-xl p-4 resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-300 transition-shadow text-gray-700"
-          />
+          <div className="h-[80%] max-h-[80%]">
+            <Editor />
+          </div>
         </section>
       </section>
     </section>

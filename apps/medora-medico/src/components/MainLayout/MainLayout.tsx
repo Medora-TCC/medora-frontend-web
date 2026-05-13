@@ -14,6 +14,7 @@ export default function MainLayout() {
   const closeSidebar = () => setIsSidebarOpen(false);
   
   const hideSidebar = location.pathname === '/' || location.pathname === '/home';
+  const hideFooter = location.pathname === '/prontuario';
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface text-text-primary antialiased selection:bg-primary-subtle selection:text-primary-text">
@@ -93,7 +94,7 @@ export default function MainLayout() {
             <Outlet />
           </main>
 
-          <Footer />
+          {!hideFooter && <Footer />}
         </div>
     </div>
   );
