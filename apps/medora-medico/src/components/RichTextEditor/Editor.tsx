@@ -45,12 +45,7 @@ export function Editor(): JSX.Element {
         <div className=" h-full w-full overflow-hidden">
           <RichTextPlugin
             contentEditable={
-              <ContentEditable className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll" />
-            }
-            placeholder={
-              <div className="absolute top-4 left-4 text-slate-400 pointer-events-none">
-                Comece a escrever…
-              </div>
+              <ContentEditable className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll" aria-label="Digite o prontuário" />
             }
             ErrorBoundary={LexicalErrorBoundary}
           />

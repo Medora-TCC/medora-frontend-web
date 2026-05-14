@@ -37,17 +37,17 @@ import {
   List,
   ListOrdered,
 } from "lucide-react";
- 
+
 type BlockType = "h1" | "h2" | "h3" | "paragraph" | "bullet" | "number";
 type Alignment = "left" | "center" | "right";
- 
+
 interface ToolbarButtonProps {
   onClick: () => void;
   active?: boolean;
   title: string;
   children: React.ReactNode;
 }
- 
+
 function ToolbarButton({ onClick, active = false, title, children }: ToolbarButtonProps) {
   return (
     <button
@@ -72,7 +72,7 @@ function ToolbarButton({ onClick, active = false, title, children }: ToolbarButt
     </button>
   );
 }
- 
+
 function Separator() {
   return (
     <div
@@ -81,16 +81,16 @@ function Separator() {
     />
   );
 }
- 
+
 export function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
- 
+
   const [isBold, setIsBold] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
   const [isStrikethrough, setIsStrikethrough] = useState(false);
   const [blockType, setBlockType] = useState<BlockType>("paragraph");
   const [alignment, setAlignment] = useState<Alignment>("left");
- 
+
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return;
@@ -104,7 +104,7 @@ export function ToolbarPlugin() {
       anchorNode.getKey() === "root"
         ? anchorNode
         : anchorNode.getTopLevelElementOrThrow();
- 
+
     if ($isListNode(element)) {
       const listType = element.getListType();
       setBlockType(listType === "bullet" ? "bullet" : "number");
@@ -125,7 +125,7 @@ export function ToolbarPlugin() {
     else if (fmt === 3) setAlignment("right");
     else setAlignment("left");
   }, []);
- 
+
   useEffect(() => {
     return mergeRegister(
       editor.registerUpdateListener(({ editorState }) => {
@@ -141,16 +141,16 @@ export function ToolbarPlugin() {
       ),
     );
   }, [editor, updateToolbar]);
- 
+
   const formatBold = () =>
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
- 
+
   const formatUnderline = () =>
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
- 
+
   const formatStrikethrough = () =>
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough");
- 
+
   const formatHeading = (tag: HeadingTagType | "paragraph") => {
     editor.update(() => {
       const selection = $getSelection();
@@ -162,7 +162,7 @@ export function ToolbarPlugin() {
       }
     });
   };
- 
+
   const toggleList = (type: "bullet" | "number") => {
     if (blockType === type) {
       editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
@@ -188,17 +188,17 @@ export function ToolbarPlugin() {
       <ToolbarButton onClick={formatBold} active={isBold} title="Negrito (Ctrl+B)">
         <Bold size={15} strokeWidth={2.5} />
       </ToolbarButton>
- 
+
       <ToolbarButton onClick={formatUnderline} active={isUnderline} title="Sublinhado (Ctrl+U)">
         <Underline size={15} strokeWidth={2.5} />
       </ToolbarButton>
- 
+
       <ToolbarButton onClick={formatStrikethrough} active={isStrikethrough} title="Tachado">
         <Strikethrough size={15} strokeWidth={2.5} />
       </ToolbarButton>
- 
+
       <Separator />
- 
+
       <ToolbarButton
         onClick={() => blockType === "h1" ? formatHeading("paragraph") : formatHeading("h1")}
         active={blockType === "h1"}
@@ -206,7 +206,7 @@ export function ToolbarPlugin() {
       >
         <Heading1 size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <ToolbarButton
         onClick={() => blockType === "h2" ? formatHeading("paragraph") : formatHeading("h2")}
         active={blockType === "h2"}
@@ -214,7 +214,7 @@ export function ToolbarPlugin() {
       >
         <Heading2 size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <ToolbarButton
         onClick={() => blockType === "h3" ? formatHeading("paragraph") : formatHeading("h3")}
         active={blockType === "h3"}
@@ -222,7 +222,7 @@ export function ToolbarPlugin() {
       >
         <Heading3 size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <ToolbarButton
         onClick={() => formatHeading("paragraph")}
         active={blockType === "paragraph"}
@@ -230,9 +230,9 @@ export function ToolbarPlugin() {
       >
         <Pilcrow size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <Separator />
- 
+
       <ToolbarButton
         onClick={() => toggleList("bullet")}
         active={blockType === "bullet"}
@@ -240,7 +240,7 @@ export function ToolbarPlugin() {
       >
         <List size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <ToolbarButton
         onClick={() => toggleList("number")}
         active={blockType === "number"}
@@ -248,9 +248,9 @@ export function ToolbarPlugin() {
       >
         <ListOrdered size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <Separator />
- 
+
       <ToolbarButton
         onClick={() => formatAlign("left")}
         active={alignment === "left"}
@@ -258,7 +258,7 @@ export function ToolbarPlugin() {
       >
         <AlignLeft size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <ToolbarButton
         onClick={() => formatAlign("center")}
         active={alignment === "center"}
@@ -266,7 +266,7 @@ export function ToolbarPlugin() {
       >
         <AlignCenter size={15} strokeWidth={2} />
       </ToolbarButton>
- 
+
       <ToolbarButton
         onClick={() => formatAlign("right")}
         active={alignment === "right"}
