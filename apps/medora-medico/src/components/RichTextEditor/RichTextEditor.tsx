@@ -6,9 +6,10 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode } from "@lexical/rich-text";
-import { useEffect, useRef, useState, type JSX } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import { ToolbarPlugin } from "./ToolbarPlugin";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { $getRoot } from "lexical";
 
 const theme = {
   text: {
@@ -31,14 +32,15 @@ function onError(error: Error): void {
   console.error(error);
 }
 
-export function RichTextEditor(): JSX.Element {
+interface RichTextProps {
+  setText: (e: string) => void;
+  setIsEmpty: (e: boolean) => void;
+}
 
-  const [text, setText] = useState<string>("")
-
-  useEffect(() => {
-    console.log(text);
-  }, [text])
-
+export function RichTextEditor({
+  setText,
+  setIsEmpty,
+}: RichTextProps): JSX.Element {
   const initialConfig = {
     namespace: "EditorProntuario",
     theme: theme,
@@ -53,13 +55,16 @@ export function RichTextEditor(): JSX.Element {
         <div className=" h-full w-full overflow-hidden">
           <RichTextPlugin
             contentEditable={
-              <ContentEditable className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll" aria-label="Digite o prontuário" />
+              <ContentEditable
+                className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll"
+                aria-label="Digite o prontuário"
+              />
             }
             ErrorBoundary={LexicalErrorBoundary}
           />
           <HistoryPlugin />
           <ListPlugin />
-          <GetContentPlugin onChange={setText} />
+          <GetContentPlugin onChange={setText} setIsEmpty={setIsEmpty} />
         </div>
       </div>
     </LexicalComposer>
@@ -67,14 +72,13 @@ export function RichTextEditor(): JSX.Element {
 }
 
 export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
-
   const initialConfig = {
     namespace: "MedicalRecordViewer",
     theme: theme,
     onError,
     nodes: [HeadingNode, ListNode, ListItemNode],
-    editable: false
-  }
+    editable: false,
+  };
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
@@ -88,23 +92,26 @@ export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
         <LoadContentPlugin json={json} />
       </div>
     </LexicalComposer>
-  )
+  );
 }
 
 function LoadContentPlugin({ json }: { json: string }): null {
-
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
     const editorState = editor.parseEditorState(json);
     editor.setEditorState(editorState);
-  }, [editor, json])
+  }, [editor, json]);
 
   return null;
 }
 
-function GetContentPlugin({ onChange }: { onChange: (text: string) => void }): null {
+interface GetContentProps {
+  onChange: (text: string) => void;
+  setIsEmpty: (e: boolean) => void;
+}
 
+function GetContentPlugin({ onChange, setIsEmpty }: GetContentProps): null {
   const [editor] = useLexicalComposerContext();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -115,9 +122,14 @@ function GetContentPlugin({ onChange }: { onChange: (text: string) => void }): n
       timerRef.current = setTimeout(() => {
         const json = JSON.stringify(editorState.toJSON());
         onChange(json);
-      }, 5000);
-    })
-  }, [editor, onChange])
+
+        editorState.read(() => {
+          const root = $getRoot();
+          setIsEmpty(root.getTextContent().trim() === "")
+        })
+      }, 2000);
+    });
+  }, [editor, onChange]);
 
   return null;
 }
