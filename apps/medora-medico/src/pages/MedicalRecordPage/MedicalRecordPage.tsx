@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, toast, ToastProvider } from "@heroui/react";
 import { ArrowRight } from "lucide-react";
 import { ModalConfirmacao } from "@medora_web/shared";
-import { Editor } from "../../components/RichTextEditor/Editor";
+import { RichTextEditor } from "../../components/RichTextEditor/RichTextEditor";
 
 export function MedicalRecordPage() {
   const paciente = {
@@ -88,13 +88,15 @@ export function MedicalRecordPage() {
             <h2 className="text-2xl font-bold text-gray-700">
               Novo prontuário
             </h2>
+          </div>
+          <div className="h-[78%] max-h-[78%] overflow-hidden">
+            <RichTextEditor />
+          </div>
+          <div className="mt-4 p-4 w-full flex justify-end ">
             <ModalConfirmacao
               onConfirm={SalvarProntuario}
               texto="Deseja mesmo salvar? ATENÇÃO: Após salvo o prontuário não pode mais ser alterado"
             />
-          </div>
-          <div className="h-[78%] max-h-[78%] overflow-hidden">
-            <Editor />
           </div>
         </section>
       </section>
