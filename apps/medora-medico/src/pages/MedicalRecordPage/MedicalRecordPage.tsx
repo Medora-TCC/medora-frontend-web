@@ -39,7 +39,7 @@ export function MedicalRecordPage() {
   };
 
   return (
-    <section className="w-full max-h-[95vh] min-h-full bg-surface overflow-hidden flex flex-col">
+    <section className="w-full max-h-[90vh] min-h-full bg-surface overflow-hidden flex flex-col">
       <ToastProvider
         maxVisibleToasts={1}
         placement="bottom end"
@@ -93,7 +93,7 @@ export function MedicalRecordPage() {
               texto="Deseja mesmo salvar? ATENÇÃO: Após salvo o prontuário não pode mais ser alterado"
             />
           </div>
-          <div className="h-[80%] max-h-[80%]">
+          <div className="h-[78%] max-h-[78%] overflow-hidden">
             <Editor />
           </div>
         </section>

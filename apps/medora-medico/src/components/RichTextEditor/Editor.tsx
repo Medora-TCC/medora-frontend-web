@@ -40,12 +40,12 @@ export function Editor(): JSX.Element {
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="flex h-full border border-slate-200 rounded-2xl overflow-hidden shadow-sm mx-4">
+      <div className="flex flex-col h-full border border-slate-200 p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
         <ToolbarPlugin />
-        <div className=" h-full w-full overflow-y-scroll">
+        <div className=" h-full w-full overflow-hidden">
           <RichTextPlugin
             contentEditable={
-              <ContentEditable className="h-full p-4 outline-none bg-white text-slate-800 overflow-y-scroll" />
+              <ContentEditable className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll" />
             }
             placeholder={
               <div className="absolute top-4 left-4 text-slate-400 pointer-events-none">

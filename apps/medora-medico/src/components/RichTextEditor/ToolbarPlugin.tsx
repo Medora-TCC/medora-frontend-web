@@ -183,7 +183,7 @@ export function ToolbarPlugin() {
     <div
       role="toolbar"
       aria-label="Opções de formatação"
-      className="flex h-fit items-center gap-0.5 px-2 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm w-fit absolute"
+      className="flex h-fit items-center gap-0.5 px-2 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm w-fit"
     >
       <ToolbarButton onClick={formatBold} active={isBold} title="Negrito (Ctrl+B)">
         <Bold size={15} strokeWidth={2.5} />
