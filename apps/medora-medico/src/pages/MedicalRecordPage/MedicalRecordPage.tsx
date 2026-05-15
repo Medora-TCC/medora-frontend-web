@@ -13,7 +13,7 @@ export function MedicalRecordPage() {
   const [prontuariosAnteriores, setProntuariosAnteriores] = useState<
     MedicalRecordDTO[]
   >([]);
-  const [text, setText] = useState<string>();
+  const [text, setText] = useState<string>("");
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
 
   const paciente = {
@@ -38,10 +38,8 @@ export function MedicalRecordPage() {
     load();
   }, []);
 
-  const [novoProntuario, setNovoProntuario] = useState("");
-
   const SalvarProntuario = () => {
-    if (!novoProntuario.trim()) {
+    if (!text.trim()) {
       toast.danger("O prontuário não pode estar vazio!");
       return;
     }
@@ -55,7 +53,7 @@ export function MedicalRecordPage() {
       },
     );
 
-    setNovoProntuario("");
+    setText("");
   };
 
   return (
@@ -84,7 +82,7 @@ export function MedicalRecordPage() {
             </h2>
           </div>
 
-          <div className="flex flex-col gap-4 p-2 overflow-y-auto w-full md:w-80">
+          {isLoading ? <></> : <div className="flex flex-col gap-4 p-2 overflow-y-auto w-full md:w-80">
             {prontuariosAnteriores.map((prontuario) => (
               <div
                 key={prontuario.id}
@@ -102,6 +100,8 @@ export function MedicalRecordPage() {
               </div>
             ))}
           </div>
+
+          }
         </section>
         <section className="flex-1 flex flex-col bg-gray-50 py-4 pb-4">
           <div className="flex justify-between px-4 pt-2 pb-4">
