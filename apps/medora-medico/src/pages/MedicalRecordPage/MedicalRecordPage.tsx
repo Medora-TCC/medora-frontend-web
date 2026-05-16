@@ -25,29 +25,46 @@ export function MedicalRecordPage() {
     dataNascimento: "12/12/1970",
   };
 
+  const load = async () => {
+    setIsLoading(true);
+    try {
+      setProntuariosAnteriores(await fetchProntuarios());
+    } catch (e: unknown) {
+      console.log(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      try {
-        setProntuariosAnteriores(await fetchProntuarios());
-      } catch (e: unknown) {
-        console.log(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+
 
     load();
   }, []);
 
-  const SalvarProntuario = () => {
+  const SalvarProntuario = async () => {
     if (text.length < 1) {
       toast.danger("O prontuário não pode estar vazio!");
       return;
     }
 
+    const novoProntuario: Omit<MedicalRecordDTO, "id"> = {
+      tipoConsulta: "Consulta cardiológica",
+      pacientId: "pac-123",
+      doctorId: "doc-456",
+      medicalRecord: text,
+      date: new Date().toLocaleDateString('pt-BR', {
+        timeZone: 'America/Sao_Paulo'
+      }),
+      status: "Finalizado"
+    }
+
     toast.promise(
-      new Promise((resolve) => setTimeout(() => resolve("Ok"), 2000)),
+      fetch("/api/prontuario", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoProntuario)
+      }).then(() => load()),
       {
         error: "Falha ao salvar.",
         loading: "Salvando...",
@@ -56,8 +73,6 @@ export function MedicalRecordPage() {
     );
 
     editorRef.current?.clear();
-
-    console.log(text)
 
     setText("");
   };
