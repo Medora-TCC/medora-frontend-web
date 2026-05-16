@@ -1,5 +1,5 @@
 import ConsultaScreen from './pages/ConsultasScreen/ConsultaScreen';
-import { ThemeProvider, Layout, NotFound} from "@medora_web/shared";
+import { ThemeProvider, Layout, NotFound, Teste} from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
@@ -9,7 +9,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import { HomePage } from "./pages/HomePage/HomePage";
 import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
 import MainLayout from "./components/MainLayout/MainLayout";
-import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilityHistorical";
+import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilitySchedule";
 import { MedicalRecordPage } from "./pages/MedicalRecordPage/MedicalRecordPage";
 
 function App() {
@@ -19,13 +19,14 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route element={<MainLayout />}>
-                <Route path="/agenda" element={< AvailabilityPage />} />
-                <Route path="/agenda/historico" element={< AvailabilityHistorical />} />
+                <Route path="/cadastro-horarios" element={< AvailabilityPage />} />
+                <Route path="/agenda" element={< AvailabilityHistorical />} />
          
                 <Route path="consulta" element={<ConsultaScreen/>} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/prontuario" element={<MedicalRecordPage />} />
                 <Route path="/" element={< HomePage  />} />
+                
               </Route>
 
               <Route element={<Layout />}>
