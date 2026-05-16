@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, toast, ToastProvider } from "@heroui/react";
 import { ArrowRight } from "lucide-react";
 import { ModalConfirmacao } from "@medora_web/shared";
-import { RichTextEditor } from "../../components/RichTextEditor/RichTextEditor";
+import { RichTextEditor, type RichTextEditorRef } from "../../components/RichTextEditor/RichTextEditor";
 import { type MedicalRecordDTO } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
 import { fetchProntuarios } from "./MedicalRecord";
 
@@ -15,6 +15,8 @@ export function MedicalRecordPage() {
   >([]);
   const [text, setText] = useState<string>("");
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
+
+  const editorRef = useRef<RichTextEditorRef>(null);
 
   const paciente = {
     id: "pac-123",
@@ -39,7 +41,7 @@ export function MedicalRecordPage() {
   }, []);
 
   const SalvarProntuario = () => {
-    if (!text.trim()) {
+    if (text.length < 1) {
       toast.danger("O prontuário não pode estar vazio!");
       return;
     }
@@ -52,6 +54,10 @@ export function MedicalRecordPage() {
         success: "Salvo com sucesso!",
       },
     );
+
+    editorRef.current?.clear();
+
+    console.log(text)
 
     setText("");
   };
@@ -110,7 +116,7 @@ export function MedicalRecordPage() {
             </h2>
           </div>
           <div className="h-[78%] max-h-[78%] overflow-hidden">
-            <RichTextEditor setText={setText} setIsEmpty={setIsEmpty} />
+            <RichTextEditor ref={editorRef} setText={setText} setIsEmpty={setIsEmpty} />
           </div>
           <div className="mt-4 p-4 w-full flex justify-end ">
             <ModalConfirmacao

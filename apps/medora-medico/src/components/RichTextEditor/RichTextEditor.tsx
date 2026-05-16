@@ -6,10 +6,10 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode } from "@lexical/rich-text";
-import { useEffect, useRef, type JSX } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, type JSX } from "react";
 import { ToolbarPlugin } from "./ToolbarPlugin";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $getRoot } from "lexical";
+import { $createParagraphNode, $getRoot } from "lexical";
 
 const theme = {
   text: {
@@ -32,44 +32,51 @@ function onError(error: Error): void {
   console.error(error);
 }
 
+export interface RichTextEditorRef {
+  clear: () => void;
+}
+
 interface RichTextProps {
   setText: (e: string) => void;
   setIsEmpty: (e: boolean) => void;
 }
 
-export function RichTextEditor({
-  setText,
-  setIsEmpty,
-}: RichTextProps): JSX.Element {
-  const initialConfig = {
-    namespace: "EditorProntuario",
-    theme: theme,
-    onError,
-    nodes: [HeadingNode, ListNode, ListItemNode],
-  };
+export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
+  ({ setText, setIsEmpty }, ref) => {
 
-  return (
-    <LexicalComposer initialConfig={initialConfig}>
-      <div className="flex flex-col h-full border border-slate-200 p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
-        <ToolbarPlugin />
-        <div className=" h-full w-full overflow-hidden">
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable
-                className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll"
-                aria-label="Digite o prontuário"
-              />
-            }
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <HistoryPlugin />
-          <ListPlugin />
-          <GetContentPlugin onChange={setText} setIsEmpty={setIsEmpty} />
+    const internalRef = ref as React.RefObject<RichTextEditorRef>;
+
+    const initialConfig = {
+      namespace: "EditorProntuario",
+      theme: theme,
+      onError,
+      nodes: [HeadingNode, ListNode, ListItemNode],
+    };
+
+    return (
+      <LexicalComposer initialConfig={initialConfig}>
+        <div className="flex flex-col h-full border border-slate-200 p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
+          <ToolbarPlugin />
+          <div className=" h-full w-full overflow-hidden">
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable
+                  className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll"
+                  aria-label="Digite o prontuário"
+                />
+              }
+              ErrorBoundary={LexicalErrorBoundary}
+            />
+            <HistoryPlugin />
+            <ListPlugin />
+            <GetContentPlugin onChange={setText} setIsEmpty={setIsEmpty} />
+            <ClearPlugin editorRef={internalRef} />
+          </div>
         </div>
-      </div>
-    </LexicalComposer>
-  );
-}
+      </LexicalComposer>
+    );
+  }
+)
 
 export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
   const initialConfig = {
@@ -93,6 +100,22 @@ export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
       </div>
     </LexicalComposer>
   );
+}
+
+function ClearPlugin({ editorRef }: { editorRef: React.RefObject<RichTextEditorRef> }) {
+  const [editor] = useLexicalComposerContext();
+
+  useImperativeHandle(editorRef, () => ({
+    clear: () => {
+      editor.update(() => {
+        const root = $getRoot();
+        root.clear();
+        root.append($createParagraphNode())
+      })
+    }
+  }));
+
+  return null;
 }
 
 function LoadContentPlugin({ json }: { json: string }): null {
@@ -127,7 +150,7 @@ function GetContentPlugin({ onChange, setIsEmpty }: GetContentProps): null {
           const root = $getRoot();
           setIsEmpty(root.getTextContent().trim() === "")
         })
-      }, 2000);
+      }, 1000);
     });
   }, [editor, onChange]);
 
