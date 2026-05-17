@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Spinner, toast, ToastProvider } from "@heroui/react";
-import { ArrowRight } from "lucide-react";
+import { Spinner, toast, ToastProvider } from "@heroui/react";
 import { ModalConfirmacao } from "@medora_web/shared";
 import { RichTextEditor, type RichTextEditorRef } from "../../components/RichTextEditor/RichTextEditor";
 import { type MedicalRecordDTO } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
 import { fetchProntuarios } from "./MedicalRecord";
+import { MedicalRecordModal } from "./MedicalRecordModal";
 
 export function MedicalRecordPage() {
   const [error, setError] = useState<string | null>(null);
@@ -118,9 +118,7 @@ export function MedicalRecordPage() {
                   <span className="col-span-1 text-[18px] ">
                     {prontuario.tipoConsulta}
                   </span>
-                  <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end">
-                    <ArrowRight />
-                  </Button>
+                  <MedicalRecordModal medicalRecord={prontuario} />
                   <span className="col-span-1 row-span-1 text-gray-700">
                     Data: {prontuario.date}
                   </span>

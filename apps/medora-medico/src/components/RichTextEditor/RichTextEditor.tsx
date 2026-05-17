@@ -89,10 +89,10 @@ export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="border border-slate-200 p-4 rounded-2xl bg-white">
+      <div className="border w-full h-full border-slate-200 p-4 rounded-2xl bg-white overflow-y-hidden">
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none text-slate-800 cursor-default" />
+            <ContentEditable className="outline-none text-slate-800 cursor-default overflow-y-auto" />
           }
           ErrorBoundary={LexicalErrorBoundary}
         />
