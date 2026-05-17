@@ -104,12 +104,31 @@ async function CreateDailyAvailability(body: any, token: string) {
     }
 }
 
+async function UpdateDailyAvailabilityType(id: string, type: 'presential' | 'telemedicine' | 'hybrid', token: string) {  
+  try {
+    const response = await fetch(`${Endpoints.UPDATE_DAILY_AVAILABILITY_TYPE}/${id}/type`, {
+    method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+    body: JSON.stringify({ type }),
+    });
+    const data = await response.json();
+    return data;
+    }catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+    }
+}
+
 export type AvailabilityService = {
     GetDailyAvailabilityByDoctorId: typeof GetDailyAvailabilityByDoctorId;
     DeleteAvailabilityById: typeof DeleteAvailabilityById;
     ApproveAvailabilityById: typeof ApproveAvailabilityById;
     GetAllAvailabilityByRangeDateAndDoctorId: typeof GetAllAvailabilityByRangeDateAndDoctorId;
     CreateDailyAvailability: typeof CreateDailyAvailability;
+    UpdateDailyAvailabilityType: typeof UpdateDailyAvailabilityType;
 }
 
 const AvailabilityService: AvailabilityService = {
@@ -117,7 +136,8 @@ const AvailabilityService: AvailabilityService = {
     DeleteAvailabilityById,
     ApproveAvailabilityById,
     GetAllAvailabilityByRangeDateAndDoctorId,
-    CreateDailyAvailability
+    CreateDailyAvailability,
+    UpdateDailyAvailabilityType
 }
 
 export default AvailabilityService;
