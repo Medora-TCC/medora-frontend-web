@@ -9,11 +9,12 @@ import  AvailabilityService  from '../../api/services/Availability';
 
 
 export function AvailabilityHistorical() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date('2026-05-12T12:00:00Z'));
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [slots, setSlots] = useState<DailyAvailabilitySlotDTO[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
 
   const timelineDays = useMemo(() => {
     const days: Date[] = [];
@@ -60,8 +61,19 @@ export function AvailabilityHistorical() {
   const handleCancel = async (AvailabilityId: string) => {
       try {
           const token = localStorage.getItem('medora_token') || '';
-          const res = await AvailabilityService.DeleteAvailabilityById(AvailabilityId, token);
-          setSlots(prev => prev.map(s => s.id === AvailabilityId ? { ...s, status: res.status as DailyAvailabilitySlotDTO['status'] } : s));
+          await AvailabilityService.DeleteAvailabilityById(AvailabilityId, token);
+          setSlots(prev => prev.filter(s => s.id !== AvailabilityId));
+      } catch (err) {
+          console.error(err);
+      }
+  };
+
+  const handleChangeType = async (slot: DailyAvailabilitySlotDTO, newType: 'presential' | 'telemedicine' | 'hybrid') => {
+      try {
+          const token = localStorage.getItem('medora_token') || '';
+          await AvailabilityService.UpdateDailyAvailabilityType(slot.id, newType, token);
+          setSlots(prev => prev.map(s => s.id === slot.id ? { ...s, type: newType } : s));
+          setEditingSlotId(null);
       } catch (err) {
           console.error(err);
       }
@@ -80,7 +92,7 @@ export function AvailabilityHistorical() {
   };
 
   const formatDateLabel = (d: Date) => {
-    const today = new Date('2026-05-12T12:00:00Z');
+    const today = new Date();
     if (d.toDateString() === today.toDateString()) return 'Hoje';
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -117,10 +129,22 @@ export function AvailabilityHistorical() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-default-200 p-4">
-        <div className="flex items-center justify-between mb-2 px-2">
-          <h2 className="text-lg font-semibold text-slate-800 capitalize">
-             {selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })}
-          </h2>
+        <div className="flex items-center justify-between mb-2 px-2 flex-wrap gap-2">
+          <div className="flex items-center gap-3">
+             <h2 className="text-lg font-semibold text-slate-800 capitalize">
+                {selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })}
+             </h2>
+             <input 
+                type="date" 
+                className="text-sm border border-default-200 rounded-md px-2 py-1 outline-none text-default-600 focus:border-primary"
+                value={selectedDate.toISOString().split('T')[0]}
+                onChange={(e) => {
+                    if(e.target.value) {
+                       setSelectedDate(new Date(e.target.value + 'T12:00:00Z'));
+                    }
+                }}
+             />
+          </div>
           <div className="flex gap-2">
             <Button isIconOnly variant="ghost" className="text-default-600" onClick={handlePrevDay}><ChevronLeft size={20} /></Button>
             <Button isIconOnly variant="ghost" className="text-default-600" onClick={handleNextDay}><ChevronRight size={20} /></Button>
@@ -166,9 +190,14 @@ export function AvailabilityHistorical() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {slots.map((slot, index) => {
+          {slots.map((slot) => {
             const isBooked = slot.status !== 'available';
-            const todayStr = '2026-05-12';
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const dd = String(today.getDate()).padStart(2, '0');
+
+            const todayStr = `${yyyy}-${mm}-${dd}`;
             const selectedStr = selectedDate.toISOString().split('T')[0];
             const isPast = selectedStr < todayStr;
             const pastStatus = isPast && isBooked ? slot.status : slot.status;
@@ -185,20 +214,22 @@ export function AvailabilityHistorical() {
                   <div className="flex flex-col gap-1 w-full">
                     <div className="flex items-center gap-2">
                         <span className={`text-xl font-bold ${isPast ? 'text-default-500' : 'text-foreground'}`}>{slot.time}</span>
-                        {isBooked && (
+                        {(!isPast || isBooked) && slot.type && (
                             <span className={`px-2 py-0.5 text-xs font-semibold rounded-full text-white ${
-                                isPast ? 'bg-default-400' :
-                                slot.type === 'presential' ? 'bg-primary' : 'bg-warning'
+                                isPast && !isBooked ? 'bg-default-400' :
+                                slot.type === 'presential' ? 'bg-primary' : 
+                                slot.type === 'telemedicine' ? 'bg-warning' :
+                                'bg-linear-to-r from-warning to-(--primary)'
                             }`}>
-                            {slot.type === 'presential' ? 'Presencial' : 'Vídeo'}
+                            {slot.type === 'presential' ? 'Presencial' : slot.type === 'telemedicine' ? 'Vídeo' : 'Ambos'}
                             </span>
                         )}
                         {!isBooked && !isPast && (
                             <div className="flex gap-1 ml-auto">
-                                <Button isIconOnly variant="ghost" size="sm" className="text-default-500">
+                                <Button isIconOnly variant="ghost" size="sm" className="text-default-500" onPress={() => setEditingSlotId(slot.id)}>
                                     <Pencil size={14} />
                                 </Button>
-                                <Button isIconOnly variant="ghost" size="sm" className="text-danger">
+                                <Button isIconOnly variant="ghost" size="sm" className="text-danger" onPress={() => handleCancel(slot.id)}>
                                     <Trash2 size={14} />
                                 </Button>
                             </div>
@@ -224,6 +255,16 @@ export function AvailabilityHistorical() {
                                 </p>
                               )}
                           </div>
+                      </div>
+                  ) : editingSlotId === slot.id ? (
+                      <div className="flex flex-col gap-2 mt-1 mb-1">
+                          <span className="text-xs font-semibold text-default-600">Alterar modalidade:</span>
+                          <div className="flex gap-2 flex-wrap">
+                              <Button size="sm" variant={slot.type === 'presential' ? 'primary' : 'outline'} className={slot.type === 'presential' ? 'text-white' : 'text-primary'} onPress={() => handleChangeType(slot, 'presential')}>Presencial</Button>
+                              <Button size="sm" variant={slot.type === 'telemedicine' ? 'primary' : 'outline'} className={slot.type === 'telemedicine' ? 'bg-warning text-white border-warning' : 'text-warning border-warning'} onPress={() => handleChangeType(slot, 'telemedicine')}>Vídeo</Button>
+                              <Button size="sm" variant={slot.type === 'hybrid' ? 'primary' : 'outline'} className={slot.type === 'hybrid' ? 'bg-linear-to-r from-warning to-(--primary) text-white border-0' : 'border-(--primary) text-default-600'} onPress={() => handleChangeType(slot, 'hybrid')}>Ambos</Button>
+                          </div>
+                          <Button size="sm" variant="ghost" className="text-default-400 self-end mt-1" onPress={() => setEditingSlotId(null)}>Cancelar</Button>
                       </div>
                   ) : (
                       <div className="flex items-center justify-between">
