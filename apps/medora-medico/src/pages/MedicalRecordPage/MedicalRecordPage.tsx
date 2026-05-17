@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, toast, ToastProvider } from "@heroui/react";
+import { Button, Spinner, toast, ToastProvider } from "@heroui/react";
 import { ArrowRight } from "lucide-react";
 import { ModalConfirmacao } from "@medora_web/shared";
 import { RichTextEditor, type RichTextEditorRef } from "../../components/RichTextEditor/RichTextEditor";
@@ -37,8 +37,6 @@ export function MedicalRecordPage() {
   };
 
   useEffect(() => {
-
-
     load();
   }, []);
 
@@ -103,24 +101,32 @@ export function MedicalRecordPage() {
             </h2>
           </div>
 
-          {isLoading ? <></> : <div className="flex flex-col gap-4 p-2 overflow-y-auto w-full md:w-80">
-            {prontuariosAnteriores.map((prontuario) => (
-              <div
-                key={prontuario.id}
-                className="p-2 grid grid-cols-[70%_20%] grid-rows-2 gap-x-4 w-full bg-surface-alt rounded-lg shadow font-semibold align-middle focus-visible:outline-2 focus-visible:ring-offset-1"
-              >
-                <span className="col-span-1 text-[18px] ">
-                  {prontuario.tipoConsulta}
-                </span>
-                <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end">
-                  <ArrowRight />
-                </Button>
-                <span className="col-span-1 row-span-1 text-gray-700">
-                  Data: {prontuario.date}
-                </span>
+          {isLoading ?
+            <div className="w-20 flex flex-col mx-auto mt-10">
+              <p className="text-text-muted">Carregando</p>
+              <div className="flex justify-around mt-4">
+                <div className="animate-spin w-8"><Spinner className="w-fit mx-auto"/></div>
               </div>
-            ))}
-          </div>
+            </div>
+            : 
+            <div className="flex flex-col gap-4 p-2 overflow-y-auto w-full md:w-80">
+              {prontuariosAnteriores.map((prontuario) => (
+                <div
+                  key={prontuario.id}
+                  className="p-2 grid grid-cols-[70%_20%] grid-rows-2 gap-x-4 w-full bg-surface-alt rounded-lg shadow font-semibold align-middle focus-visible:outline-2 focus-visible:ring-offset-1"
+                >
+                  <span className="col-span-1 text-[18px] ">
+                    {prontuario.tipoConsulta}
+                  </span>
+                  <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end">
+                    <ArrowRight />
+                  </Button>
+                  <span className="col-span-1 row-span-1 text-gray-700">
+                    Data: {prontuario.date}
+                  </span>
+                </div>
+              ))}
+            </div>
 
           }
         </section>
