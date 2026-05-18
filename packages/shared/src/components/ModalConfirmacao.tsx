@@ -2,13 +2,14 @@ import { Button, Modal } from "@heroui/react";
 
 interface ModalConfirmacaoProps {
     onConfirm: () => void;
+    disabled: boolean;
     texto: string;
 }
 
-export function ModalConfirmacao({ onConfirm, texto }: ModalConfirmacaoProps) {
+export function ModalConfirmacao({ onConfirm, disabled, texto }: ModalConfirmacaoProps) {
     return (
         <Modal>
-            <Button className="bg-accent hover:bg-accent-hover text-white cursor-pointer px-5 py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-soft focus:ring-offset-2 focus:ring-offset-gray-50">Salvar</Button>
+            <Button isDisabled={disabled} className="bg-accent disabled:bg-accent-disabled hover:bg-accent-hover text-white cursor-pointer px-5 py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-soft focus:ring-offset-2 focus:ring-offset-gray-50">Salvar</Button>
             <Modal.Backdrop>
                 <Modal.Container>
                     <Modal.Dialog className="bg-surface">
