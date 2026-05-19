@@ -1,22 +1,16 @@
 import { Button, Modal, Spinner } from "@heroui/react";
+import type { IConsulta } from "@medora_web/shared";
 import { useEffect, useState } from "react";
 
-interface Consulta {
-  id: number;
-  paciente: string;
-  data: string;
-  diagnostico: string;
-  // adicione os campos do seu objeto aqui
-}
 
 interface ConsultaModalProps {
-  id: number | null;
+  id: string | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModalProps) {
-  const [data, setData] = useState<Consulta | null>(null);
+export default function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModalProps) {
+  const [data, setData] = useState<IConsulta | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,15 +57,15 @@ export function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModalProps) 
                 <div className="flex flex-col gap-3">
                   <div>
                     <p className="text-sm text-default-500">Paciente</p>
-                    <p className="font-medium">{data.paciente}</p>
+                    <p className="font-medium">{data.pacienteNome}</p>
                   </div>
                   <div>
                     <p className="text-sm text-default-500">Data</p>
-                    <p className="font-medium">{data.data}</p>
+                    <p className="font-medium">{data.dataHorario}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-default-500">Diagnóstico</p>
-                    <p className="font-medium">{data.diagnostico}</p>
+                    <p className="text-sm text-default-500">Status</p>
+                    <p className="font-medium">{data.status}</p>
                   </div>
                   {/* adicione mais campos conforme seu objeto */}
                 </div>
@@ -79,9 +73,7 @@ export function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModalProps) 
             </Modal.Body>
 
             <Modal.Footer>
-              {({ close }) => (
-                <Button onPress={close}>Fechar</Button>
-              )}
+              <Button onPress={() => onOpenChange(false)}>Fechar</Button>
             </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>

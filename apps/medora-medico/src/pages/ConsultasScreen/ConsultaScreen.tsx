@@ -13,13 +13,12 @@ import {
   useOverlayState,
 } from "@heroui/react";
 
-import type { ITeleConsulta, StatusConsulta } from "@medora_web/shared";
+import type { IConsulta, ITeleConsulta, StatusConsulta } from "@medora_web/shared";
 
 import { fetchConsultas } from "./Consulta";
 import { Calendar, RotateCcw, Video } from "lucide-react";
 import { ConsultaHourlyGrid } from "./Consultahourlygrid";
-import openConsultaModal from "./ConsultaModal";
-import ConsultaModal from "./ConsultaModal";
+import  ConsultaModal from "./ConsultaModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
@@ -88,21 +87,20 @@ function SkeletonCard() {
   );
 }
 
+interface ConsultaCardProps {
+  consulta: IConsulta;
+  onCardClick: (id: string) => void;
+}
+
 // ─── Consulta card ────────────────────────────────────────────────────────────
-function ConsultaCard({
-  consulta,
-  onEntrar,
-}: {
-  consulta: ITeleConsulta;
-  onEntrar: (id: string) => void;
-}) {
+function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
   const cfg = statusCfg[consulta.status];
   const hoje = isHoje(consulta.dataHorario);
   const entrar = canEnter(consulta);
 
   return (
     <Card
-      onClick={() => openConsultaModal(consulta)}
+      onClick={() => onCardClick(consulta.id)}
       className={`
         transition-all duration-300 shadow-md h-60
         ${
@@ -155,7 +153,7 @@ function ConsultaCard({
           <Button
             size="sm"
             variant="primary"
-            onPress={() => onEntrar(consulta.id)}
+            // onPress={() => onEntrar(consulta.id)} REMINDER CRIAR BOTÃO DE ENTRAR
             className="shrink-0"
           >
             <Video />
@@ -218,17 +216,18 @@ export function TeleconsultaScreen() {
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [busca, setBusca] = useState("");
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const state = useOverlayState();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const consultaModal = useOverlayState();
+
   async function logApiReq() {
     fetch("/api/teleconsultas")
       .then((res) => res.json())
-      .then(console.log); // deve logar seus dados mockados
+      .then(console.log); // REMINDER deve logar seus dados mockados
   }
 
-  const handleCardClick = (id: number) => {
+  const handleCardClick = (id: string) => {
     setSelectedId(id);
-    state.open();
+    consultaModal.open();
   };
 
   async function carregar() {
@@ -399,15 +398,16 @@ export function TeleconsultaScreen() {
                 <ConsultaCard
                   key={c.id}
                   consulta={c}
-                  onEntrar={(id) => navigate(`/consulta/${id}`)}
+                  onCardClick={() => handleCardClick(c.id)}
+                  // onEntrar={(id) => navigate(`/consulta/${id}`)}
                 />
               ))
             )}
             {
               <ConsultaModal
                 id={selectedId}
-                isOpen={state.isOpen}
-                onOpenChange={state.setOpen}
+                isOpen={consultaModal.isOpen}
+                onOpenChange={consultaModal.setOpen}
               />
             }
           </div>
