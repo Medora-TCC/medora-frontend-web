@@ -62,8 +62,9 @@ export default function Dashboard() {
           <div className="lg:col-span-2 bg-surface-alt rounded-xl shadow-sm border border-divider overflow-hidden">
             <div className="p-5 border-b border-divider flex justify-between items-center">
               <h2 className="font-bold text-lg">Próximos Pacientes</h2>
-              <div className="max-w-[200px]">
-                <Input size="sm" placeholder="Buscar..." startContent={<Search size={16}/>} />
+              <div className="max-w-[200px] flex items-center gap-2 border border-divider rounded-2xl px-3 py-2">
+                <Search size={16} className="text-text-muted" />
+                <Input size={16} placeholder="Buscar..." className="w-full border-none bg-transparent focus:ring-0" />
               </div>
             </div>
             <div className="p-0">

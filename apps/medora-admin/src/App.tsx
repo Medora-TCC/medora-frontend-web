@@ -1,16 +1,17 @@
 import { NotFound, ThemeProvider } from '@medora_web/shared'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import Dashboard from './pages/Dashboard/Dashboard'
+import PatientList from './pages/PatientList/PatientList'
+import PatientDetails from './pages/PatientDetails/PatientDetails'
 
 function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          {/* Renderiza o Dashboard direto na página inicial sem travar no Layout antigo */}
+          <Route path="/pacientes/:id" element={<PatientDetails />} />
+          <Route path="/pacientes" element={<PatientList />} />
           <Route path="/" element={<Dashboard />} />
-          
-          {/* Mantém a rota de página não encontrada */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
