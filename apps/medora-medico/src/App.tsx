@@ -1,4 +1,4 @@
-import ConsultaScreen from './pages/ConsultasScreen/ConsultaScreen';
+import ConsultaScreen from './pages/ConsultaScreen/ConsultaScreen';
 import { ThemeProvider, Layout, NotFound} from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
@@ -22,7 +22,7 @@ function App() {
                 <Route path="/agenda" element={< AvailabilityPage />} />
                 <Route path="/agenda/historico" element={< AvailabilityHistorical />} />
          
-                <Route path="consulta" element={<ConsultaScreen/>} />
+                <Route path="/consulta" element={<ConsultaScreen/>} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/prontuario" element={<MedicalRecordPage />} />
               </Route>

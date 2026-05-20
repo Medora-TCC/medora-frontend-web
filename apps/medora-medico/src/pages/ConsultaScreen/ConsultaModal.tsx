@@ -1,6 +1,7 @@
 import { Button, Modal, Spinner } from "@heroui/react";
-import type { IConsulta } from "@medora_web/shared";
+import type { IConsultaDetailed } from "@medora_web/shared";
 import { useEffect, useState } from "react";
+import { FindConsultaDetailedById } from "./Consulta";
 
 
 interface ConsultaModalProps {
@@ -10,7 +11,7 @@ interface ConsultaModalProps {
 }
 
 export default function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModalProps) {
-  const [data, setData] = useState<IConsulta | null>(null);
+  const [currentConsulta, setCurrentConsulta] = useState<IConsultaDetailed | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,14 +20,10 @@ export default function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModa
 
     setLoading(true);
     setError(null);
-    setData(null); // limpa dados da consulta anterior
+    setCurrentConsulta(null); // limpa dados da consulta anterior
 
-    fetch(`/consultas/${id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Erro ao buscar consulta");
-        return r.json();
-      })
-      .then(setData)
+    FindConsultaDetailedById(id)
+      .then(setCurrentConsulta)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id, isOpen]);
@@ -53,19 +50,19 @@ export default function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModa
                 <p className="text-danger text-sm text-center py-4">{error}</p>
               )}
 
-              {data && !loading && (
+              {currentConsulta && !loading && (
                 <div className="flex flex-col gap-3">
                   <div>
                     <p className="text-sm text-default-500">Paciente</p>
-                    <p className="font-medium">{data.pacienteNome}</p>
+                    <p className="font-medium">{currentConsulta.pacienteNome}</p>
                   </div>
                   <div>
                     <p className="text-sm text-default-500">Data</p>
-                    <p className="font-medium">{data.dataHorario}</p>
+                    <p className="font-medium">{currentConsulta.dataHorario}</p>
                   </div>
                   <div>
                     <p className="text-sm text-default-500">Status</p>
-                    <p className="font-medium">{data.status}</p>
+                    <p className="font-medium">{currentConsulta.status}</p>
                   </div>
                   {/* adicione mais campos conforme seu objeto */}
                 </div>

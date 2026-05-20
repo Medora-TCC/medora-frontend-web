@@ -13,47 +13,19 @@ import {
   useOverlayState,
 } from "@heroui/react";
 
-import type { IConsulta, ITeleConsulta, StatusConsulta } from "@medora_web/shared";
+import type { IConsultaDetailed, ITeleConsultaDetailed, StatusConsulta } from "@medora_web/shared";
 
 import { fetchConsultas } from "./Consulta";
-import { Calendar, RotateCcw, Video } from "lucide-react";
-import { ConsultaHourlyGrid } from "./Consultahourlygrid";
+import { Calendar, CalendarDays, CircleAlert, RotateCcw, Video } from "lucide-react";
 import  ConsultaModal from "./ConsultaModal";
+import { formatConsultaHorario, isHoje, PatientInitials } from "./ConsultaHelpers";
+import { ConsultaHourlyGrid } from "./Consultahourlygrid";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
+type FiltroData = "hoje" | "amanha" | "semana" | "nenhum";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function initials(nome: string) {
-  return nome
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((n) => n[0].toUpperCase())
-    .join("");
-}
-
-function formatHorario(iso: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(iso));
-}
-
-function isHoje(iso: string) {
-  const d = new Date(iso);
-  const h = new Date();
-  return (
-    d.getDate() === h.getDate() &&
-    d.getMonth() === h.getMonth() &&
-    d.getFullYear() === h.getFullYear()
-  );
-}
-
-function canEnter(c: ITeleConsulta): boolean {
+function canEnter(c: ITeleConsultaDetailed): boolean {
   if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
   const horario = new Date(c.dataHorario).getTime();
   const agora = Date.now();
@@ -88,7 +60,7 @@ function SkeletonCard() {
 }
 
 interface ConsultaCardProps {
-  consulta: IConsulta;
+  consulta: IConsultaDetailed;
   onCardClick: (id: string) => void;
 }
 
@@ -113,11 +85,11 @@ function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
       <Card.Content className="flex items-center justify-center flex-col gap-4 p-4">
         {/* Avatar com iniciais */}
         <Avatar size="md" color="accent">
-          <Avatar.Fallback>{initials(consulta.pacienteNome)}</Avatar.Fallback>
+          <Avatar.Fallback>{PatientInitials(consulta.pacienteNome)}</Avatar.Fallback>
         </Avatar>
 
         {/* Info */}
-        <div className="flex flex-1  items-center min-w-0 flex-col gap-1">
+        <div className="flex flex-1 items-center min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium truncate">
               {consulta.pacienteNome}
@@ -133,7 +105,7 @@ function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
           <div className="flex items-center gap-3 text-xs text-fg-muted flex-wrap">
             <span className="flex items-center gap-1">
               <Calendar />
-              {formatHorario(consulta.dataHorario)}
+              {formatConsultaHorario(consulta.dataHorario)}
             </span>
           </div>
         </div>
@@ -182,22 +154,7 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
       <div className="flex size-14 items-center justify-center rounded-2xl bg-surface-secondary text-fg-muted">
-        <svg
-          width="26"
-          height="26"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="3" y="4" width="18" height="18" rx="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
-          <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
-        </svg>
+        <CalendarDays strokeWidth={1.50} />
       </div>
       <p className="text-sm text-fg-muted">
         {filtro === "todas"
@@ -209,12 +166,13 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export function TeleconsultaScreen() {
+export function ConsultaScreen() {
   const navigate = useNavigate();
-  const [consultas, setConsultas] = useState<ITeleConsulta[]>([]);
+  const [consultas, setConsultas] = useState<ITeleConsultaDetailed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todas");
+  const [filtroData, setFiltroData] = useState<FiltroData>("nenhum");
   const [busca, setBusca] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const consultaModal = useOverlayState();
@@ -256,12 +214,37 @@ export function TeleconsultaScreen() {
             busca.trim() === "" ||
             c.pacienteNome.toLowerCase().includes(busca.toLowerCase()),
         )
+        .filter((c) => {
+          if (filtroData === "nenhum") return true;
+
+          const data = new Date(c.dataHorario);
+          const hoje = new Date();
+
+          if (filtroData === "hoje") {
+            return data.toDateString() === hoje.toDateString();
+          }
+
+          if (filtroData === "amanha") {
+            const amanha = new Date(hoje);
+            amanha.setDate(hoje.getDate() + 1);
+            return data.toDateString() === amanha.toDateString();
+          }
+
+          if (filtroData === "semana") {
+            const inicioSemana = new Date(hoje);
+            inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+            inicioSemana.setHours(0, 0, 0, 0);
+            return data >= inicioSemana;
+          }
+
+          return true;
+        })
         .sort(
           (a, b) =>
             new Date(a.dataHorario).getTime() -
             new Date(b.dataHorario).getTime(),
         ),
-    [consultas, filtro, busca],
+    [consultas, filtro, busca, filtroData],
   );
 
   // Contagens por status para os badges dos filtros
@@ -279,6 +262,13 @@ export function TeleconsultaScreen() {
     { key: "em_atendimento", label: "Em andamento" },
     { key: "finalizado", label: "Concluídas" },
     { key: "cancelado", label: "Canceladas" },
+  ];
+
+  const filtroDataOpcoes: { key: FiltroData; label: string }[] = [
+    { key: "hoje", label: "Hoje" },
+    { key: "amanha", label: "Amanhã" },
+    { key: "semana", label: "Esta Semana" },
+    { key: "nenhum", label: "Nenhum" }
   ];
 
   return (
@@ -327,8 +317,8 @@ export function TeleconsultaScreen() {
           onChange={setBusca}
           className="w-full"
         />
-
-        {/* ── Filtros (ToggleButtonGroup) ────────────────── */}
+      <div className="flex justify-between">
+        {/* ── Filtros Estado ────────────────── */}
         <ToggleButtonGroup
           selectionMode="single"
           selectedKeys={new Set([filtro])}
@@ -350,25 +340,38 @@ export function TeleconsultaScreen() {
           ))}
         </ToggleButtonGroup>
 
+        {/* ── Filtros Data ────────────────── */}
+        <ToggleButtonGroup
+          selectionMode="single"
+          selectedKeys={new Set([filtroData])}
+          onSelectionChange={(keys) => {
+            const val = [...keys][0] as FiltroData | undefined;
+            setFiltroData(val ?? "nenhum");
+          }}
+          className="flex flex-wrap gap-2"
+        >
+          {filtroDataOpcoes
+            .filter(({ key }) => key !== "nenhum")
+            .map(({ key, label }) => (
+              <ToggleButton key={key} id={key} size="sm">
+                {label}
+                {(contagens[key] ?? 0) > 0 && (
+                  <Chip size="sm" variant="soft" className="ml-1">
+                    {contagens[key]}
+                  </Chip>
+                )}
+              </ToggleButton>
+            ))}
+        </ToggleButtonGroup>
+      </div>
+
         {/* ── Erro ──────────────────────────────────────── */}
         {error && (
           <Card className="border-danger-soft-hover bg-danger/5">
             <Card.Content className="flex items-center gap-2 p-3 text-sm text-danger">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              {error}
+              <CircleAlert strokeWidth={1.25} />
+              {error} 
+              {/* REMINDER não está esvaizando as consutlas quando dá erro.*/}
             </Card.Content>
           </Card>
         )}
@@ -392,7 +395,9 @@ export function TeleconsultaScreen() {
                 <SkeletonCard />
               </>
             ) : filtradas.length === 0 ? (
-              <EmptyState filtro={filtro} />
+              <div className="col-span-full">
+                <EmptyState filtro={filtro} />
+              </div>
             ) : (
               filtradas.map((c) => (
                 <ConsultaCard
@@ -417,4 +422,4 @@ export function TeleconsultaScreen() {
   );
 }
 
-export default TeleconsultaScreen;
+export default ConsultaScreen;

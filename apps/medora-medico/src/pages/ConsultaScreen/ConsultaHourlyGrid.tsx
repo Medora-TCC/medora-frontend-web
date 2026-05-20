@@ -1,36 +1,22 @@
-import { useMemo } from "react";
-import { Avatar, Button, Chip } from "@heroui/react";
+import { useMemo, useState } from "react";
+import { Avatar, Button, Chip, useOverlayState } from "@heroui/react";
 import { Video } from "lucide-react";
-import type { IConsulta, StatusConsulta } from "@medora_web/shared";
-import openConsultaModal from "./ConsultaModal";
-
-// ─── Re-usa helpers e config do projeto ────────────────────────────────────────
-
-function initials(nome: string) {
-  return nome
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((n) => n[0].toUpperCase())
-    .join("");
-}
-
-function canEnter(c: IConsulta): boolean {
-  if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
-  const horario = new Date(c.dataHorario).getTime();
-  const agora = Date.now();
-  return agora >= horario - 15 * 60 * 1000 && agora <= horario + 10 * 60 * 1000;
-}
+import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
+import ConsultaModal from "./ConsultaModal";
+import { canEnter, PatientInitials } from "./ConsultaHelpers";
 
 const statusCfg: Record<
   StatusConsulta,
-  { label: string; color: "accent" | "success" | "default" | "danger" | "warning" }
+  {
+    label: string;
+    color: "accent" | "success" | "default" | "danger" | "warning";
+  }
 > = {
-  agendado:       { label: "Agendada",     color: "accent"  },
-  em_espera:      { label: "Em Espera",    color: "warning" },
+  agendado: { label: "Agendada", color: "accent" },
+  em_espera: { label: "Em Espera", color: "warning" },
   em_atendimento: { label: "Em andamento", color: "success" },
-  finalizado:     { label: "Concluída",    color: "default" },
-  cancelado:      { label: "Cancelada",    color: "danger"  },
+  finalizado: { label: "Concluída", color: "default" },
+  cancelado: { label: "Cancelada", color: "danger" },
 };
 
 // Mapeamento de status → classes Tailwind para os blocos no grid
@@ -38,18 +24,43 @@ const statusBlock: Record<
   StatusConsulta,
   { bg: string; border: string; text: string; muted: string }
 > = {
-  agendado:       { bg: "bg-accent/10",   border: "border-accent/30",   text: "text-accent-fg",   muted: "text-accent/70"   },
-  em_espera:      { bg: "bg-warning/10",  border: "border-warning/30",  text: "text-warning-fg",  muted: "text-warning/70"  },
-  em_atendimento: { bg: "bg-success/10",  border: "border-success/30",  text: "text-success-fg",  muted: "text-success/70"  },
-  finalizado:     { bg: "bg-surface-secondary", border: "border-border", text: "text-fg",         muted: "text-fg-muted"    },
-  cancelado:      { bg: "bg-danger/5",    border: "border-danger/20",   text: "text-danger",      muted: "text-danger/60"   },
+  agendado: {
+    bg: "bg-accent/10",
+    border: "border-accent/30",
+    text: "text-accent-fg",
+    muted: "text-accent/70",
+  },
+  em_espera: {
+    bg: "bg-warning/10",
+    border: "border-warning/30",
+    text: "text-warning-fg",
+    muted: "text-warning/70",
+  },
+  em_atendimento: {
+    bg: "bg-success/10",
+    border: "border-success/30",
+    text: "text-success-fg",
+    muted: "text-success/70",
+  },
+  finalizado: {
+    bg: "bg-surface-secondary",
+    border: "border-border",
+    text: "text-fg",
+    muted: "text-fg-muted",
+  },
+  cancelado: {
+    bg: "bg-danger/5",
+    border: "border-danger/20",
+    text: "text-danger",
+    muted: "text-danger/60",
+  },
 };
 
 // ─── Constantes de layout ──────────────────────────────────────────────────────
 
-const ROW_H   = 64;  // px por hora
-const COL_W   = 140; // px por hora
-const LABEL_W = 52;  // px da coluna de labels
+const ROW_H = 64; // px por hora
+const COL_W = 140; // px por hora
+const LABEL_W = 52; // px da coluna de labels
 
 // ─── Helpers de posicionamento ────────────────────────────────────────────────
 
@@ -71,7 +82,7 @@ const DEFAULT_DURATION_MIN = 30;
  * as consultas são distribuídas em colunas paralelas.
  */
 function detectOverlaps(
-  consultas: IConsulta[],
+  consultas: IConsultaDetailed[],
   durationMin: number,
 ): Record<string, { col: number; totalCols: number }> {
   const sorted = [...consultas].sort(
@@ -83,7 +94,7 @@ function detectOverlaps(
 
   for (const c of sorted) {
     const startM = toMin(c.dataHorario);
-    const endM   = startM + ((c as any).duracao ?? durationMin);
+    const endM = startM + ((c as any).duracao ?? durationMin);
     let placed = false;
 
     for (let i = 0; i < cols.length; i++) {
@@ -109,7 +120,7 @@ function detectOverlaps(
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface ConsultaHourlyGridProps {
-  consultas: IConsulta[];
+  consultas: IConsultaDetailed[];
   /** Hora inicial do grid (padrão 7) */
   startHour?: number;
   /** Hora final do grid (padrão 20) */
@@ -132,16 +143,25 @@ export function ConsultaHourlyGrid({
   defaultDuration = DEFAULT_DURATION_MIN,
   onEntrar,
 }: ConsultaHourlyGridProps) {
+  const consultaModal = useOverlayState();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const hours = useMemo(
-    () => Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i),
+    () =>
+      Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i),
     [startHour, endHour],
   );
-  const WEEK_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const WEEK_DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   const days = useMemo(
     () => WEEK_DAYS.slice(startDay, endDay + 1),
     [startDay, endDay],
   );
+
+  const handleCardClick = (id: string) => {
+    setSelectedId(id);
+    consultaModal.open();
+  };
 
   const totalH = hours.length * ROW_H;
   const totalW = days.length * COL_W;
@@ -165,14 +185,13 @@ export function ConsultaHourlyGrid({
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const startMin = startHour * 60;
-  const endMin   = endHour * 60;
-  const showNow  = nowMin >= startMin && nowMin <= endMin;
-  const nowLeft  = ((nowMin - startMin) / 60) * COL_W;
+  const endMin = endHour * 60;
+  const showNow = nowMin >= startMin && nowMin <= endMin;
+  const nowLeft = ((nowMin - startMin) / 60) * COL_W;
 
   return (
     <div className="max-w-screen overflow-x-auto rounded-xl border border-border bg-surface">
       <div style={{ minWidth: LABEL_W + totalW }}>
-
         {/* ── Header de horas ─────────────────────────────── */}
         <div className="flex border-b border-border sticky top-0 z-20 bg-surface">
           {/* canto vazio */}
@@ -193,7 +212,6 @@ export function ConsultaHourlyGrid({
 
         {/* ── Corpo ───────────────────────────────────────── */}
         <div className="flex">
-
           {/* Labels de hora (eixo Y) */}
           <div
             className="shrink-0 border-r border-border"
@@ -212,7 +230,6 @@ export function ConsultaHourlyGrid({
 
           {/* Área de eventos */}
           <div className="relative" style={{ width: totalW, height: totalH }}>
-
             {/* Grade de fundo zebrada */}
             <div className="absolute inset-0 flex pointer-events-none">
               {days.map((_, i) => (
@@ -250,21 +267,21 @@ export function ConsultaHourlyGrid({
 
             {/* Eventos REMINDER: COMPONENTIZAR*/}
             {visible.map((c) => {
-              const startM    = toMin(c.dataHorario);
-              const duration  = (c as any).duracao ?? defaultDuration;
-              const endM      = startM + duration;
-              const top       = toPx(startM, startHour);
-              const height    = Math.max(toPx(endM, startHour) - top, 70);
-              const cfg       = statusBlock[c.status];
-              const chipCfg   = statusCfg[c.status];
+              const startM = toMin(c.dataHorario);
+              const duration = (c as any).duracao ?? defaultDuration;
+              const endM = startM + duration;
+              const top = toPx(startM, startHour);
+              const height = Math.max(toPx(endM, startHour) - top, 70);
+              const cfg = statusBlock[c.status];
+              const chipCfg = statusCfg[c.status];
               const { col, totalCols } = layout[c.id];
-              const colW      = COL_W / totalCols;
+              const colW = COL_W / totalCols;
               // const left      = ((startM - startMin) / 60) * COL_W + col * colW + 2;
-              const entrar    = canEnter(c);
-              const tall      = height >= 48;
-              const date      = new Date(c.dataHorario)
-              const dateDay   = date.getDay();
-              const left = (dateDay - 1)  * COL_W + col * colW + 2;
+              const entrar = canEnter(c);
+              const tall = height >= 48;
+              const date = new Date(c.dataHorario);
+              const dateDay = date.getDay();
+              const left = (dateDay - 1) * COL_W + col * colW + 2;
 
               return (
                 <div
@@ -275,21 +292,20 @@ export function ConsultaHourlyGrid({
                     ${cfg.bg} ${cfg.border}
                     ${entrar ? "ring-1 ring-success/50 shadow-sm" : ""}
                   `}
-                  onClick={() => openConsultaModal(c)}
+                  onClick={() => handleCardClick(c.id)}
                   style={{
-                    top:    top,
+                    top: top,
                     left,
-                    width:  colW - 4,
+                    width: colW - 4,
                     height: height - 6,
                   }}
                 >
                   <div className="flex flex-col h-full px-2 py-1 gap-0.5 overflow-hidden">
-
                     {/* Nome do paciente */}
                     <div className="flex items-center gap-1.5 min-w-0">
                       <Avatar color="accent" className="shrink-0">
                         <Avatar.Fallback className="text-[9px]">
-                          {initials(c.pacienteNome)}
+                          {PatientInitials(c.pacienteNome)}
                         </Avatar.Fallback>
                       </Avatar>
                       <span
@@ -301,7 +317,9 @@ export function ConsultaHourlyGrid({
 
                     {/* Horário (só se houver espaço) */}
                     {tall && (
-                      <span className={`text-[10px] leading-tight ${cfg.muted}`}>
+                      <span
+                        className={`text-[10px] leading-tight ${cfg.muted}`}
+                      >
                         {new Date(c.dataHorario).toLocaleTimeString("pt-BR", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -335,6 +353,14 @@ export function ConsultaHourlyGrid({
                 </div>
               );
             })}
+
+            {
+              <ConsultaModal
+                id={selectedId}
+                isOpen={consultaModal.isOpen}
+                onOpenChange={consultaModal.setOpen}
+              />
+            }
           </div>
         </div>
       </div>
