@@ -9,6 +9,7 @@ import type { IConsultaDetailed } from "@medora_web/shared"
 // [ ] - Ajustar botão de entrar na tela de lista
 // [ ] - Ajustar botão de entrar na tela de grid
 // [ ] - Componentizar os cards do grid
+// [ ] - Filtros de data no grid
 
 export async function fetchConsultas(): Promise<IConsultaDetailed[]> {
   const res = await fetch("/api/consultas");
