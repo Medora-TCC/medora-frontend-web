@@ -19,7 +19,7 @@ import { fetchConsultas } from "./Consulta";
 import { Calendar, CalendarDays, CircleAlert, RotateCcw, Video } from "lucide-react";
 import  ConsultaModal from "./ConsultaModal";
 import { formatConsultaHorario, isHoje, PatientInitials } from "./ConsultaHelpers";
-import { ConsultaHourlyGrid } from "./Consultahourlygrid";
+import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
@@ -140,7 +140,7 @@ function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
               className="shrink-0"
             >
               <Video />
-              Entrar
+              Iniciar
             </Button>
           )
         )}
@@ -167,7 +167,6 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function ConsultaScreen() {
-  const navigate = useNavigate();
   const [consultas, setConsultas] = useState<ITeleConsultaDetailed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -379,10 +378,9 @@ export function ConsultaScreen() {
         {/* ── Lista ─────────────────────────────────────── */}
 
         {view === "grid" ? (
-          <div className="w-screen overflow-x-hidden">
+          <div className="w-full overflow-x-hidden">
             <ConsultaHourlyGrid
               consultas={filtradas}
-              onEntrar={(id) => navigate(`/consulta/${id}`)}
             />
           </div>
         ) : (
@@ -404,7 +402,6 @@ export function ConsultaScreen() {
                   key={c.id}
                   consulta={c}
                   onCardClick={() => handleCardClick(c.id)}
-                  // onEntrar={(id) => navigate(`/consulta/${id}`)}
                 />
               ))
             )}

@@ -3,7 +3,7 @@ import { Avatar, Button, Chip, useOverlayState } from "@heroui/react";
 import { Video } from "lucide-react";
 import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
 import ConsultaModal from "./ConsultaModal";
-import { canEnter, PatientInitials } from "./ConsultaHelpers";
+import { canEnter, enterConsulta, PatientInitials } from "./ConsultaHelpers";
 
 const statusCfg: Record<
   StatusConsulta,
@@ -73,7 +73,7 @@ function toPx(minutes: number, startHour: number) {
   return ((minutes - startHour * 60) / 60) * ROW_H;
 }
 
-// Duração padrão assumida quando não há campo `duracao` (30 min)
+// Duração padrão assumida quando não há campo `duracao` (30 min) REMINDER tirar isso
 const DEFAULT_DURATION_MIN = 30;
 
 /**
@@ -121,7 +121,7 @@ function detectOverlaps(
 
 interface ConsultaHourlyGridProps {
   consultas: IConsultaDetailed[];
-  /** Hora inicial do grid (padrão 7) */
+  /** Hora inicial do grid (padrão 7) REMINDER PEGAR ESSE CARA E PUXAR O DO MÉDICO*/
   startHour?: number;
   /** Hora final do grid (padrão 20) */
   endHour?: number;
@@ -129,19 +129,17 @@ interface ConsultaHourlyGridProps {
   startDay?: number;
   endDay?: number;
   defaultDuration?: number;
-  onEntrar: (id: string) => void;
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export function ConsultaHourlyGrid({
   consultas,
-  startHour = 7,
-  endHour = 20,
+  startHour = 8,
+  endHour = 18,
   startDay = 1,
   endDay = 5,
   defaultDuration = DEFAULT_DURATION_MIN,
-  onEntrar,
 }: ConsultaHourlyGridProps) {
   const consultaModal = useOverlayState();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -190,20 +188,18 @@ export function ConsultaHourlyGrid({
   const nowLeft = ((nowMin - startMin) / 60) * COL_W;
 
   return (
-    <div className="max-w-screen overflow-x-auto rounded-xl border border-border bg-surface">
-      <div style={{ minWidth: LABEL_W + totalW }}>
-        {/* ── Header de horas ─────────────────────────────── */}
-        <div className="flex border-b border-border sticky top-0 z-20 bg-surface">
+    <div className="overflow-x-auto w-full flex flex-col justify-center items-center rounded-xl border border-border bg-surface">
+      <div className="w-full">
+        {/* ── Header de horas (eixo X) ─────────────────────────────── */}
+        <div className="flex border-b w-full border-border sticky top-0 z-20 bg-surface">
           {/* canto vazio */}
           <div
-            className="shrink-0 border-r border-border"
-            style={{ width: LABEL_W }}
+            className="shrink-0 border-r border-border w-13"
           />
           {days.map((day) => (
             <div
               key={day}
-              className="shrink-0 flex items-center justify-center text-xs text-fg-muted border-r border-border last:border-r-0"
-              style={{ width: COL_W, height: 36 }}
+              className="shrink-0 flex w-60 h-8 items-center justify-center text-xs text-fg-muted border-r border-border last:border-r-0"
             >
               {day}
             </div>
@@ -214,14 +210,12 @@ export function ConsultaHourlyGrid({
         <div className="flex">
           {/* Labels de hora (eixo Y) */}
           <div
-            className="shrink-0 border-r border-border"
-            style={{ width: LABEL_W }}
+            className="shrink-0 border-r border-border w-13"
           >
             {hours.map((h) => (
               <div
                 key={h}
-                className="flex items-start justify-end pr-2 pt-1 text-[11px] text-fg-subtle border-b border-border/50"
-                style={{ height: ROW_H }}
+                className="flex items-start justify-end pr-2 pt-1 text-[11px] text-fg-subtle border-b border-border/50 h-16"
               >
                 {String(h).padStart(2, "0")}h
               </div>
@@ -235,10 +229,10 @@ export function ConsultaHourlyGrid({
               {days.map((_, i) => (
                 <div
                   key={i}
-                  className={`shrink-0 border-r border-border/40 ${
+                  className={`shrink-0 border-r w- border-border/40 ${
                     i % 2 === 1 ? "bg-surface-secondary/40" : ""
                   }`}
-                  style={{ width: COL_W, height: totalH }}
+                  // style={{ width: COL_W, height: totalH }}
                 />
               ))}
             </div>
@@ -254,7 +248,7 @@ export function ConsultaHourlyGrid({
               ))}
             </div>
 
-            {/* Linha de "agora" */}
+            {/* Linha de "agora"  REMIDNER FAZER*/}
             {showNow && (
               <div
                 className="absolute top-0 bottom-0 z-10 pointer-events-none"
@@ -341,10 +335,10 @@ export function ConsultaHourlyGrid({
                             size="sm"
                             variant="primary"
                             className="h-5 px-1.5 text-[10px] ml-auto"
-                            onPress={() => onEntrar(c.id)}
+                            onPress={() => enterConsulta(c.id)}
                           >
                             <Video className="size-3" />
-                            Entrar
+                            Iniciar
                           </Button>
                         )}
                       </div>
