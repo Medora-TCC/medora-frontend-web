@@ -2,19 +2,12 @@ import { Button } from "@heroui/react";
 import { JSX } from "react";
 import { useNavigate } from "react-router";
 
-import ErrorIcon from "../../assets/ErrorIcon.svg";
-
 export function ServerErrorPage(): JSX.Element {
 
     const navigate = useNavigate();
 
     return (
         <div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4 mx-2 md:p-8 md:mx-0 flex flex-col gap-4 items-center text-center">
-            <img
-                src={ErrorIcon}
-                alt="Ilustração de não encontrado"
-                className="h-80 w-auto object-contain"
-            />
             <div className="flex flex-col gap-2 w-full">
                 <h1 className="text-2xl font-bold text-warning mx-auto">
                     500 Erro no servidor
