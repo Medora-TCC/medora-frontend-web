@@ -20,6 +20,7 @@ import { Calendar, CalendarDays, CircleAlert, RotateCcw, Video } from "lucide-re
 import  ConsultaModal from "./ConsultaModal";
 import { formatConsultaHorario, isHoje, PatientInitials } from "./ConsultaHelpers";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
+import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
@@ -68,7 +69,11 @@ interface ConsultaCardProps {
 function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
   const cfg = statusCfg[consulta.status];
   const hoje = isHoje(consulta.dataHorario);
-  const entrar = canEnter(consulta);
+  const [isJoinable, setIsJoinable] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsJoinable(canEnter(consulta))
+  }, [])
 
   return (
     <Card
@@ -76,7 +81,7 @@ function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
       className={`
         transition-all duration-300 shadow-md h-60
         ${
-          entrar
+          isJoinable
             ? "border border-success/30 bg-success/5 hover:bg-success/10"
             : "hover:bg-surface-secondary"
         }
@@ -120,30 +125,10 @@ function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
           {cfg.label}
         </Chip>
 
-        {/* Botão entrar */}
-        {entrar ? (
-          <Button
-            size="sm"
-            variant="primary"
-            // onPress={() => onEntrar(consulta.id)} REMINDER CRIAR BOTÃO DE ENTRAR
-            className="shrink-0"
-          >
-            <Video />
-            Entrar
-          </Button>
-        ) : (
-          consulta.status === "agendado" && (
-            <Button
-              size="sm"
-              variant="secondary"
-              isDisabled
-              className="shrink-0"
-            >
-              <Video />
-              Iniciar
-            </Button>
-          )
-        )}
+        <EnterConsultaButton
+        isJoinable={isJoinable}
+        id={consulta.id}
+        />
       </Card.Content>
     </Card>
   );

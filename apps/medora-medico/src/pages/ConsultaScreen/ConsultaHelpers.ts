@@ -9,16 +9,23 @@ export function PatientInitials(nome: string) {
     .join("");
 }
 // verifica botao visivel
-export function canEnter(c: IConsultaSimplified): boolean {
+export function canEnter(c: IConsultaDetailed): boolean {
+  if (!c) return false;
   if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
+
   const horario = new Date(c.dataHorario).getTime();
   const agora = Date.now();
-  return agora >= horario - 15 * 60 * 1000 && agora <= horario + 10 * 60 * 1000;
+  const res = agora >= horario - 15 * 60 * 1000 && agora <= horario + 50 * 60 * 1000; //REMIDNER AJUSTAR JANELA DE ENTRAR
+  return res
 }
 
 // dispara para o back a ação de tentar entrar na consulta
-export function enterConsulta(id : string){
-  alert("Entrando na consulta " + id)
+export function enterConsulta(id: string, navigate: any) {
+  // **LOGICA DE VALIDACAO COM O BACK (Seus fetchs/axios continuam aqui normais)**
+  // Exemplo: await api.post(`/consultas/${id}/entrar`);
+
+  // Agora usamos o navigate que veio do componente
+  navigate(`/teleconsulta/${id}/configuracao`);
 }
 
 export function formatConsultaHorario(iso: string) {

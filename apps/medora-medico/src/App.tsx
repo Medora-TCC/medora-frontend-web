@@ -11,6 +11,8 @@ import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
 import MainLayout from "./components/MainLayout/MainLayout";
 import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilityHistorical";
 import { MedicalRecordPage } from "./pages/MedicalRecordPage/MedicalRecordPage";
+import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
+import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 
 function App() {
   return (
@@ -25,6 +27,10 @@ function App() {
                 <Route path="/consulta" element={<ConsultaScreen/>} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/prontuario" element={<MedicalRecordPage />} />
+
+                <Route path='/teleconsulta/:id/configuracao' element={<TeleConsultaConfig/>} />
+                <Route path='/teleconsulta/:id/sala' element={<SalaTeleConsulta/>} />
+                
               </Route>
 
               <Route element={<Layout />}>

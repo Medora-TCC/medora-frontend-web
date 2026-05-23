@@ -2,6 +2,9 @@ import { Button, Modal, Spinner } from "@heroui/react";
 import type { IConsultaDetailed } from "@medora_web/shared";
 import { useEffect, useState } from "react";
 import { FindConsultaDetailedById } from "./Consulta";
+import { canEnter, enterConsulta } from "./ConsultaHelpers";
+import { Video } from "lucide-react";
+import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 
 
 interface ConsultaModalProps {
@@ -10,10 +13,12 @@ interface ConsultaModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+
 export default function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModalProps) {
   const [currentConsulta, setCurrentConsulta] = useState<IConsultaDetailed | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isJoinable, setIsJoinable] = useState<boolean>(false);
 
   useEffect(() => {
     if (!id || !isOpen) return;
@@ -21,20 +26,26 @@ export default function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModa
     setLoading(true);
     setError(null);
     setCurrentConsulta(null); // limpa dados da consulta anterior
+    setIsJoinable(false)
+  
 
     FindConsultaDetailedById(id)
-      .then(setCurrentConsulta)
+      .then((consulta) => {
+      setCurrentConsulta(consulta);
+      setIsJoinable(canEnter(consulta)); // ← usa o valor fresh, não o state
+    })
       .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false)  
+      });
   }, [id, isOpen]);
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-      <Modal.Backdrop variant="blur">
+      <Modal.Backdrop>
         <Modal.Container>
           <Modal.Dialog>
             <Modal.CloseTrigger />
-
             <Modal.Header>
               <Modal.Heading>Detalhes da Consulta</Modal.Heading>
             </Modal.Header>
@@ -70,6 +81,10 @@ export default function ConsultaModal({ id, isOpen, onOpenChange }: ConsultaModa
             </Modal.Body>
 
             <Modal.Footer>
+              <EnterConsultaButton
+              isJoinable={isJoinable}
+              id={currentConsulta?.id ?? ""}
+              />
               <Button onPress={() => onOpenChange(false)}>Fechar</Button>
             </Modal.Footer>
           </Modal.Dialog>
