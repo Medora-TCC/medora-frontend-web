@@ -8,7 +8,6 @@ import {
   MonitorDot, Timer, Layers, HeartPulse
 } from 'lucide-react';
 
-// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface ServiceStatus {
   name: string;
@@ -25,7 +24,6 @@ interface MetricCard {
   color: 'primary' | 'success' | 'warning' | 'danger' | 'accent';
 }
 
-// ─── Mock Data ───────────────────────────────────────────────────────────────
 
 const services: ServiceStatus[] = [
   { name: 'API Gateway',       status: 'online',   latency: 42,  uptime: 99.98 },
@@ -63,7 +61,6 @@ const alerts = [
 
 const sparklineData = [42, 58, 51, 73, 67, 81, 75, 90, 84, 96, 88, 102];
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
 
 function StatusDot({ status }: { status: ServiceStatus['status'] }) {
   const map = {
@@ -127,8 +124,6 @@ function AlertRow({ alert }: { alert: typeof alerts[0] }) {
   );
 }
 
-// ─── Main Dashboard ──────────────────────────────────────────────────────────
-
 export default function AdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -155,7 +150,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-(--surface-alt) font-sans">
-      {/* ── Header ── */}
       <header className="sticky top-0 z-30 bg-(--surface) border-b border-(--border) px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-(--primary) flex items-center justify-center">
@@ -187,14 +181,12 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-        {/* ── Section: Saúde do Sistema ── */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <HeartPulse size={18} className="text-(--primary)" />
             <h2 className="text-lg font-bold text-(--text-primary)">Saúde do Sistema & Infraestrutura</h2>
           </div>
 
-          {/* Status summary pills */}
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--success-subtle) border border-(--success)/20">
               <CheckCircle2 size={14} className="text-(--success)" />
@@ -212,7 +204,6 @@ export default function AdminDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-            {/* Services list */}
             <Card className="lg:col-span-2 border border-(--border) shadow-sm bg-(--surface)">
               <div className="p-4 pb-2 flex items-center gap-2">
                 <Server size={16} className="text-(--primary)" />
@@ -242,7 +233,6 @@ export default function AdminDashboard() {
               </div>
             </Card>
 
-            {/* Resource usage */}
             <div className="space-y-4">
               <Card className="border border-(--border) shadow-sm bg-(--surface)">
                 <div className="p-4 pb-2 flex items-center gap-2">
@@ -284,7 +274,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Alerts */}
           <Card className="border border-(--border) shadow-sm bg-(--surface)">
             <div className="p-4 pb-2 flex items-center gap-2">
               <Bell size={16} className="text-(--danger)" />
@@ -302,7 +291,6 @@ export default function AdminDashboard() {
             <h2 className="text-lg font-bold text-(--text-primary)">Engajamento & Uso da Plataforma</h2>
           </div>
 
-          {/* Metric cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
             {engagementMetrics.map((m) => (
               <Card key={m.label} className="border border-(--border) shadow-sm bg-(--surface) hover:shadow-md transition-shadow">
@@ -329,10 +317,8 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Activity breakdown */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
-            {/* Top actions */}
             <Card className="border border-(--border) shadow-sm bg-(--surface)">
               <div className="p-4 pb-2 flex items-center gap-2">
                 <Zap size={16} className="text-(--accent)" />
@@ -359,7 +345,6 @@ export default function AdminDashboard() {
               </div>
             </Card>
 
-            {/* Sessions by type */}
             <Card className="border border-(--border) shadow-sm bg-(--surface)">
               <div className="p-4 pb-2 flex items-center gap-2">
                 <Globe size={16} className="text-(--accent)" />
@@ -388,7 +373,6 @@ export default function AdminDashboard() {
 
                 <hr className="my-2 border-t border-(--border)" />
 
-                {/* Quick stats grid */}
                 <div className="grid grid-cols-3 gap-3 pt-1">
                   {[
                     { icon: <Activity size={14} />,  label: 'Pico diário',   value: '11h–12h', color: 'var(--primary)' },
@@ -406,7 +390,6 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Recent user activity feed */}
           <Card className="border border-(--border) shadow-sm bg-(--surface)">
             <div className="p-4 pb-2 flex items-center gap-2">
               <Clock size={16} className="text-(--text-muted)" />
