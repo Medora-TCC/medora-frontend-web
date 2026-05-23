@@ -1,5 +1,6 @@
 import { Layout, NotFound, ThemeProvider } from '@medora_web/shared'
 import { BrowserRouter, Route, Routes } from 'react-router'
+import AdminDashboard from './pages/dashboard/dashboard'
 
 function App() {
   return (
@@ -8,7 +9,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}></Route>
-            <Route path="/" />
+            <Route path="/" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
