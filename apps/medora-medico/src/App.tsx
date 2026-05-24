@@ -1,5 +1,5 @@
 import ConsultaScreen from './pages/ConsultasScreen/ConsultaScreen';
-import { ThemeProvider, Layout, NotFound, Teste} from "@medora_web/shared";
+import { ThemeProvider, Layout, NotFound, ServerErrorPage} from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
@@ -32,9 +32,10 @@ function App() {
               <Route element={<Layout />}>
                   <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
                   <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
-                  <Route path="*" element={<NotFound />} />
                   <Route path="/login" element={<LoginScreen />} />
                   <Route path="/cadastro" element={<RegisterPage />} />
+                  <Route path="/server-error" element={<ServerErrorPage />}/>
+                  <Route path="*" element={<NotFound />} />
                   
               </Route>
              </Routes>
