@@ -41,8 +41,8 @@ export default function MainLayout() {
                 <Sidebar.Item icon={LayoutDashboard} label="Dashboard" isActive />
                 <Sidebar.Section title="Agenda" />
                     <Sidebar.Item icon={Users} label="Disponibilidade">
-                    <Sidebar.SubItem label="Cadastrar Disponibilidade" href="/agenda" />
-                    <Sidebar.SubItem label="Histórico" href="/agenda/historico" />
+                    <Sidebar.SubItem label="Cadastrar Disponibilidade" href="/cadastro-horarios" />
+                    <Sidebar.SubItem label="Histórico" href="/agenda" />
                 </Sidebar.Item>
                 
 

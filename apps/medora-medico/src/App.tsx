@@ -1,5 +1,5 @@
 import ConsultaScreen from './pages/ConsultaScreen/ConsultaScreen';
-import { ThemeProvider, Layout, NotFound} from "@medora_web/shared";
+import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage} from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
@@ -9,7 +9,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import { HomePage } from "./pages/HomePage/HomePage";
 import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
 import MainLayout from "./components/MainLayout/MainLayout";
-import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilityHistorical";
+import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilitySchedule";
 import { MedicalRecordPage } from "./pages/MedicalRecordPage/MedicalRecordPage";
 import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
 import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
@@ -21,8 +21,8 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route element={<MainLayout />}>
-                <Route path="/agenda" element={< AvailabilityPage />} />
-                <Route path="/agenda/historico" element={< AvailabilityHistorical />} />
+                <Route path="/cadastro-horarios" element={< AvailabilityPage />} />
+                <Route path="/agenda" element={< AvailabilityHistorical />} />
          
                 <Route path="/consulta" element={<ConsultaScreen/>} />
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -30,16 +30,19 @@ function App() {
 
                 <Route path='/teleconsulta/:id/configuracao' element={<TeleConsultaConfig/>} />
                 <Route path='/teleconsulta/:id/sala' element={<SalaTeleConsulta/>} />
+                <Route path="/" element={< HomePage  />} />
                 
               </Route>
 
               <Route element={<Layout />}>
                   <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
                   <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
-                  <Route path="*" element={<NotFound />} />
                   <Route path="/login" element={<LoginScreen />} />
                   <Route path="/cadastro" element={<RegisterPage />} />
-                  <Route path="/" element={< HomePage  />} />
+                  <Route path="/server-error" element={<ServerErrorPage />}/>
+                  <Route path="/connection-error" element={<ConnectionErrorPage />}/>
+                  <Route path="*" element={<NotFound />} />
+                  
               </Route>
              </Routes>
           </BrowserRouter>
