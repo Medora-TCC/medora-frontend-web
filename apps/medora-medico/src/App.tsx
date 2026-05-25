@@ -1,4 +1,4 @@
-import ConsultaScreen from './pages/ConsultasScreen/ConsultaScreen';
+import ConsultaScreen from './pages/ConsultaScreen/ConsultaScreen';
 import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage} from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
@@ -11,6 +11,8 @@ import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
 import MainLayout from "./components/MainLayout/MainLayout";
 import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilitySchedule";
 import { MedicalRecordPage } from "./pages/MedicalRecordPage/MedicalRecordPage";
+import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
+import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 
 function App() {
   return (
@@ -22,9 +24,12 @@ function App() {
                 <Route path="/cadastro-horarios" element={< AvailabilityPage />} />
                 <Route path="/agenda" element={< AvailabilityHistorical />} />
          
-                <Route path="consulta" element={<ConsultaScreen/>} />
+                <Route path="/consulta" element={<ConsultaScreen/>} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/prontuario" element={<MedicalRecordPage />} />
+
+                <Route path='/teleconsulta/:id/configuracao' element={<TeleConsultaConfig/>} />
+                <Route path='/teleconsulta/:id/sala' element={<SalaTeleConsulta/>} />
                 <Route path="/" element={< HomePage  />} />
                 
               </Route>
