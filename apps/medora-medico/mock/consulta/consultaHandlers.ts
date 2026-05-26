@@ -62,7 +62,7 @@ const mockConsultaList: IConsultaDetailed[] = [
         pacienteId: "pac-506",
         pacienteNome: "Pedro Pedroso",
         medicoId: "med-789",
-        dataHorario: "2026-05-23T18:30:00.000-03:00",
+        dataHorario: "2026-05-25T20:30:00.000-03:00",
         status: "agendado",
         observacoes: "Pós-operatório",
         tags: ["cirurgia", "retorno"],
