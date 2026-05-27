@@ -5,7 +5,7 @@ import {
   CheckCircle2, XCircle, Clock, Users, UserCheck, CalendarDays,
   TrendingUp, BarChart3, Zap, Database, Globe,
   Bell, ShieldCheck, ArrowUpRight, ArrowDownRight,
-  MonitorDot, Timer, Layers, HeartPulse
+  MonitorDot, Timer, Layers, HeartPulse, Bug
 } from 'lucide-react';
 
 
@@ -57,6 +57,13 @@ const alerts = [
   { level: 'danger',   message: 'Notification Service offline desde 14:22',        time: '38 min atrás' },
   { level: 'info',     message: 'Deploy v2.4.1 concluído com sucesso em produção', time: '2h atrás' },
   { level: 'warning',  message: 'Uso de memória acima de 60% no pod api-3',        time: '4h atrás' },
+];
+
+const systemErrors = [
+  { id: '1', code: 'ERR_TIMEOUT', message: 'Timeout na integração com gateway de pagamento', count: 684, usersAffected: 215, lastOccurred: 'Há 5 min', level: 'danger' },
+  { id: '2', code: 'AUTH_001', message: 'Token JWT expirado ou inválido (rejeição em massa)', count: 512, usersAffected: 180, lastOccurred: 'Há 12 min', level: 'warning' },
+  { id: '3', code: 'DB_LOCK', message: 'Deadlock na tabela de agendamentos', count: 87, usersAffected: 45, lastOccurred: 'Há 1 hora', level: 'danger' },
+  { id: '4', code: 'UI_RENDER', message: 'TypeError: Cannot read properties of undefined (reading "map") no CalendarView', count: 42, usersAffected: 12, lastOccurred: 'Há 3 horas', level: 'warning' },
 ];
 
 const sparklineData = [42, 58, 51, 73, 67, 81, 75, 90, 84, 96, 88, 102];
@@ -274,15 +281,69 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <Card className="border border-(--border) shadow-sm bg-(--surface)">
-            <div className="p-4 pb-2 flex items-center gap-2">
-              <Bell size={16} className="text-(--danger)" />
-              <span className="font-semibold text-sm text-(--text-primary)">Alertas Recentes</span>
-            </div>
-            <div className="p-4 pt-0 space-y-2">
-              {alerts.map((alert, i) => <AlertRow key={i} alert={alert} />)}
-            </div>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="border border-(--border) shadow-sm bg-(--surface)">
+              <div className="p-4 pb-2 flex items-center gap-2">
+                <Bell size={16} className="text-(--danger)" />
+                <span className="font-semibold text-sm text-(--text-primary)">Alertas Recentes</span>
+              </div>
+              <div className="p-4 pt-0 space-y-2">
+                {alerts.map((alert, i) => <AlertRow key={i} alert={alert} />)}
+              </div>
+            </Card>
+
+            <Card className="border border-(--border) shadow-sm bg-(--surface)">
+              <div className="p-4 pb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bug size={16} className="text-(--danger)" />
+                  <span className="font-semibold text-sm text-(--text-primary)">Monitoramento de Erros (Potenciais Bugs)</span>
+                </div>
+                <Chip color="danger" size="sm">Atenção Necessária</Chip>
+              </div>
+              <div className="p-4 pt-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[400px]">
+                    <thead>
+                      <tr className="border-b border-(--border) text-xs text-(--text-muted)">
+                        <th className="font-semibold py-2">Código e Mensagem</th>
+                        <th className="font-semibold py-2">Ocorrências / Afetados</th>
+                        <th className="font-semibold py-2">Última Vez</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-(--border)">
+                      {systemErrors.map((err) => (
+                        <tr key={err.id} className="text-sm hover:bg-default-50 transition-colors">
+                          <td className="py-2.5 pr-2">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-(--text-primary) line-clamp-1" title={err.message}>
+                                {err.message}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${err.level === 'danger' ? 'bg-(--danger-subtle) text-(--danger)' : 'bg-(--warning-subtle) text-(--warning)'}`}>
+                                  {err.code}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-2">
+                            <div className="flex flex-col">
+                              <span className={`font-bold ${err.count > 500 ? 'text-(--danger)' : 'text-(--text-primary)'}`}>
+                                {err.count} vezes
+                              </span>
+                              <span className="text-xs text-(--text-secondary)">
+                                {err.usersAffected} usuários
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-2.5 pl-2 text-xs text-(--text-muted)">{err.lastOccurred}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Card>
+          </div>
         </section>
 
         <section className="space-y-4">
