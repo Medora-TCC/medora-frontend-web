@@ -3,7 +3,6 @@ import { Settings,
    FileText, ChevronLeft, ChevronRight, Video, User, Clock, Trash2, Pencil, CheckCircle2, Loader2 } from 'lucide-react';
 import { Card, Button } from '@heroui/react';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
-import { Teste } from '@medora_web/shared';
 import { type DailyAvailabilitySlotDTO } from "@medora_web/shared";
 import  AvailabilityService  from '../../api/services/Availability';
 
@@ -107,7 +106,6 @@ export function AvailabilityHistorical() {
   return (
     
     <>
-    <Teste />
     <div className="max-w-7xl mx-auto p-6 space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -128,10 +126,10 @@ export function AvailabilityHistorical() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-default-200 p-4">
+      <div className="bg-surface-raised rounded-2xl shadow-sm border border-default-200 p-4">
         <div className="flex items-center justify-between mb-2 px-2 flex-wrap gap-2">
           <div className="flex items-center gap-3">
-             <h2 className="text-lg font-semibold text-slate-800 capitalize">
+             <h2 className="text-lg font-semibold text-text-secondary capitalize">
                 {selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })}
              </h2>
              <input 
@@ -160,14 +158,14 @@ export function AvailabilityHistorical() {
                 onClick={() => setSelectedDate(date)}
                 className={`flex flex-col items-center justify-center rounded-xl p-3 min-w-20 transition-all duration-200 ${
                   isCenter 
-                    ? 'bg-(--primary) text-white shadow-md scale-110' 
-                    : 'bg-default-50 text-default-600 hover:bg-default-100'
+                    ? 'bg-(--primary) text-text-primary shadow-md scale-110' 
+                    : 'bg-default-50 text-text-primary hover:bg-default-100'
                 }`}
               >
-                <span className={`text-xs font-semibold uppercase ${isCenter ? 'text-white/80' : 'text-default-500'}`}>
+                <span className={`text-xs font-semibold uppercase ${isCenter ? 'text-text-primary ' : 'text-default-500'}`}>
                   {formatDateLabel(date)}
                 </span>
-                <span className={`text-2xl font-bold mt-1 ${isCenter ? 'text-white' : 'text-slate-700'}`}>
+                <span className={`text-2xl font-bold mt-1 ${isCenter ? 'text-text-primary ' : 'text-text-muted'}`}>
                   {date.getUTCDate().toString().padStart(2, '0')}
                 </span>
               </button>
@@ -215,7 +213,7 @@ export function AvailabilityHistorical() {
                     <div className="flex items-center gap-2">
                         <span className={`text-xl font-bold ${isPast ? 'text-default-500' : 'text-foreground'}`}>{slot.time}</span>
                         {(!isPast || isBooked) && slot.type && (
-                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full text-white ${
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full text-text-primary ${
                                 isPast && !isBooked ? 'bg-default-400' :
                                 slot.type === 'presential' ? 'bg-primary' : 
                                 slot.type === 'telemedicine' ? 'bg-warning' :
@@ -260,9 +258,9 @@ export function AvailabilityHistorical() {
                       <div className="flex flex-col gap-2 mt-1 mb-1">
                           <span className="text-xs font-semibold text-default-600">Alterar modalidade:</span>
                           <div className="flex gap-2 flex-wrap">
-                              <Button size="sm" variant={slot.type === 'presential' ? 'primary' : 'outline'} className={slot.type === 'presential' ? 'text-white' : 'text-primary'} onPress={() => handleChangeType(slot, 'presential')}>Presencial</Button>
-                              <Button size="sm" variant={slot.type === 'telemedicine' ? 'primary' : 'outline'} className={slot.type === 'telemedicine' ? 'bg-warning text-white border-warning' : 'text-warning border-warning'} onPress={() => handleChangeType(slot, 'telemedicine')}>Vídeo</Button>
-                              <Button size="sm" variant={slot.type === 'hybrid' ? 'primary' : 'outline'} className={slot.type === 'hybrid' ? 'bg-linear-to-r from-warning to-(--primary) text-white border-0' : 'border-(--primary) text-default-600'} onPress={() => handleChangeType(slot, 'hybrid')}>Ambos</Button>
+                              <Button size="sm" variant={slot.type === 'presential' ? 'primary' : 'outline'} className={slot.type === 'presential' ? 'text-text-primary ' : 'text-primary'} onPress={() => handleChangeType(slot, 'presential')}>Presencial</Button>
+                              <Button size="sm" variant={slot.type === 'telemedicine' ? 'primary' : 'outline'} className={slot.type === 'telemedicine' ? 'bg-warning text-text-primary  border-warning' : 'text-warning border-warning'} onPress={() => handleChangeType(slot, 'telemedicine')}>Vídeo</Button>
+                              <Button size="sm" variant={slot.type === 'hybrid' ? 'primary' : 'outline'} className={slot.type === 'hybrid' ? 'bg-linear-to-r from-warning to-(--primary) text-text-primary  border-0' : 'border-(--primary) text-default-600'} onPress={() => handleChangeType(slot, 'hybrid')}>Ambos</Button>
                           </div>
                           <Button size="sm" variant="ghost" className="text-default-400 self-end mt-1" onPress={() => setEditingSlotId(null)}>Cancelar</Button>
                       </div>
@@ -278,7 +276,7 @@ export function AvailabilityHistorical() {
                 {isBooked && !isPast && slot.status === 'scheduled' && (
                     <Card.Footer className="flex justify-end gap-2 pt-0 border-t-0">
                         <Button size="sm" variant="ghost" onPress={() => handleCancel(slot.id)} className="font-medium bg-danger/10 text-danger hover:bg-danger-soft-hover">Recusar</Button>
-                        <Button size="sm"  onPress={() => handleConfirm(slot.id)} className="font-medium bg-primary text-white hover:bg-primary/90">Confirmar</Button>
+                        <Button size="sm"  onPress={() => handleConfirm(slot.id)} className="font-medium bg-primary text-text-primary  hover:bg-primary/90">Confirmar</Button>
                     </Card.Footer>
                 )}
                 

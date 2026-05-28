@@ -271,7 +271,7 @@ export function RegisterPage() {
                                 </div>
                             )}
                         </form>
-                        <a href="#" className="text-sm text-center text-primary mt-2 hover:underline">
+                        <a href="/login/" className="text-sm text-center text-primary mt-2 hover:underline">
                             já tem uma conta? faça login
                         </a>
                     </div>

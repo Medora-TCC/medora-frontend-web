@@ -20,18 +20,16 @@ function App() {
       <ThemeProvider>
           <BrowserRouter>
             <Routes>
-              <Route element={<MainLayout />}>
-                <Route path="/cadastro-horarios" element={< AvailabilityPage />} />
-                <Route path="/agenda" element={< AvailabilityHistorical />} />
+              <Route path="/medico" element={<MainLayout />}>
+                <Route path="disponibilidade" element={< AvailabilityPage />} />
+                <Route path="agenda" element={< AvailabilityHistorical />} />
          
-                <Route path="/consulta" element={<ConsultaScreen/>} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/prontuario" element={<MedicalRecordPage />} />
+                <Route path="consulta" element={<ConsultaScreen/>} />
+                <Route path="" element={<Dashboard />} />
+                <Route path="prontuario" element={<MedicalRecordPage />} />
 
-                <Route path='/teleconsulta/:id/configuracao' element={<TeleConsultaConfig/>} />
-                <Route path='/teleconsulta/:id/sala' element={<SalaTeleConsulta/>} />
-                <Route path="/" element={< HomePage  />} />
-                
+                <Route path='teleconsulta/:id/pre-sala' element={<TeleConsultaConfig/>} />
+                <Route path='teleconsulta/:id/sala' element={<SalaTeleConsulta/>} />
               </Route>
 
               <Route element={<Layout />}>
@@ -41,6 +39,7 @@ function App() {
                   <Route path="/cadastro" element={<RegisterPage />} />
                   <Route path="/server-error" element={<ServerErrorPage />}/>
                   <Route path="/connection-error" element={<ConnectionErrorPage />}/>
+                  <Route path="/" element={< HomePage  />} />
                   <Route path="*" element={<NotFound />} />
                   
               </Route>

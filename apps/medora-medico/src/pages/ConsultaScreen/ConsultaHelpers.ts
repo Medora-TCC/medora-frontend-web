@@ -25,7 +25,7 @@ export function enterConsulta(id: string, navigate: any) {
   // Exemplo: await api.post(`/consultas/${id}/entrar`);
 
   // Agora usamos o navigate que veio do componente
-  navigate(`/teleconsulta/${id}/configuracao`);
+  navigate(`/teleconsulta/${id}/pre-sala`);
 }
 
 export function formatConsultaHorario(iso: string) {

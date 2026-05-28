@@ -18,6 +18,7 @@ import {
   X,
   Send,
   Clock,
+  ClipboardClock,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -230,10 +231,9 @@ function ControlBtn({
         title={label}
         className={`
           flex items-center justify-center size-12 rounded-full transition-all duration-200
-          ${
-            danger
-              ? "bg-danger hover:bg-danger/80 text-white"
-              : active
+          ${danger
+            ? "bg-danger hover:bg-danger/80 text-white"
+            : active
               ? "bg-white/15 hover:bg-white/25 text-white"
               : "bg-white/10 hover:bg-white/20 text-white/50"
           }
@@ -261,12 +261,12 @@ export default function SalaTeleConsulta() {
   // Controles
   const [camOn, setCamOn] = useState(state.camOn ?? true);
   const [micOn, setMicOn] = useState(state.micOn ?? true);
-  const [handRaised, setHandRaised] = useState(false);
   const [screenSharing, setScreenSharing] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
   // UI
-  const [sidePanel, setSidePanel] = useState<"chat" | "participants" | null>(null);
+  const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | null>(null);
+  const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -275,7 +275,14 @@ export default function SalaTeleConsulta() {
     {
       id: "1",
       author: "Sistema",
-      text: "Consulta iniciada. Bem-vindo à teleconsulta.",
+      text: "Consulta iniciada. Bem-vindo à teleconsulta. ",
+      time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      self: false,
+    },
+    {
+      id: "2",
+      author: "Sistema",
+      text: "É estritamente proibido o envio de preescrições via este chat. Utilize o módulo de receitas para preescrever medicamentos. Duvidas? Saiba Mais",
       time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
       self: false,
     },
@@ -284,7 +291,7 @@ export default function SalaTeleConsulta() {
 
   // Participante remoto simulado (em prod viria do WebRTC)
   const remoteConnected = true;
-  const remoteName = "Dr. Carlos Oliveira";
+  const remoteName = "Carlos Oliveira";
   const remoteCamOn = true;
 
   // ── Inicializa stream local ──────────────────────────────────────────────
@@ -380,6 +387,13 @@ export default function SalaTeleConsulta() {
     setUnread(0);
   }
 
+  // ── Prontuario ─────────────────────────────────────────────────────────────────
+  function openProntuario() {
+    setSidePanel((p) => (p === "chat" ? null : "chat"));
+    setUnread(0);
+  }
+
+
   function sendMessage(text: string) {
     const msg: ChatMessage = {
       id: Date.now().toString(),
@@ -394,12 +408,12 @@ export default function SalaTeleConsulta() {
   // ── Encerrar ─────────────────────────────────────────────────────────────
   function encerrar() {
     localStream?.getTracks().forEach((t) => t.stop());
-    navigate(`/consulta`);
+    navigate(`../consulta`);
   }
 
   return (
     <div
-      className="relative flex h-screen w-screen bg-[#0f1117] overflow-hidden"
+      className="relative flex h-full w-full bg-[#0f1117] overflow-hidden"
       onMouseMove={resetHide}
       onTouchStart={resetHide}
     >
@@ -410,7 +424,7 @@ export default function SalaTeleConsulta() {
         <div
           className={`
             absolute top-0 left-0 right-0 z-20 flex items-center justify-between
-            px-5 py-3 bg-gradient-to-b from-black/60 to-transparent
+            px-5 py-3 bg-linear-to-b from-black/60 to-transparent
             transition-opacity duration-300
             ${controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"}
           `}
@@ -491,15 +505,6 @@ export default function SalaTeleConsulta() {
             />
           </div>
 
-          {/* Hand raised indicator */}
-          {handRaised && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-              <div className="flex items-center gap-2 bg-warning/20 border border-warning/40 rounded-full px-4 py-1.5">
-                <Hand size={14} className="text-warning" />
-                <span className="text-warning text-xs font-medium">Mão levantada</span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ── Barra de controles ───────────────────────── */}
@@ -524,10 +529,6 @@ export default function SalaTeleConsulta() {
               <MonitorUp size={20} />
             </ControlBtn>
 
-            <ControlBtn onClick={() => setHandRaised((v) => !v)} active={handRaised} label={handRaised ? "Baixar mão" : "Levantar mão"}>
-              <Hand size={20} />
-            </ControlBtn>
-
             {/* Encerrar — destacado no centro */}
             <div className="flex flex-col items-center gap-1.5 mx-2">
               <button
@@ -538,6 +539,14 @@ export default function SalaTeleConsulta() {
               </button>
               <span className="text-white/50 text-[10px]">Encerrar</span>
             </div>
+
+            <ControlBtn
+              onClick={openProntuario}
+              active={sidePanel === "chat"}
+              label="Prontuário"
+            >
+              <ClipboardClock  size={20} />
+            </ControlBtn>
 
             <div className="relative">
               <ControlBtn
@@ -554,15 +563,7 @@ export default function SalaTeleConsulta() {
               )}
             </div>
 
-            <ControlBtn
-              onClick={() => setSidePanel((p) => (p === "participants" ? null : "participants"))}
-              active={sidePanel === "participants"}
-              label="Participantes"
-            >
-              <Users size={20} />
-            </ControlBtn>
-
-            <ControlBtn onClick={() => {}} active label="Mais">
+            <ControlBtn onClick={() => { }} active label="Mais">
               <MoreVertical size={20} />
             </ControlBtn>
           </div>
@@ -582,50 +583,6 @@ export default function SalaTeleConsulta() {
             onSend={sendMessage}
             onClose={() => setSidePanel(null)}
           />
-        )}
-
-        {sidePanel === "participants" && (
-          <div className="flex flex-col h-full bg-[#1a1f2e] border-l border-white/10">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <span className="text-white text-sm font-medium">Participantes (2)</span>
-              <button
-                onClick={() => setSidePanel(null)}
-                className="text-white/50 hover:text-white transition-colors"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="flex flex-col gap-1 p-3">
-              {[
-                { name: "Você", mic: micOn, cam: camOn, self: true },
-                { name: remoteName, mic: true, cam: remoteCamOn, self: false },
-              ].map((p) => (
-                <div
-                  key={p.name}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-center justify-center size-8 rounded-full bg-accent/20 text-accent text-xs font-semibold">
-                    {p.name
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((w) => w[0])
-                      .join("")
-                      .toUpperCase()}
-                  </div>
-                  <span className="flex-1 text-white text-sm">
-                    {p.name}
-                    {p.self && (
-                      <span className="text-white/40 text-xs ml-1">(você)</span>
-                    )}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    {!p.mic && <MicOff size={13} className="text-danger" />}
-                    {!p.cam && <VideoOff size={13} className="text-white/40" />}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         )}
       </div>
     </div>

@@ -268,7 +268,7 @@ export default function TeleConsultaConfig() {
     // Para os streams de preview — a sala vai criar os próprios
     videoStream?.getTracks().forEach((t) => t.stop());
     audioStream?.getTracks().forEach((t) => t.stop());
-    navigate(`/teleconsulta/${id}/sala`, {
+    navigate(`../teleconsulta/${id}/sala`, {
       state: { camOn, micOn, selectedCam, selectedMic },
     });
   }
