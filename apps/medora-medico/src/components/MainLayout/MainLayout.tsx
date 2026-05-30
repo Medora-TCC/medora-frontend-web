@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 import Navbar from "../Header/Header";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
-import { Calendar, ClipboardList, LayoutDashboard, LogOut, MessageSquare, Settings, Stethoscope, UserCircle, Users } from "lucide-react";
+import { ClipboardList, LayoutDashboard, LogOut, Settings, Stethoscope, UserCircle, Users } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@heroui/react";
 
@@ -73,7 +73,9 @@ export default function MainLayout() {
 
               {/* <Sidebar.Item icon={MessageSquare} label="Mensagens" /> */}
               <Sidebar.Section title="Configurações" />
-              <Sidebar.Item icon={Settings} label="Ajustes" />
+              <Sidebar.Item icon={Settings} label="Ajustes" >
+                <Sidebar.SubItem label="Configurações de conta" href="/medico/configuracoes"/>
+              </Sidebar.Item>
             </div>
 
             <Sidebar.Footer>

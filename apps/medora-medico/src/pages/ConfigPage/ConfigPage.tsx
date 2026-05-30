@@ -1,8 +1,6 @@
 import { Button, Input } from "@heroui/react";
 import { useState, type ReactNode } from "react";
 
-type BadgeColor = "zinc" | "teal" | "amber" | "red";
-
 interface SelectOption {
   value: string;
   label: string;
@@ -124,26 +122,6 @@ const Toggle = ({ checked, onChange, label }: ToggleProps) => (
       }`}
     />
   </button>
-);
-
-interface BadgeProps {
-  children: ReactNode;
-  color?: BadgeColor;
-}
-
-const badgeColorClasses: Record<BadgeColor, string> = {
-  zinc: "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400",
-  teal: "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300",
-  amber: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
-  red: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400",
-};
-
-const Badge = ({ children, color = "zinc" }: BadgeProps) => (
-  <span
-    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${badgeColorClasses[color]}`}
-  >
-    {children}
-  </span>
 );
 
 export default function ConfigPage() {
