@@ -86,10 +86,14 @@ export default function MainLayout() {
                 </div>
 
                 <div className="flex items-center justify-between w-full transition-all duration-300 opacity-0 group-hover:opacity-100 max-md:opacity-100">
-                  <div className="flex flex-col whitespace-nowrap">
+                  <button
+                    type="button"
+                    className="flex flex-col text-left whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => navigate("/medico/perfil")}
+                  >
                     <span className="text-sm font-bold text-white">Dr. Pedro Silva</span>
                     <span className="text-xs text-gray-500">CRM 12345-SP</span>
-                  </div>
+                  </button>
                   <Button
                   isIconOnly variant="ghost" className="hover:text-red-400 text-gray-500  transition-colors"
                   onPress={handleLogOut}
