@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Input, Button, toast, ToastProvider } from "@heroui/react";
-import { FloatingCard, FormStepper } from "@medora_web/shared";
+import { FloatingCard, FormStepper, PasswordInput, FieldWrapper } from "@medora_web/shared";
 import doctorImage from '../../assets/medicoSegurandoTable.png';
 import type { RegisterDoctorDto } from "../../api/dtos/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
-import { PasswordInput } from "@medora_web/shared";
-import { FieldWrapper } from "@medora_web/shared";
 import { ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router";
+import RejectedVerificationDialog from "../../components/RejectedVerificationDialog/RejectedVerificationDialog";
 
 export function RegisterPage() {
     const [formData, setFormData] = useState<RegisterDoctorDto>({
@@ -22,8 +22,12 @@ export function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [currentStep, setCurrentStep] = useState(1);
-    
-    
+
+    const [isRejectedOpen, setIsRejectedOpen] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
+
+    const navigate = useNavigate();
+
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -70,17 +74,17 @@ export function RegisterPage() {
         setCurrentStep(2);
     }   
     
-    const handleFormSubmit = (e: React.FormEvent) => {
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
-        
-        if (formData.state === '') 
+
+        if (formData.state === '')
             newErrors.state = 'Estado é obrigatório';
-        if (formData.crm === '') 
+        if (formData.crm === '')
             newErrors.crm = 'CRM é obrigatório';
-        if (formData.rqe === '') 
+        if (formData.rqe === '')
             newErrors.rqe = 'RQE é obrigatório';
-        if (formData.cpf === '') 
+        if (formData.cpf === '')
             newErrors.cpf = 'CPF é obrigatório';
 
         if (Object.keys(newErrors).length > 0) {
@@ -88,26 +92,38 @@ export function RegisterPage() {
             const firstErrorMessage = Object.values(newErrors)[0];
             toast.warning(firstErrorMessage);
             return;
-        }   
+        }
 
-        fetch(Endpoints.REGISTER_DOCTOR, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        }).then(response => {
+        try {
+            const response = await fetch(Endpoints.REGISTER_DOCTOR, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
             if (response.ok) {
                 toast.success('Registro bem-sucedido!');
+                navigate("/");
             } else {
-                toast.warning('Erro ao registrar médico. Por favor, tente novamente.');
+                const data = await response
+                    .json()
+                    .catch(() => ({ reason: "Não foi possível validar seus dados." }));
+                setRejectionReason(data.reason);
+                setIsRejectedOpen(true);
             }
-        }).catch(error => {
+        } catch (error) {
             console.error('Erro ao registrar médico:', error);
-        });   
+        }
     }
 
     return (
             <>
             <ToastProvider/>
+            <RejectedVerificationDialog
+                isOpen={isRejectedOpen}
+                reason={rejectionReason}
+                onReview={() => setIsRejectedOpen(false)}
+            />
            <div className="flex flex-col md:flex-row w-full max-w-7xl h-fit md:h-[90vh] bg-surface rounded-3xl shadow-2xl overflow-hidden m-4 border border-border/50 mx-auto">
                 
                 <div className="w-full md:w-1/2 flex justify-center items-center p-8 sm:p-12 lg:p-16 relative z-10">
