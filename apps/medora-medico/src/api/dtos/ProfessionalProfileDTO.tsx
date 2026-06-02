@@ -3,6 +3,8 @@ export interface ProfessionalProfileDTO {
   email: string;
   phone: string;
   specialty: string;
+  image: string;
+  location: string;
   crm: string;
   rqe: string;
   cpf: string;

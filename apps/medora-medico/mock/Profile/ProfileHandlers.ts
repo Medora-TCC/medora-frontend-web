@@ -6,6 +6,8 @@ let mockProfile: ProfessionalProfileDTO = {
   email: "pedro.silva@medora.com",
   phone: "(11) 91234-5678",
   specialty: "Cardiologia",
+  image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400",
+  location: "Curitiba, PR",
   crm: "12345-SP",
   rqe: "65432",
   cpf: "123.456.789-00",

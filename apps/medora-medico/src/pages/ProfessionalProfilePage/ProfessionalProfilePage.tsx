@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button, Input, toast, ToastProvider } from "@heroui/react";
-import { UserCircle, Pencil, ShieldCheck } from "lucide-react";
+import { Pencil, ShieldCheck } from "lucide-react";
 import ProfileService from "../../api/services/Profile";
 import { type ProfessionalProfileDTO } from "../../api/dtos/ProfessionalProfileDTO";
+import AvatarUpload from "../../components/AvatarUpload/AvatarUpload";
 
 export default function ProfessionalProfilePage() {
   const [profile, setProfile] = useState<ProfessionalProfileDTO | null>(null);
@@ -50,9 +51,12 @@ export default function ProfessionalProfilePage() {
       <main className="p-6 space-y-6 max-w-3xl mx-auto w-full">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-surface-alt rounded-full flex items-center justify-center border border-divider">
-              <UserCircle className="text-text-muted" size={40} />
-            </div>
+            <AvatarUpload
+              value={form.image}
+              name={profile.name}
+              isEditing={isEditing}
+              onChange={(img) => handleChange("image", img)}
+            />
             <div>
               <h1 className="text-2xl font-bold text-text-primary">{profile.name}</h1>
               <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600">
@@ -72,6 +76,16 @@ export default function ProfessionalProfilePage() {
             </Button>
           )}
         </header>
+
+        <section className="bg-surface-alt rounded-xl border border-divider p-6 space-y-4">
+          <div>
+            <h2 className="font-bold text-lg">Perfil público</h2>
+            <p className="text-xs text-text-muted">Estas informações aparecem para os pacientes no app.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Localização" value={form.location} isEditing={isEditing} onChange={(v) => handleChange("location", v)} />
+          </div>
+        </section>
 
         <section className="bg-surface-alt rounded-xl border border-divider p-6 space-y-4">
           <h2 className="font-bold text-lg">Dados pessoais</h2>
