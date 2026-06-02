@@ -1,7 +1,6 @@
-import { Activity, Bell } from 'lucide-react';
+import { Activity, Bell, LogOut } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { useNavigate } from 'react-router';
-import { ChevronRight } from 'lucide-react';
 import { ThemeToggle } from '@medora_web/shared';
 
 export default function Header() {
@@ -20,14 +19,29 @@ export default function Header() {
                 <Button isIconOnly variant="ghost" className="text-text-muted">
                     <ThemeToggle />
                 </Button>
-                <div className="flex items-center gap-3 pl-4 border-l border-divider">
-                    <div className="hidden md:block text-right">
-                        <p className="text-sm font-bold text-text-primary leading-none">Dr. João</p>
-                        <p className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Cardiologista</p>
-                    </div>
-                    <div className="h-10 w-10 rounded-full bg-primary-color flex items-center justify-center text-white font-bold shadow-sm border-2 border-surface">
-                        DR
-                    </div>
+                <div className="flex items-center gap-2 pl-4 border-l border-divider">
+                    <button
+                        type="button"
+                        onClick={() => navigate("/medico/perfil")}
+                        className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                        <div className="hidden md:block text-right">
+                            <p className="text-sm font-bold text-text-primary leading-none">Dr. Pedro Silva</p>
+                            <p className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Cardiologia</p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-primary-color flex items-center justify-center text-white font-bold shadow-sm border-2 border-surface">
+                            DR
+                        </div>
+                    </button>
+                    <Button
+                        isIconOnly
+                        variant="ghost"
+                        className="text-text-muted hover:text-red-400 transition-colors"
+                        onPress={() => navigate("/")}
+                        aria-label="Sair"
+                    >
+                        <LogOut size={20} />
+                    </Button>
                 </div>
             </div>
         </nav>
