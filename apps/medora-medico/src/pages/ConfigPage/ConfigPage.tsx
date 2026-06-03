@@ -1,5 +1,5 @@
 import { Button, Input } from "@heroui/react";
-import { Check } from "lucide-react";
+import { Check, TriangleAlert } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 interface SelectOption {
@@ -31,18 +31,18 @@ interface SectionProps {
 
 const Section = ({ title, description, children, danger = false }: SectionProps) => (
   <div
-    className={`border-b ${danger ? "border-red-200 dark:border-red-900" : "border-zinc-200 dark:border-zinc-800"
+    className={`border-b ${danger ? "border-danger" : "border-border"
       } pb-10 mb-10 last:border-0 last:mb-0 last:pb-0`}
   >
     <div className="mb-6">
       <h2
-        className={`text-base font-semibold ${danger ? "text-red-600 dark:text-red-400" : "text-zinc-900 dark:text-zinc-100"
+        className={`text-base font-semibold ${danger ? "text-danger-text" : "text-text-primary"
           }`}
       >
         {title}
       </h2>
       {description && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{description}</p>
+        <p className="text-sm text-text-secundary">{description}</p>
       )}
     </div>
     <div className="space-y-5">{children}</div>
@@ -59,11 +59,11 @@ interface FieldProps {
 const Field = ({ label, description, children, horizontal = false }: FieldProps) => (
   <div className={horizontal ? "flex items-start justify-between gap-8" : "space-y-1.5"}>
     <div className="min-w-0">
-      <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+      <label className="block text-sm font-medium text-text-primary">
         {label}
       </label>
       {description && (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+        <p className="text-xs text-secondary mt-0.5 leading-relaxed">
           {description}
         </p>
       )}
@@ -82,7 +82,7 @@ const Select = ({ value, onChange, options }: SelectProps) => (
   <select
     value={value}
     onChange={(e) => onChange?.(e.target.value)}
-    className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-md text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition appearance-none cursor-pointer"
+    className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-md text-primary focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition appearance-none cursor-pointer"
   >
     {options.map((opt) => (
       <option key={opt.value} value={opt.value}>
@@ -140,15 +140,15 @@ export default function ConfigPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans">
-      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+    <div className="min-h-screen bg-surface font-sans">
+      <div className="border-b border-border bg-surface-alt">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-zinc-500 dark:text-zinc-400">Configurações Gerais</span>
+            <span className="text-sm text-muted">Configurações Gerais</span>
           </div>
           <div className="flex items-center gap-2">
             {saved && (
-              <span className="text-xs text-teal-600 dark:text-teal-400 font-medium flex items-center gap-1">
+              <span className="text-xs text-sucess font-medium flex items-center gap-1">
                 <Check size={16}/>
                 Salvo
               </span>
@@ -184,7 +184,7 @@ export default function ConfigPage() {
           >
             <div className="flex items-center gap-2">
               {!notifChannels.telegram && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-raised text-muted">
                   Não configurado
                 </span>
               )}
@@ -281,10 +281,8 @@ export default function ConfigPage() {
           )}
 
           {!notifChannels.email && !notifChannels.telegram && (
-            <div className="flex items-start gap-2.5 px-4 py-3 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
-              <svg viewBox="0 0 16 16" className="w-4 h-4 fill-amber-500 shrink-0 mt-0.5">
-                <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />
-              </svg>
+            <div className="flex items-start gap-2.5 px-4 py-3 rounded-md bg-warning-subtle border border-amber-200 dark:border-amber-800">
+              <TriangleAlert size={16} className="text-warning"/>
               <p className="text-xs text-amber-700 dark:text-amber-400">
                 Nenhum canal de notificação está ativo. Ative ao menos um canal para receber alertas.
               </p>
@@ -292,7 +290,6 @@ export default function ConfigPage() {
           )}
         </Section>
 
-        {/* Segurança */}
         <Section
           title="Segurança"
           description="Configurações de segurança para sua conta."
@@ -304,7 +301,7 @@ export default function ConfigPage() {
           >
             <div className="flex items-center gap-2">
               {!privacy.twoFactor && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-amber-700 dark:text-amber-300 bg-warning-subtle">
                   Recomendado
                 </span>
               )}
@@ -322,7 +319,7 @@ export default function ConfigPage() {
             <div className="px-5 py-4 flex items-start justify-between gap-6 bg-white dark:bg-zinc-900">
               <div>
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Desativar conta</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                <p className="text-xs text-secondary mt-0.5">
                   Suspender temporariamente o acesso à conta sem excluir os dados.
                 </p>
               </div>
@@ -330,7 +327,7 @@ export default function ConfigPage() {
             </div>
             <div className="px-5 py-4 flex items-start justify-between gap-6 bg-red-50 dark:bg-red-950/30">
               <div>
-                <p className="text-sm font-medium text-red-700 dark:text-red-400">
+                <p className="text-sm font-medium text-warning-text">
                   Excluir conta permanentemente
                 </p>
                 <p className="text-xs text-red-500 mt-0.5">
@@ -343,7 +340,7 @@ export default function ConfigPage() {
         </Section>
 
         <div className="pt-4 flex items-center justify-between">
-          <p className="text-xs text-zinc-400">Última atualização: 27 de mai. de 2026</p>
+          <p className="text-xs text-muted">Última atualização: 27 de mai. de 2026</p>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm">Cancelar</Button>
             <Button variant="primary" size="sm" onClick={handleSave}>Salvar alterações</Button>
