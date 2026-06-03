@@ -1,16 +1,14 @@
-import { Outlet, useLocation, useNavigate } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import Navbar from "../Header/Header";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
 import { ClipboardList, LayoutDashboard, LogOut, Settings, Stethoscope, UserCircle, Users } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@heroui/react";
 
 export default function MainLayout() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -25,10 +23,6 @@ export default function MainLayout() {
   // A lógica de verificação permanece a mesma
   const hideSidebar = locationsSidebar.includes(location.pathname) || isPreSala || isSala;
   const hideFooter = locationsFooter.includes(location.pathname) || isPreSala || isSala;
-
-  const handleLogOut = () => {
-    navigate("/")
-  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface text-text-primary antialiased selection:bg-primary-subtle selection:text-primary-text">
@@ -77,30 +71,6 @@ export default function MainLayout() {
                 <Sidebar.SubItem label="Configurações de conta" href="/medico/configuracoes"/>
               </Sidebar.Item>
             </div>
-
-            <Sidebar.Footer>
-              <div className="flex items-center gap-3 group/footer cursor-pointer">
-                <div className="relative shrink-0">
-                  <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center border-2 border-indigo-500/30">
-                    <UserCircle className="text-slate-300" size={24} />
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#1e1e2d] rounded-full"></div>
-                </div>
-
-                <div className="flex items-center justify-between w-full transition-all duration-300 opacity-0 group-hover:opacity-100 max-md:opacity-100">
-                  <div className="flex flex-col whitespace-nowrap">
-                    <span className="text-sm font-bold text-white">Dr. Pedro Silva</span>
-                    <span className="text-xs text-gray-500">CRM 12345-SP</span>
-                  </div>
-                  <Button
-                  isIconOnly variant="ghost" className="hover:text-red-400 text-gray-500  transition-colors"
-                  onPress={handleLogOut}
-                  >
-                  <LogOut size={18} />
-                  </Button>
-                </div>
-              </div>
-            </Sidebar.Footer>
 
           </Sidebar.Root>
         </>
