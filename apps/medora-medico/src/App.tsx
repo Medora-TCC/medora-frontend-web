@@ -15,6 +15,7 @@ import ProfessionalProfilePage from "./pages/ProfessionalProfilePage/Professiona
 import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
 import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 import ConfigPage from './pages/ConfigPage/ConfigPage';
+import { PrescriptionPage } from './pages/PrescriptionPage/PrescriptionPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
                 <Route path="consulta" element={<ConsultaScreen/>} />
                 <Route path="" element={<Dashboard />} />
                 <Route path="prontuario" element={<MedicalRecordPage />} />
+                <Route path="prescricao" element={<PrescriptionPage />} />
                 <Route path="perfil" element={<ProfessionalProfilePage />} />
 
                 <Route path='teleconsulta/:id/pre-sala' element={<TeleConsultaConfig/>} />
