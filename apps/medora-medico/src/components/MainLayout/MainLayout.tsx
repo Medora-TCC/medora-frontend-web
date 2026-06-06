@@ -45,35 +45,23 @@ export default function MainLayout() {
             </Sidebar.Header>
 
             <div className="flex-1 py-4">
-              <Sidebar.Section title="Principal" />
               <Sidebar.Item
               icon={LayoutDashboard}
                label="Dashboard"
-               isActive={location.pathname === '/medico'}>
-                <Sidebar.SubItem 
-                label="Visão Geral"
-                href="/medico"
-                icon={LayoutDashboard}
-                 />
-              </Sidebar.Item>
-              <Sidebar.Section title="Agenda" />
+               isActive={location.pathname === '/medico'}
+               href="/medico"/>
+               
               <Sidebar.Item 
               icon={Users} 
               label="Disponibilidade"
-              isActive={location.pathname.startsWith('/medico/disponibilidade') || location.pathname.startsWith('/medico/agenda')}>
-                <Sidebar.SubItem 
-                label="Cadastrar Disponibilidade" 
-                href="/medico/disponibilidade"
-                icon={Plus}
-                 />
-                <Sidebar.SubItem 
-                label="Agenda"
-                href="/medico/agenda"
-                icon={Calendar} />
-              </Sidebar.Item>
-
-
-              <Sidebar.Section title="Gestão" />
+              isActive={location.pathname.startsWith('/medico/disponibilidade')}
+              href="/medico/disponibilidade"/>
+              <Sidebar.Item 
+              icon={Calendar}
+              label="Agenda"
+              isActive={location.pathname.startsWith('/medico/agenda')}
+              href="/medico/agenda"/>
+                
               {/* <Sidebar.Item icon={Users} label="Pacientes">
                 <Sidebar.SubItem label="Listagem Geral" href="/pacientes" />
                 <Sidebar.SubItem label="Prontuários" href="/prontuarios" />
@@ -83,26 +71,15 @@ export default function MainLayout() {
               <Sidebar.Item 
               icon={ClipboardList} 
               label="Consultas"
-              isActive={location.pathname.startsWith('/medico/consulta')}>
-                <Sidebar.SubItem 
-                label="Consultas"
-                href="/medico/consulta"
-                icon={ClipboardList}
-                 />
-              </Sidebar.Item>
-
+              isActive={location.pathname.startsWith('/medico/consulta')}
+              href="/medico/consulta"/>
+               
               {/* <Sidebar.Item icon={MessageSquare} label="Mensagens" /> */}
-              <Sidebar.Section title="Configurações" />
               <Sidebar.Item 
               icon={Settings} 
               label="Ajustes"
-              isActive={location.pathname.startsWith('/medico/configuracoes')}>
-                <Sidebar.SubItem 
-                label="Configurações de conta" 
-                href="/medico/configuracoes"
-                icon={Settings2}
-                 />
-              </Sidebar.Item>
+              isActive={location.pathname.startsWith('/medico/configuracoes')}
+              href="/medico/configuracoes"/>
             </div>
 
           </Sidebar.Root>
