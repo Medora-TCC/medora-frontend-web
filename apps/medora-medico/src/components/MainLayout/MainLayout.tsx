@@ -34,12 +34,12 @@ export default function MainLayout() {
 
             <Sidebar.Header>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-600 rounded-xl shrink-0 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <div className="w-10 h-10 bg-primary-color rounded-xl shrink-0 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                   <Stethoscope className="text-white" size={24} />
                 </div>
                 <div className="flex flex-col whitespace-nowrap transition-all duration-300 opacity-0 group-hover:opacity-100 max-md:opacity-100">
-                  <span className="text-white font-bold text-lg leading-tight">healthConnect</span>
-                  <span className="text-indigo-400 text-[10px] uppercase tracking-widest font-semibold">Medical System</span>
+                  <span className="text-text-primary font-bold text-lg leading-tight">Medora</span>
+                  <span className="text-primary-color text-[10px] uppercase tracking-widest font-semibold">Medical System</span>
                 </div>
               </div>
             </Sidebar.Header>
