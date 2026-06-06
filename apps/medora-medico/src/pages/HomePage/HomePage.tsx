@@ -44,7 +44,7 @@ export function HomePage() {
       </div>
 
       <main>
-{/* Hero Section */}
+        {/* Hero Section */}
         <section className="relative px-4 sm:px-6 pt-20 pb-16 text-center overflow-hidden max-w-5xl mx-auto">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-blue-50/60 via-transparent to-transparent -z-10" />
           
@@ -102,11 +102,11 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Floating Cards */}
+        {/* Floating Cards - Ajustados para ficarem retos */}
         <section className="max-w-6xl mx-auto py-20 px-6 md:h-80">
           <div className="w-full h-full flex flex-col md:flex-row gap-6 md:gap-4 justify-center items-center">
             <FloatingCard 
-              className="w-full md:w-auto md:relative -rotate-0 md:-rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer shadow-xl"
+              className="w-full md:w-auto md:relative hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer shadow-xl"
               icon={<ShieldCheck className="text-blue-600"/>} 
               title="Segurança Máxima"
               subtitle="Prontuários criptografados e em conformidade estrita com a LGPD."
@@ -118,7 +118,7 @@ export function HomePage() {
               subtitle="Preenchimento inteligente e histórico clínico acessível em dois cliques."
             />
             <FloatingCard 
-              className="w-full md:w-auto md:relative -rotate-0 md:rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer shadow-xl"
+              className="w-full md:w-auto md:relative hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer shadow-xl"
               icon={<Users className="text-emerald-500"/>} 
               title="Foco no Paciente"
               subtitle="Diminua o tempo olhando para a tela e aumente a conexão humana."
