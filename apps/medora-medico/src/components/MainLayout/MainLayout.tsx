@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router";
 import Navbar from "../Header/Header";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
-import { ClipboardList, LayoutDashboard, LogOut, Settings, Stethoscope, UserCircle, Users } from "lucide-react";
+import { Calendar, ClipboardList, LayoutDashboard, LogOut, Plus, Settings, Settings2, Stethoscope, UserCircle, Users } from "lucide-react";
 import { useState } from "react";
 
 export default function MainLayout() {
@@ -46,11 +46,30 @@ export default function MainLayout() {
 
             <div className="flex-1 py-4">
               <Sidebar.Section title="Principal" />
-              <Sidebar.Item icon={LayoutDashboard} label="Dashboard" isActive />
+              <Sidebar.Item
+              icon={LayoutDashboard}
+               label="Dashboard"
+               isActive={location.pathname === '/medico'}>
+                <Sidebar.SubItem 
+                label="Visão Geral"
+                href="/medico"
+                icon={LayoutDashboard}
+                 />
+              </Sidebar.Item>
               <Sidebar.Section title="Agenda" />
-              <Sidebar.Item icon={Users} label="Disponibilidade">
-                <Sidebar.SubItem label="Cadastrar Disponibilidade" href="/medico/disponibilidade" />
-                <Sidebar.SubItem label="Agenda" href="/medico/agenda" />
+              <Sidebar.Item 
+              icon={Users} 
+              label="Disponibilidade"
+              isActive={location.pathname.startsWith('/medico/disponibilidade') || location.pathname.startsWith('/medico/agenda')}>
+                <Sidebar.SubItem 
+                label="Cadastrar Disponibilidade" 
+                href="/medico/disponibilidade"
+                icon={Plus}
+                 />
+                <Sidebar.SubItem 
+                label="Agenda"
+                href="/medico/agenda"
+                icon={Calendar} />
               </Sidebar.Item>
 
 
@@ -61,14 +80,28 @@ export default function MainLayout() {
                 <Sidebar.SubItem label="Novo Cadastro" href="/pacientes/novo" />
               </Sidebar.Item> */}
 
-              <Sidebar.Item icon={ClipboardList} label="Consultas">
-                <Sidebar.SubItem label="Consultas" href="/medico/consulta" />
+              <Sidebar.Item 
+              icon={ClipboardList} 
+              label="Consultas"
+              isActive={location.pathname.startsWith('/medico/consulta')}>
+                <Sidebar.SubItem 
+                label="Consultas"
+                href="/medico/consulta"
+                icon={ClipboardList}
+                 />
               </Sidebar.Item>
 
               {/* <Sidebar.Item icon={MessageSquare} label="Mensagens" /> */}
               <Sidebar.Section title="Configurações" />
-              <Sidebar.Item icon={Settings} label="Ajustes" >
-                <Sidebar.SubItem label="Configurações de conta" href="/medico/configuracoes"/>
+              <Sidebar.Item 
+              icon={Settings} 
+              label="Ajustes"
+              isActive={location.pathname.startsWith('/medico/configuracoes')}>
+                <Sidebar.SubItem 
+                label="Configurações de conta" 
+                href="/medico/configuracoes"
+                icon={Settings2}
+                 />
               </Sidebar.Item>
             </div>
 
