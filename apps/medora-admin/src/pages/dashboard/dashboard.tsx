@@ -1,484 +1,401 @@
 import { useState } from 'react';
-import { Card, Chip, Button } from '@heroui/react';
+import { Card, Button } from '@heroui/react';
 import {
-  Server, Cpu, Wifi, Activity, AlertTriangle,
-  CheckCircle2, XCircle, Clock, Users, UserCheck, CalendarDays,
-  TrendingUp, BarChart3, Zap, Database, Globe,
-  Bell, ShieldCheck, ArrowUpRight, ArrowDownRight,
-  MonitorDot, Timer, Layers, HeartPulse, Bug
+  CheckCircle2, XCircle, Clock, Users,
+  MonitorDot, Timer,
+  AlertTriangle, Bell, Star,
+  FileWarning, UserX, HeartPulse,
+  MessageSquare, Stethoscope, BadgeCheck,
+  FileLock2, LogIn, DownloadCloud, ShieldAlert,
+  ChevronRight, ArrowUpRight, ArrowDownRight,
+  Activity, BarChart3
 } from 'lucide-react';
 
 
-interface ServiceStatus {
-  name: string;
-  status: 'online' | 'degraded' | 'offline';
-  latency: number;
-  uptime: number;
-}
+const systemStatus = {
+  status: 'instability',
+  message: 'Instabilidade detectada nos agendamentos',
+  detail: 'Lentidão ao confirmar consultas via app mobile. Time técnico notificado.',
+  since: '14 min atrás',
+};
 
-interface MetricCard {
-  label: string;
-  value: string;
-  delta: number;
-  icon: React.ReactNode;
-  color: 'primary' | 'success' | 'warning' | 'danger' | 'accent';
-}
-
-
-const services: ServiceStatus[] = [
-  { name: 'API Gateway',       status: 'online',   latency: 42,  uptime: 99.98 },
-  { name: 'Auth Service',      status: 'online',   latency: 18,  uptime: 99.99 },
-  { name: 'Database Primary',  status: 'online',   latency: 8,   uptime: 99.97 },
-  { name: 'Database Replica',  status: 'degraded', latency: 240, uptime: 98.12 },
-  { name: 'File Storage',      status: 'online',   latency: 56,  uptime: 99.95 },
-  { name: 'Email Service',     status: 'online',   latency: 112, uptime: 99.80 },
-  { name: 'Notification Svc',  status: 'offline',  latency: 0,   uptime: 94.32 },
-  { name: 'WebSocket Server',  status: 'online',   latency: 11,  uptime: 99.94 },
+const pendingCredentials = [
+  { id: 1, name: 'Dr. Rafael Augusto Lima',   specialty: 'Cardiologia',    crm: 'CRM-SP 148.392',  submitted: '2 dias atrás', docs: 'ok',      avatar: 'RL' },
+  { id: 2, name: 'Dra. Fernanda Melo',         specialty: 'Dermatologia',   crm: 'CRM-RJ 92.714',   submitted: '3 dias atrás', docs: 'pending', avatar: 'FM' },
+  { id: 3, name: 'Dr. Cláudio Teixeira',       specialty: 'Psiquiatria',    crm: 'CRM-MG 67.208',   submitted: '5 dias atrás', docs: 'expired', avatar: 'CT' },
+  { id: 4, name: 'Dra. Isabela Vasconcelos',   specialty: 'Ginecologia',    crm: 'CRM-BA 31.055',   submitted: '1 dia atrás',  docs: 'ok',      avatar: 'IV' },
 ];
 
-const engagementMetrics: MetricCard[] = [
-  { label: 'Usuários Ativos',      value: '1.842',  delta: 12.4,  icon: <Users size={20} />,       color: 'primary'  },
-  { label: 'Consultas Agendadas',  value: '3.291',  delta: 8.7,   icon: <CalendarDays size={20} />, color: 'accent'   },
-  { label: 'Novos Cadastros',      value: '214',    delta: -3.2,  icon: <UserCheck size={20} />,    color: 'success'  },
-  { label: 'Telemedicina Hoje',    value: '87',     delta: 22.1,  icon: <MonitorDot size={20} />,   color: 'warning'  },
-  { label: 'Tempo Médio Sessão',   value: '8m 41s', delta: 5.3,   icon: <Timer size={20} />,        color: 'primary'  },
-  { label: 'Taxa de Retorno',      value: '68,4%',  delta: 1.8,   icon: <TrendingUp size={20} />,   color: 'accent'   },
+const docAlerts = [
+  { name: 'Dr. Marcus Oliveira',   issue: 'CRM vencido em 15/05/2026',        type: 'expired',  urgency: 'alta'  },
+  { name: 'Dra. Patrícia Nunes',   issue: 'Termo de responsabilidade pendente', type: 'pending', urgency: 'média' },
+  { name: 'Dr. Jonas Ferreira',    issue: 'RQE não cadastrado',                type: 'missing',  urgency: 'alta'  },
+  { name: 'Dra. Camila Rocha',     issue: 'Seguro de responsabilidade civil expirado', type: 'expired', urgency: 'média' },
 ];
 
-const resourceUsage = [
-  { label: 'CPU',     value: 34,  color: 'primary'  as const },
-  { label: 'Memória', value: 61,  color: 'warning'  as const },
-  { label: 'Disco',   value: 47,  color: 'success'  as const },
-  { label: 'Rede',    value: 22,  color: 'accent'   as const },
+const operationalMetrics = [
+  { label: 'Usuários Ativos',       value: '1.842',  delta: 12.4,   icon: <Users size={18} />,        color: '#4F8EF7' },
+  { label: 'Consultas Hoje',        value: '619',    delta: 8.1,    icon: <Stethoscope size={18} />,   color: '#34D399' },
+  { label: 'Telemedicina Ativas',   value: '87',     delta: 22.1,   icon: <MonitorDot size={18} />,    color: '#A78BFA' },
+  { label: 'Taxa de No-Show',       value: '11,3%',  delta: -2.4,   icon: <UserX size={18} />,         color: '#F87171' },
+  { label: 'Avaliação Média',       value: '4,7 ★',  delta: 0.3,    icon: <Star size={18} />,          color: '#FBBF24' },
+  { label: 'Espera Telemedicina',   value: '3m 12s', delta: -18.5,  icon: <Timer size={18} />,         color: '#34D399' },
 ];
 
-const alerts = [
-  { level: 'warning',  message: 'Database Replica com latência elevada (240ms)',   time: '3 min atrás' },
-  { level: 'danger',   message: 'Notification Service offline desde 14:22',        time: '38 min atrás' },
-  { level: 'info',     message: 'Deploy v2.4.1 concluído com sucesso em produção', time: '2h atrás' },
-  { level: 'warning',  message: 'Uso de memória acima de 60% no pod api-3',        time: '4h atrás' },
+const auditLogs = [
+  { user: 'Admin Rodrigo Silva',  action: 'Exportou relatório de prontuários',       risk: 'high',   time: '08:41',  date: 'Hoje'    },
+  { user: 'Dr. Paulo Mendes',     action: 'Acessou prontuário fora do seu paciente', risk: 'high',   time: '07:15',  date: 'Hoje'    },
+  { user: 'Sistema',              action: 'Acesso bloqueado: IP estrangeiro (DE)',    risk: 'high',   time: '06:02',  date: 'Hoje'    },
+  { user: 'Enf. Clara Dias',      action: 'Visualizou histórico de exames (42 reg.)',risk: 'medium', time: '23:49',  date: 'Ontem'   },
+  { user: 'Dr. Tiago Souza',      action: 'Login fora do horário comercial (23h)',   risk: 'medium', time: '23:17',  date: 'Ontem'   },
+  { user: 'Admin Rodrigo Silva',  action: 'Criou novo perfil de acesso Admin',       risk: 'low',    time: '15:30',  date: 'Ontem'   },
 ];
 
-const systemErrors = [
-  { id: '1', code: 'ERR_TIMEOUT', message: 'Timeout na integração com gateway de pagamento', count: 684, usersAffected: 215, lastOccurred: 'Há 5 min', level: 'danger' },
-  { id: '2', code: 'AUTH_001', message: 'Token JWT expirado ou inválido (rejeição em massa)', count: 512, usersAffected: 180, lastOccurred: 'Há 12 min', level: 'warning' },
-  { id: '3', code: 'DB_LOCK', message: 'Deadlock na tabela de agendamentos', count: 87, usersAffected: 45, lastOccurred: 'Há 1 hora', level: 'danger' },
-  { id: '4', code: 'UI_RENDER', message: 'TypeError: Cannot read properties of undefined (reading "map") no CalendarView', count: 42, usersAffected: 12, lastOccurred: 'Há 3 horas', level: 'warning' },
+const supportTickets = [
+  { id: '#4821', user: 'Paciente: Ana Lima',        issue: 'Não consigo acessar minha câmera na teleconsulta', category: 'Técnico',   priority: 'alta',  status: 'aberto',      time: '18 min' },
+  { id: '#4820', user: 'Dr. Felipe Costa',          issue: 'Prontuário não salva alterações no Safari',       category: 'Técnico',   priority: 'alta',  status: 'em andamento', time: '1h 04min' },
+  { id: '#4819', user: 'Paciente: José Pereira',    issue: 'Cobrança duplicada na consulta do dia 01/06',      category: 'Financeiro', priority: 'média', status: 'aberto',      time: '3h 22min' },
+  { id: '#4818', user: 'Dra. Renata Alves',         issue: 'Agenda não sincronizando com Google Calendar',    category: 'Integração', priority: 'baixa', status: 'aberto',      time: '1 dia'   },
+  { id: '#4817', user: 'Paciente: Marcos Silva',    issue: 'Receita médica não chegou por e-mail',            category: 'Notificação', priority: 'média', status: 'resolvido',  time: '1 dia'   },
 ];
 
-const sparklineData = [42, 58, 51, 73, 67, 81, 75, 90, 84, 96, 88, 102];
+const recentActivity = [
+  { user: 'Dr. Mariana Costa',   action: 'Emitiu prescrição digital',    time: '1 min',   color: '#34D399' },
+  { user: 'Dra. Juliana Alves',  action: 'Iniciou teleconsulta',         time: '7 min',   color: '#A78BFA' },
+  { user: 'Enf. Carla Souza',    action: 'Cadastrou novo paciente',      time: '21 min',  color: '#34D399' },
+  { user: 'Dr. Pedro Mendes',    action: 'Atualizou disponibilidade',    time: '32 min',  color: '#FBBF24' },
+  { user: 'Admin Rodrigo Silva', action: 'Aprovou credencial médica',    time: '45 min',  color: '#4F8EF7' },
+];
 
 
-function StatusDot({ status }: { status: ServiceStatus['status'] }) {
-  const map = {
-    online:   'bg-(--success)',
-    degraded: 'bg-(--warning)',
-    offline:  'bg-(--danger)',
+function SystemStatusBanner() {
+  const config = {
+    ok:          { bg: 'bg-emerald-50 border-emerald-200',     icon: <CheckCircle2 size={18} className="text-emerald-600" />, textColor: 'text-emerald-800',  badgeBg: 'bg-emerald-100 text-emerald-700' },
+    instability: { bg: 'bg-amber-50 border-amber-200',         icon: <AlertTriangle size={18} className="text-amber-600" />, textColor: 'text-amber-900',    badgeBg: 'bg-amber-100 text-amber-700'   },
+    outage:      { bg: 'bg-red-50 border-red-200',             icon: <XCircle size={18} className="text-red-600" />,         textColor: 'text-red-900',      badgeBg: 'bg-red-100 text-red-700'       },
   };
-  const pulse = status === 'online' ? 'animate-pulse' : '';
+  const c = config[systemStatus.status as keyof typeof config];
   return (
-    <span className="relative flex h-2.5 w-2.5">
-      <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 ${map[status]} ${pulse}`} />
-      <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${map[status]}`} />
-    </span>
-  );
-}
-
-function StatusChip({ status }: { status: ServiceStatus['status'] }) {
-  const map = {
-    online:   { color: 'success' as const,  label: 'Online'    },
-    degraded: { color: 'warning' as const,  label: 'Degradado' },
-    offline:  { color: 'danger'  as const,  label: 'Offline'   },
-  };
-  return <Chip color={map[status].color} size="sm">{map[status].label}</Chip>;
-}
-
-function Sparkline({ data }: { data: number[] }) {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const W = 120, H = 32;
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * W;
-    const y = H - ((v - min) / (max - min)) * H;
-    return `${x},${y}`;
-  }).join(' ');
-  return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="opacity-60">
-      <polyline fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
-    </svg>
-  );
-}
-
-function AlertRow({ alert }: { alert: typeof alerts[0] }) {
-  const iconMap: Record<string, React.ReactNode> = {
-    warning: <AlertTriangle size={16} className="text-(--warning)" />,
-    danger:  <XCircle      size={16} className="text-(--danger)"  />,
-    info:    <CheckCircle2 size={16} className="text-(--success)" />,
-  };
-  const bgMap: Record<string, string> = {
-    warning: 'border-l-(--warning) bg-(--warning-subtle)',
-    danger:  'border-l-(--danger)  bg-(--danger-subtle)',
-    info:    'border-l-(--success) bg-(--success-subtle)',
-  };
-  return (
-    <div className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border-l-4 ${bgMap[alert.level]}`}>
-      <span className="mt-0.5 shrink-0">{iconMap[alert.level]}</span>
+    <div className={`rounded-xl border px-4 py-3 flex items-start gap-3 ${c.bg}`}>
+      <span className="mt-0.5 shrink-0">{c.icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-(--text-primary) leading-snug">{alert.message}</p>
-        <p className="text-xs text-(--text-muted) mt-0.5">{alert.time}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-sm font-semibold ${c.textColor}`}>{systemStatus.message}</span>
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${c.badgeBg}`}>{systemStatus.since}</span>
+        </div>
+        <p className={`text-xs mt-0.5 opacity-80 ${c.textColor}`}>{systemStatus.detail}</p>
       </div>
+      <button className={`text-xs font-medium underline underline-offset-2 shrink-0 mt-0.5 ${c.textColor} opacity-70 hover:opacity-100`}>Ver detalhes</button>
     </div>
   );
 }
 
-export default function AdminDashboard() {
+function DocsStatus({ status }: { status: string }) {
+  if (status === 'ok') return <span className="flex items-center gap-1 text-xs font-medium text-emerald-600"><CheckCircle2 size={12} /> Documentação OK</span>;
+  if (status === 'pending') return <span className="flex items-center gap-1 text-xs font-medium text-amber-600"><Clock size={12} /> Docs pendentes</span>;
+  if (status === 'expired') return <span className="flex items-center gap-1 text-xs font-medium text-red-500"><FileWarning size={12} /> Doc vencido</span>;
+  return null;
+}
+
+function RiskBadge({ risk }: { risk: string }) {
+  const map: Record<string, string> = {
+    high:   'bg-red-100 text-red-700 border-red-200',
+    medium: 'bg-amber-100 text-amber-700 border-amber-200',
+    low:    'bg-slate-100 text-slate-600 border-slate-200',
+  };
+  const label: Record<string, string> = { high: 'Alto risco', medium: 'Médio risco', low: 'Rotina' };
+  return (
+    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${map[risk]}`}>{label[risk]}</span>
+  );
+}
+
+function PriorityBadge({ priority }: { priority: string }) {
+  const map: Record<string, string> = {
+    alta:  'bg-red-100 text-red-700',
+    média: 'bg-amber-100 text-amber-700',
+    baixa: 'bg-slate-100 text-slate-600',
+  };
+  return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${map[priority]}`}>{priority}</span>;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    'aberto':        'bg-red-100 text-red-700',
+    'em andamento':  'bg-blue-100 text-blue-700',
+    'resolvido':     'bg-emerald-100 text-emerald-700',
+  };
+  return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded capitalize ${map[status] ?? 'bg-slate-100 text-slate-500'}`}>{status}</span>;
+}
+
+
+export default function HealthAdminDashboard() {
+  const [activeTab, setActiveTab] = useState<'pendente' | 'alertas'>('pendente');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setLastUpdated(new Date());
-      setIsRefreshing(false);
-    }, 1200);
+    setTimeout(() => { setLastUpdated(new Date()); setIsRefreshing(false); }, 1200);
   };
 
-  const onlineCount  = services.filter(s => s.status === 'online').length;
-  const degradedCount = services.filter(s => s.status === 'degraded').length;
-  const offlineCount = services.filter(s => s.status === 'offline').length;
-
-  const colorVarMap: Record<string, string> = {
-    primary: 'var(--primary)',
-    success: 'var(--success)',
-    warning: 'var(--warning)',
-    danger:  'var(--danger)',
-    accent:  'var(--accent)',
-  };
+  const pendingCount = pendingCredentials.length;
+  const openTickets  = supportTickets.filter(t => t.status !== 'resolvido').length;
+  const highRiskLogs = auditLogs.filter(l => l.risk === 'high').length;
 
   return (
-    <div className="min-h-screen bg-(--surface-alt) font-sans">
-      <header className="sticky top-0 z-30 bg-(--surface) border-b border-(--border) px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 font-sans">
+
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-(--primary) flex items-center justify-center">
-            <Layers size={18} className="text-white" />
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <HeartPulse size={17} className="text-white" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-(--text-primary) leading-none">Admin Dashboard</h1>
-            <p className="text-xs text-(--text-muted) mt-0.5">Visão geral do sistema</p>
+            <h1 className="text-sm font-bold text-slate-800 leading-none">HealthConnect</h1>
+            <p className="text-[11px] text-slate-500 mt-0.5">Painel Administrativo</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-(--text-muted) hidden sm:block">
-            Atualizado: {lastUpdated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+
+        <div className="flex items-center gap-2.5">
+          {pendingCount > 0 && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-700">
+              <BadgeCheck size={13} /> {pendingCount} credenciais pendentes
+            </div>
+          )}
+          {openTickets > 0 && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-xs font-semibold text-red-600">
+              <MessageSquare size={13} /> {openTickets} chamados abertos
+            </div>
+          )}
+          <span className="text-xs text-slate-400 hidden md:block">
+            {lastUpdated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </span>
           <div className="relative">
-            <Button isIconOnly size="sm" className="relative">
-              <Bell size={16} />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-(--danger) rounded-full" />
-            </Button>
+            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+              <Bell size={15} className="text-slate-500" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full" />
+            </button>
           </div>
-          <Button
-            size="sm"
-            onClick={handleRefresh}
-          >
-            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+          <Button size="sm" variant="ghost" onClick={handleRefresh} className="text-xs">
+            {isRefreshing ? 'Atualizando…' : 'Atualizar'}
           </Button>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-        <section className="space-y-4">
+        <SystemStatusBanner />
+
+        <section className="space-y-3">
           <div className="flex items-center gap-2">
-            <HeartPulse size={18} className="text-(--primary)" />
-            <h2 className="text-lg font-bold text-(--text-primary)">Saúde do Sistema & Infraestrutura</h2>
+            <BarChart3 size={16} className="text-blue-500" />
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Visão Geral de Hoje</h2>
           </div>
-
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--success-subtle) border border-(--success)/20">
-              <CheckCircle2 size={14} className="text-(--success)" />
-              <span className="text-sm font-semibold text-(--success-text)">{onlineCount} Online</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--warning-subtle) border border-(--warning)/20">
-              <AlertTriangle size={14} className="text-(--warning)" />
-              <span className="text-sm font-semibold text-(--warning-text)">{degradedCount} Degradado</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--danger-subtle) border border-(--danger)/20">
-              <XCircle size={14} className="text-(--danger)" />
-              <span className="text-sm font-semibold text-(--danger-text)">{offlineCount} Offline</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-            <Card className="lg:col-span-2 border border-(--border) shadow-sm bg-(--surface)">
-              <div className="p-4 pb-2 flex items-center gap-2">
-                <Server size={16} className="text-(--primary)" />
-                <span className="font-semibold text-sm text-(--text-primary)">Status dos Serviços</span>
-              </div>
-              <div className="p-4 pt-0">
-                <div className="divide-y divide-(--border)">
-                  {services.map((svc) => (
-                    <div key={svc.name} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <StatusDot status={svc.status} />
-                        <span className="text-sm font-medium text-(--text-primary) truncate">{svc.name}</span>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        {svc.status !== 'offline' && (
-                          <span className="text-xs text-(--text-muted) hidden sm:block">
-                            {svc.latency}ms
-                          </span>
-                        )}
-                        <div className="relative">
-                          <span><StatusChip status={svc.status} /></span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-
-            <div className="space-y-4">
-              <Card className="border border-(--border) shadow-sm bg-(--surface)">
-                <div className="p-4 pb-2 flex items-center gap-2">
-                  <Cpu size={16} className="text-(--primary)" />
-                  <span className="font-semibold text-sm text-(--text-primary)">Recursos do Servidor</span>
-                </div>
-                <div className="p-4 pt-0 space-y-3">
-                  {resourceUsage.map((r) => (
-                    <div key={r.label}>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-medium text-(--text-secondary)">{r.label}</span>
-                        <span className="text-xs font-bold" style={{ color: colorVarMap[r.color] }}>{r.value}%</span>
-                      </div>
-                      <div className="w-full bg-default-100 rounded-full h-2">
-                        <div 
-                          className="h-2 rounded-full" 
-                          style={{ width: `${r.value}%`, backgroundColor: colorVarMap[r.color] }} 
-                          role="progressbar" 
-                          aria-label={r.label}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              <Card className="border border-(--border) shadow-sm bg-(--surface)">
-                <div className="p-4 flex flex-row items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck size={18} className="text-(--success)" />
-                    <div>
-                      <p className="text-xs text-(--text-muted)">Uptime global</p>
-                      <p className="text-lg font-bold text-(--success-text)">99.94%</p>
-                    </div>
-                  </div>
-                  <Sparkline data={sparklineData} />
-                </div>
-              </Card>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="border border-(--border) shadow-sm bg-(--surface)">
-              <div className="p-4 pb-2 flex items-center gap-2">
-                <Bell size={16} className="text-(--danger)" />
-                <span className="font-semibold text-sm text-(--text-primary)">Alertas Recentes</span>
-              </div>
-              <div className="p-4 pt-0 space-y-2">
-                {alerts.map((alert, i) => <AlertRow key={i} alert={alert} />)}
-              </div>
-            </Card>
-
-            <Card className="border border-(--border) shadow-sm bg-(--surface)">
-              <div className="p-4 pb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bug size={16} className="text-(--danger)" />
-                  <span className="font-semibold text-sm text-(--text-primary)">Monitoramento de Erros (Potenciais Bugs)</span>
-                </div>
-                <Chip color="danger" size="sm">Atenção Necessária</Chip>
-              </div>
-              <div className="p-4 pt-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[400px]">
-                    <thead>
-                      <tr className="border-b border-(--border) text-xs text-(--text-muted)">
-                        <th className="font-semibold py-2">Código e Mensagem</th>
-                        <th className="font-semibold py-2">Ocorrências / Afetados</th>
-                        <th className="font-semibold py-2">Última Vez</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-(--border)">
-                      {systemErrors.map((err) => (
-                        <tr key={err.id} className="text-sm hover:bg-default-50 transition-colors">
-                          <td className="py-2.5 pr-2">
-                            <div className="flex flex-col gap-1">
-                              <span className="font-medium text-(--text-primary) line-clamp-1" title={err.message}>
-                                {err.message}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${err.level === 'danger' ? 'bg-(--danger-subtle) text-(--danger)' : 'bg-(--warning-subtle) text-(--warning)'}`}>
-                                  {err.code}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <div className="flex flex-col">
-                              <span className={`font-bold ${err.count > 500 ? 'text-(--danger)' : 'text-(--text-primary)'}`}>
-                                {err.count} vezes
-                              </span>
-                              <span className="text-xs text-(--text-secondary)">
-                                {err.usersAffected} usuários
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-2.5 pl-2 text-xs text-(--text-muted)">{err.lastOccurred}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 size={18} className="text-(--accent)" />
-            <h2 className="text-lg font-bold text-(--text-primary)">Engajamento & Uso da Plataforma</h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
-            {engagementMetrics.map((m) => (
-              <Card key={m.label} className="border border-(--border) shadow-sm bg-(--surface) hover:shadow-md transition-shadow">
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+            {operationalMetrics.map((m) => (
+              <Card key={m.label} className="border border-slate-200 shadow-sm bg-white hover:shadow-md transition-shadow cursor-default">
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${colorVarMap[m.color]}18`, color: colorVarMap[m.color] }}
-                    >
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${m.color}18`, color: m.color }}>
                       {m.icon}
                     </div>
-                    <div className={`flex items-center gap-0.5 text-xs font-semibold ${m.delta >= 0 ? 'text-(--success-text)' : 'text-(--danger-text)'}`}>
-                      {m.delta >= 0
-                        ? <ArrowUpRight size={13} />
-                        : <ArrowDownRight size={13} />
-                      }
+                    <div className={`flex items-center gap-0.5 text-xs font-semibold ${m.delta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {m.delta >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                       {Math.abs(m.delta)}%
                     </div>
                   </div>
-                  <p className="text-xl font-bold text-(--text-primary) leading-none">{m.value}</p>
-                  <p className="text-xs text-(--text-muted) mt-1 leading-snug">{m.label}</p>
+                  <p className="text-xl font-bold text-slate-800 leading-none">{m.value}</p>
+                  <p className="text-[11px] text-slate-500 mt-1 leading-snug">{m.label}</p>
                 </div>
               </Card>
             ))}
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <Card className="border border-(--border) shadow-sm bg-(--surface)">
-              <div className="p-4 pb-2 flex items-center gap-2">
-                <Zap size={16} className="text-(--accent)" />
-                <span className="font-semibold text-sm text-(--text-primary)">Ações Mais Realizadas Hoje</span>
-              </div>
-              <div className="p-4 pt-0 space-y-3">
-                {[
-                  { label: 'Agendamentos criados',   count: 842, pct: 82 },
-                  { label: 'Consultas realizadas',   count: 619, pct: 61 },
-                  { label: 'Prescrições emitidas',   count: 411, pct: 40 },
-                  { label: 'Prontuários acessados',  count: 987, pct: 97 },
-                  { label: 'Laudos registrados',     count: 214, pct: 21 },
-                ].map((row) => (
-                  <div key={row.label}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="font-medium text-(--text-secondary)">{row.label}</span>
-                      <span className="font-bold text-(--text-primary)">{row.count.toLocaleString('pt-BR')}</span>
-                    </div>
-                    <div className="w-full bg-default-100 rounded-full h-2">
-                      <div className="bg-primary h-2 rounded-full" style={{ width: `${row.pct}%` }} role="progressbar" aria-label={row.label} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="border border-(--border) shadow-sm bg-(--surface)">
-              <div className="p-4 pb-2 flex items-center gap-2">
-                <Globe size={16} className="text-(--accent)" />
-                <span className="font-semibold text-sm text-(--text-primary)">Sessões por Tipo de Acesso</span>
-              </div>
-              <div className="p-4 pt-0 space-y-3">
-                {[
-                  { label: 'Web (desktop)',  value: 1204, pct: 65, color: 'primary'  as const },
-                  { label: 'Web (mobile)',   value: 482,  pct: 26, color: 'accent'   as const },
-                  { label: 'App nativo',     value: 156,  pct: 9,  color: 'warning'  as const },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center gap-3">
-                    <div className="flex-1">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium text-(--text-secondary)">{row.label}</span>
-                        <span className="font-bold" style={{ color: colorVarMap[row.color] }}>
-                          {row.pct}% <span className="text-(--text-muted) font-normal">({row.value.toLocaleString('pt-BR')})</span>
-                        </span>
-                      </div>
-                      <div className="w-full bg-default-100 rounded-full h-2">
-                        <div className="h-2 rounded-full" style={{ width: `${row.pct}%`, backgroundColor: colorVarMap[row.color] }} role="progressbar" aria-label={row.label} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <hr className="my-2 border-t border-(--border)" />
-
-                <div className="grid grid-cols-3 gap-3 pt-1">
-                  {[
-                    { icon: <Activity size={14} />,  label: 'Pico diário',   value: '11h–12h', color: 'var(--primary)' },
-                    { icon: <Database size={14} />,  label: 'Req/min',       value: '3.841',   color: 'var(--accent)'  },
-                    { icon: <Wifi size={14} />,      label: 'Latência p95',  value: '128ms',   color: 'var(--warning)' },
-                  ].map((stat) => (
-                    <div key={stat.label} className="flex flex-col items-center p-2 rounded-lg bg-(--surface-alt) border border-(--border)">
-                      <span style={{ color: stat.color }}>{stat.icon}</span>
-                      <span className="text-sm font-bold text-(--text-primary) mt-1">{stat.value}</span>
-                      <span className="text-[10px] text-(--text-muted) text-center leading-snug">{stat.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BadgeCheck size={16} className="text-amber-500" />
+              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Credenciamento Médico</h2>
+              <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700">{pendingCount}</span>
+            </div>
           </div>
 
-          <Card className="border border-(--border) shadow-sm bg-(--surface)">
-            <div className="p-4 pb-2 flex items-center gap-2">
-              <Clock size={16} className="text-(--text-muted)" />
-              <span className="font-semibold text-sm text-(--text-primary)">Atividade Recente de Usuários</span>
+          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg w-fit">
+            {(['pendente', 'alertas'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors capitalize ${activeTab === tab ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {tab === 'pendente' ? `Aprovações Pendentes (${pendingCount})` : `Alertas de Documentação (${docAlerts.length})`}
+              </button>
+            ))}
+          </div>
+
+          {activeTab === 'pendente' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {pendingCredentials.map((doc) => (
+                <Card key={doc.id} className="border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">
+                        {doc.avatar}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 leading-snug truncate">{doc.name}</p>
+                        <p className="text-xs text-slate-500">{doc.specialty}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-slate-400 font-mono">{doc.crm}</p>
+                      <DocsStatus status={doc.docs} />
+                      <p className="text-[11px] text-slate-400">Enviado {doc.submitted}</p>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button className="flex-1 text-xs font-semibold py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">Aprovar</button>
+                      <button className="flex-1 text-xs font-semibold py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Recusar</button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
-            <div className="p-4 pt-0">
-              <div className="divide-y divide-(--border)">
-                {[
-                  { user: 'Dr. Mariana Costa',    action: 'Emitiu prescrição',         time: '1 min atrás',  type: 'success'  },
-                  { user: 'Admin Rodrigo Silva',   action: 'Acessou painel de admin',   time: '3 min atrás',  type: 'primary'  },
-                  { user: 'Dra. Juliana Alves',    action: 'Iniciou teleconsulta',      time: '7 min atrás',  type: 'accent'   },
-                  { user: 'Dr. Pedro Mendes',      action: 'Atualizou disponibilidade', time: '12 min atrás', type: 'warning'  },
-                  { user: 'Enf. Carla Souza',      action: 'Cadastrou novo paciente',   time: '21 min atrás', type: 'success'  },
-                ].map((row, i) => (
+          )}
+
+          {activeTab === 'alertas' && (
+            <Card className="border border-slate-200 bg-white shadow-sm">
+              <div className="divide-y divide-slate-100">
+                {docAlerts.map((alert, i) => (
+                  <div key={i} className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <span className={`mt-0.5 shrink-0 ${alert.type === 'expired' ? 'text-red-500' : 'text-amber-500'}`}>
+                        {alert.type === 'expired' ? <FileWarning size={16} /> : <Clock size={16} />}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{alert.name}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{alert.issue}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${alert.urgency === 'alta' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                        urgência {alert.urgency}
+                      </span>
+                      <button className="text-xs text-blue-600 hover:underline font-medium">Notificar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </section>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileLock2 size={16} className="text-purple-500" />
+                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Auditoria &amp; LGPD</h2>
+                {highRiskLogs > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-red-100 text-red-600">{highRiskLogs}</span>
+                )}
+              </div>
+              <button className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-0.5">
+                Ver relatório completo <ChevronRight size={12} />
+              </button>
+            </div>
+            <Card className="border border-slate-200 bg-white shadow-sm">
+              <div className="divide-y divide-slate-100">
+                {auditLogs.map((log, i) => (
+                  <div key={i} className="flex items-start justify-between px-4 py-2.5 hover:bg-slate-50 transition-colors gap-3">
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <span className={`mt-0.5 shrink-0 ${log.risk === 'high' ? 'text-red-500' : log.risk === 'medium' ? 'text-amber-500' : 'text-slate-400'}`}>
+                        {log.risk === 'high'
+                          ? <ShieldAlert size={14} />
+                          : log.action.includes('xportou') || log.action.includes('Exportou')
+                          ? <DownloadCloud size={14} />
+                          : <LogIn size={14} />
+                        }
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-700 truncate">{log.user}</p>
+                        <p className="text-xs text-slate-500 leading-snug mt-0.5">{log.action}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <RiskBadge risk={log.risk} />
+                      <span className="text-[10px] text-slate-400">{log.date} {log.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare size={16} className="text-rose-500" />
+                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Suporte &amp; Chamados</h2>
+                <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-red-100 text-red-600">{openTickets}</span>
+              </div>
+              <button className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-0.5">
+                Abrir central <ChevronRight size={12} />
+              </button>
+            </div>
+            <Card className="border border-slate-200 bg-white shadow-sm">
+              <div className="divide-y divide-slate-100">
+                {supportTickets.map((ticket) => (
+                  <div key={ticket.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-[11px] font-mono text-slate-400">{ticket.id}</span>
+                          <span className="text-xs font-semibold text-slate-700 truncate">{ticket.user}</span>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-snug">{ticket.issue}</p>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{ticket.category}</span>
+                          <PriorityBadge priority={ticket.priority} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <StatusBadge status={ticket.status} />
+                        <span className="text-[10px] text-slate-400 flex items-center gap-0.5"><Clock size={10} /> {ticket.time}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </section>
+        </div>
+
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Activity size={16} className="text-slate-500" />
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Atividade Recente</h2>
+          </div>
+          <Card className="border border-slate-200 bg-white shadow-sm">
+            <div className="p-4">
+              <div className="divide-y divide-slate-100">
+                {recentActivity.map((row, i) => (
                   <div key={i} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
                     <div className="flex items-center gap-2.5">
                       <div
                         className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                        style={{ backgroundColor: colorVarMap[row.type] }}
+                        style={{ backgroundColor: row.color }}
                       >
-                        {row.user.split(' ').slice(-1)[0][0]}
+                        {row.user.split(' ').pop()?.[0]}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-(--text-primary) leading-none">{row.user}</p>
-                        <p className="text-xs text-(--text-muted) mt-0.5">{row.action}</p>
+                        <p className="text-sm font-medium text-slate-800 leading-none">{row.user}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{row.action}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-(--text-muted) shrink-0">{row.time}</span>
+                    <span className="text-xs text-slate-400 shrink-0 flex items-center gap-1">
+                      <Clock size={11} /> {row.time} atrás
+                    </span>
                   </div>
                 ))}
               </div>
