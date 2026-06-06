@@ -1,12 +1,11 @@
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import type { Paciente } from "./Prescritpion";
+import { ArrowRight } from "lucide-react";
+import type { Paciente } from "../../types/Prescritpion";
 import { WizardProgressBar } from "./WizardProgressBar";
-import { StepRecipeType } from "./StepRecipeType";
-import { StepMedication } from "./StepMedication";
-import { StepDosage } from "./StepDosage";
-import { StepRevision } from "./StepRevision";
+import { StepMedication } from "./Steps/StepMedication";
+import { StepDosage } from "./Steps/StepDosage";
+import { StepRevision } from "./Steps/StepRevision";
 import { PrescriptionSidebar } from "./PrescriptionSidebar";
-import { usePrescriptionWizard } from "./usePrescriptionWizard";
+import { usePrescriptionWizard } from "../../hooks/usePrescriptionWizard";
 
 
 const MEDICO_MOCK = {
@@ -37,6 +36,7 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
   const wizard = usePrescriptionWizard();
   const { state } = wizard;
 
+  // Injeta o paciente mock — em produção vem de props ou contexto
   const rascunhoComPaciente = {
     ...state.rascunho,
     paciente: state.rascunho.paciente ?? PACIENTE_MOCK,
@@ -47,18 +47,42 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
     alert("Receituário emitido com sucesso! (mock)");
   }
 
+  const ETAPA_IDX = ["medicamentos", "posologia", "revisao"].indexOf(state.etapaAtual) + 1;
+
   return (
-    <div className="flex flex-col w-full max-w-3xl mx-auto border border-gray-200
-                    rounded-2xl bg-white overflow-hidden shadow-sm">
+    <div
+      className="bg-surface flex flex-col w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-border"
+    >
+      <header
+        className="flex items-center justify-between px-6 py-3 border-b border-border"
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center bg-primary-color text-text-inverse"
+          >
+            {MEDICO_MOCK.nome.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+          </div>
+          <div>
+            <p className="text-sm font-medium leading-none text-text-primary">
+              Dr. {MEDICO_MOCK.nome}
+            </p>
+            <p className="text-xs text-text-muted">
+              CRM/{MEDICO_MOCK.uf} {MEDICO_MOCK.crm} · {MEDICO_MOCK.especialidade}
+            </p>
+          </div>
+        </div>
 
-
-      <header className="flex items-center justify-between px-6 py-3 border-b border-gray-100">
-        <button
-          onClick={onCancelar}
-          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          Cancelar prescrição
-        </button>
+        <div className="flex items-center">
+          <button
+            onClick={onCancelar}
+            className="text-xs transition-colors"
+            style={{ color: "var(--text-muted)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--text-secondary)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+          >
+            Cancelar
+          </button>
+        </div>
       </header>
 
       <WizardProgressBar
@@ -69,13 +93,6 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
 
       <div className="flex flex-1 min-h-100">
         <main className="flex-1 px-6 py-5 overflow-y-auto">
-          {state.etapaAtual === "tipo" && (
-            <StepRecipeType
-              selecionado={state.rascunho.tipoReceita}
-              onChange={wizard.definirTipoReceita}
-            />
-          )}
-
           {state.etapaAtual === "medicamentos" && (
             <StepMedication
               itensPrescritos={state.rascunho.itens}
@@ -99,48 +116,35 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
               rascunho={rascunhoComPaciente}
               medico={MEDICO_MOCK}
               onEmitir={handleEmitir}
-              onVoltar={wizard.voltar}
+              onVoltar={wizard.voltarInicio}
             />
           )}
         </main>
 
         <PrescriptionSidebar
           paciente={rascunhoComPaciente.paciente}
-          tipoReceita={state.rascunho.tipoReceita}
           itensPrescritos={state.rascunho.itens}
           itemEmEdicao={state.itemEmEdicao}
         />
       </div>
 
-      {state.etapaAtual !== "posologia" && state.etapaAtual !== "revisao" && (
-        <footer className="flex items-center justify-between px-6 py-3 border-t border-gray-100">
-          <button
-            onClick={wizard.voltar}
-            disabled={state.etapaAtual === "tipo"}
-            className="flex items-center gap-1.5 text-sm text-gray-500
-                       hover:text-gray-700 disabled:opacity-30 transition-colors"
-          >
-            <ArrowLeft size={15} />
-            Voltar
-          </button>
+      {state.etapaAtual === "medicamentos" && (
+        <footer
+          className="flex items-center justify-between px-6 py-3 border-t border-border"
+        >
+          <span />
 
-          <span className="text-xs text-gray-400">
-            Etapa {["tipo", "medicamentos", "posologia", "revisao"].indexOf(state.etapaAtual) + 1} de 4
+          <span className="text-xs text-text-muted">
+            Etapa {ETAPA_IDX} de 3
           </span>
 
           <button
-            onClick={state.etapaAtual === "tipo" ? wizard.avancar : wizard.avancarRevisao}
+            onClick={wizard.avancarRevisao}
             disabled={!wizard.podeContinuar}
-            className={`
-              flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg
-              transition-all active:scale-[0.98]
-              ${wizard.podeContinuar
-                ? "bg-blue-900 text-white hover:bg-blue-800"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              }
-            `}
+            className={`flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-xl transition-all active:scale-[0.98] 
+                      ${wizard.podeContinuar ? "bg-primary-color text-text-inverse hover:bg-primary-hover cursor-pointer" : "bg-surface-raised text-text-muted cursor-not-allowed"}`}
           >
-            {state.etapaAtual === "medicamentos" ? "Ir para revisão" : "Próximo"}
+            Ir para revisão
             <ArrowRight size={15} />
           </button>
         </footer>

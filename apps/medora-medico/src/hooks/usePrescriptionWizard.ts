@@ -3,19 +3,17 @@ import type {
   WizardState,
   EtapaWizard,
   ItemPrescricao,
-  TipoReceita,
   Medicamento,
   PrescricaoRascunho,
-} from "./Prescritpion";
+} from "../types/Prescritpion";
 
 
-const ORDEM_ETAPAS: EtapaWizard[] = ["tipo", "medicamentos", "posologia", "revisao"];
+const ORDEM_ETAPAS: EtapaWizard[] = ["medicamentos", "posologia", "revisao"];
 
 const estadoInicial: WizardState = {
-  etapaAtual: "tipo",
+  etapaAtual: "medicamentos",
   etapasCompletas: [],
   rascunho: {
-    tipoReceita: null,
     paciente: null,
     itens: [],
     observacoesGerais: "",
@@ -49,7 +47,7 @@ export function usePrescriptionWizard() {
       const indiceAtual = ORDEM_ETAPAS.indexOf(prev.etapaAtual);
       if (indiceAtual >= ORDEM_ETAPAS.length - 1) return prev;
 
-      const proxima = ORDEM_ETAPAS[3];
+      const proxima = ORDEM_ETAPAS[2];
       const etapasCompletas = prev.etapasCompletas.includes(prev.etapaAtual)
         ? prev.etapasCompletas
         : [...prev.etapasCompletas, prev.etapaAtual];
@@ -66,11 +64,12 @@ export function usePrescriptionWizard() {
     });
   }, []);
 
-  const definirTipoReceita = useCallback((tipo: TipoReceita) => {
-    setState((prev) => ({
-      ...prev,
-      rascunho: { ...prev.rascunho, tipoReceita: tipo },
-    }));
+  const voltarInicio = useCallback(() => {
+    setState((prev) => {
+      const indiceAtual = ORDEM_ETAPAS.indexOf(prev.etapaAtual);
+      if (indiceAtual <= 0) return prev;
+      return { ...prev, etapaAtual: ORDEM_ETAPAS[0] };
+    });
   }, []);
 
   const iniciarEdicaoMedicamento = useCallback((medicamento: Medicamento) => {
@@ -107,7 +106,7 @@ export function usePrescriptionWizard() {
     []
   );
 
-  const confirmarItemPosologia = useCallback(() => {
+  const confirmarItemDosage = useCallback(() => {
     setState((prev) => {
       if (!prev.itemEmEdicao) return prev;
 
@@ -163,16 +162,12 @@ export function usePrescriptionWizard() {
     (etapa: EtapaWizard): boolean => {
       const { rascunho } = state;
       switch (etapa) {
-        case "tipo":
-          return rascunho.tipoReceita !== null;
         case "medicamentos":
           return rascunho.itens.length > 0;
         case "posologia":
-          // Posologia é sempre válida se chegou aqui
           return true;
         case "revisao":
           return (
-            rascunho.tipoReceita !== null &&
             rascunho.itens.length > 0
           );
         default:
@@ -189,12 +184,12 @@ export function usePrescriptionWizard() {
     avancar,
     avancarRevisao,
     voltar,
+    voltarInicio,
     irParaEtapa,
     podeContinuar,
-    definirTipoReceita,
     iniciarEdicaoMedicamento,
     atualizarItemEmEdicao,
-    confirmarItemPosologia,
+    confirmarItemPosologia: confirmarItemDosage,
     removerItem,
     editarItem,
     definirObservacoes,

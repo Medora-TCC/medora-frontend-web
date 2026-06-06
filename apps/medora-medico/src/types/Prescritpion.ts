@@ -1,5 +1,3 @@
-export type TipoReceita = "simples" | "especial_c1" | "especial_c2" | "antimicrobiano";
-
 export type ViaAdministracao = "oral" | "sublingual" | "topica" | "injetavel" | "inalatoria";
 
 export type FrequenciaUso =
@@ -52,13 +50,12 @@ export interface ItemPrescricao {
 }
 
 export interface PrescricaoRascunho {
-  tipoReceita: TipoReceita | null;
   paciente: Paciente | null;
   itens: ItemPrescricao[];
   observacoesGerais: string;
 }
 
-export type EtapaWizard = "tipo" | "medicamentos" | "posologia" | "revisao";
+export type EtapaWizard = "medicamentos" | "posologia" | "revisao";
 
 export interface WizardState {
   etapaAtual: EtapaWizard;
@@ -93,11 +90,4 @@ export const LABEL_DURACAO: Record<DuracaoTratamento, string> = {
   "14d": "14 dias",
   "30d": "30 dias",
   outro: "Outro (especificar)",
-};
- 
-export const LABEL_TIPO_RECEITA: Record<TipoReceita, string> = {
-  simples: "Receituário simples",
-  especial_c1: "Receituário especial (C1)",
-  especial_c2: "Receituário especial (C2)",
-  antimicrobiano: "Receituário antimicrobiano",
 };

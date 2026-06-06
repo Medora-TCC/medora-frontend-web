@@ -1,22 +1,21 @@
 import { AlertTriangle, Pill } from "lucide-react";
-import type {
-  ItemPrescricao,
-  ViaAdministracao,
-  FrequenciaUso,
-  DuracaoTratamento
-} from "./Prescritpion";
 import {
   LABEL_VIA,
   LABEL_FREQUENCIA,
   LABEL_DURACAO,
-} from "./Prescritpion";
-
+  type ItemPrescricao,
+  type ViaAdministracao,
+  type FrequenciaUso,
+  type DuracaoTratamento
+} from "../../../types/Prescritpion.ts";
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-xs font-medium text-gray-500 mb-1">{children}</label>
+    <label className="block text-xs font-medium text-text-secondary mb-1">{children}</label>
   );
 }
+
+const inputStyle = "w-full text-sm border border-border rounded-md px-3 py-2 bg-surface text-text-primary focus:outline-none focus:border-primary-color focus:ring-1 focus:ring-ring transition-all"
 
 function Select<T extends string>({
   value,
@@ -31,9 +30,9 @@ function Select<T extends string>({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
-      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
-                 bg-white text-gray-900 focus:outline-none focus:border-blue-500
-                 focus:ring-1 focus:ring-blue-200 transition-all"
+      className="w-full text-sm border border-border rounded-md px-3 py-2
+                 bg-surface text-text-primary focus:outline-none focus:border-primary-color
+                 focus:ring-1 focus:ring-ring transition-all"
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>{o.label}</option>
@@ -76,101 +75,72 @@ interface Props {
 export function StepDosage({ item, onChange, onConfirmar, onCancelar }: Props) {
   const med = item.medicamento;
 
-  return (
+    return (
     <div className="flex flex-col gap-5">
-
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-100">
-        <span className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center
-                         text-blue-700 shrink-0">
+      <div
+        className="bg-primary-subtle flex items-center gap-3 p-3 rounded-xl border border-ring"
+      >
+        <span
+          className="bg-primary-color text-text-inverse opacity-90 w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        >
           <Pill size={20} />
         </span>
         <div>
-          <p className="text-sm font-medium text-blue-900">
+          <p className="text-sm font-semibold text-primary-text">
             {med.nomeComercial ?? med.principioAtivo}
           </p>
-          <p className="text-xs text-blue-700">
+          <p className="text-xs text-primary-text opacity-75">
             {med.concentracao} · {med.formaFarmaceutica}
           </p>
         </div>
       </div>
-
+ 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Dose por administração</Label>
-          <Select
-            value={item.dose}
-            options={DOSES}
-            onChange={(v) => onChange({ dose: v })}
-          />
+          <Select value={item.dose} options={DOSES} onChange={(v) => onChange({ dose: v })} />
         </div>
-
         <div>
           <Label>Via de administração</Label>
-          <Select
-            value={item.via}
-            options={VIAS}
-            onChange={(v) => onChange({ via: v as ViaAdministracao })}
-          />
+          <Select value={item.via} options={VIAS} onChange={(v) => onChange({ via: v as ViaAdministracao })} />
         </div>
-
         <div>
           <Label>Frequência</Label>
-          <Select
-            value={item.frequencia}
-            options={FREQUENCIAS}
-            onChange={(v) => onChange({ frequencia: v as FrequenciaUso })}
-          />
+          <Select value={item.frequencia} options={FREQUENCIAS} onChange={(v) => onChange({ frequencia: v as FrequenciaUso })} />
         </div>
-
         <div>
           <Label>Horário preferencial</Label>
-          <Select
-            value={item.horario ?? "Noite"}
-            options={HORARIOS}
-            onChange={(v) => onChange({ horario: v })}
-          />
+          <Select value={item.horario ?? "Noite"} options={HORARIOS} onChange={(v) => onChange({ horario: v })} />
         </div>
-
         <div>
           <Label>Duração do tratamento</Label>
-          <Select
-            value={item.duracao}
-            options={DURACOES}
-            onChange={(v) => onChange({ duracao: v as DuracaoTratamento })}
-          />
+          <Select value={item.duracao} options={DURACOES} onChange={(v) => onChange({ duracao: v as DuracaoTratamento })} />
         </div>
-
-        {item.duracao === "outro" && (
+ 
+        {item.duracao === "outro" ? (
           <div>
             <Label>Dias de tratamento</Label>
             <input
-              type="number"
-              min={1}
-              max={365}
+              type="number" min={1} max={365}
               value={item.duracaoCustomDias ?? ""}
               onChange={(e) => onChange({ duracaoCustomDias: Number(e.target.value) })}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
-                         bg-white text-gray-900 focus:outline-none focus:border-blue-500
-                         focus:ring-1 focus:ring-blue-200 transition-all"
               placeholder="Ex.: 21"
+              className={inputStyle}
+            />
+          </div>
+        ) : (
+          <div>
+            <Label>Quantidade total</Label>
+            <input
+              type="number" min={1}
+              value={item.quantidade}
+              onChange={(e) => onChange({ quantidade: Number(e.target.value) })}
+              className={inputStyle}
             />
           </div>
         )}
-
-        <div>
-          <Label>Quantidade total</Label>
-          <input
-            type="number"
-            min={1}
-            value={item.quantidade}
-            onChange={(e) => onChange({ quantidade: Number(e.target.value) })}
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
-                       bg-white text-gray-900 focus:outline-none focus:border-blue-500
-                       focus:ring-1 focus:ring-blue-200 transition-all"
-          />
-        </div>
       </div>
-
+ 
       <div>
         <Label>Orientações ao paciente</Label>
         <textarea
@@ -178,15 +148,14 @@ export function StepDosage({ item, onChange, onConfirmar, onCancelar }: Props) {
           value={item.orientacoes}
           onChange={(e) => onChange({ orientacoes: e.target.value })}
           placeholder="Ex.: Tomar em jejum. Não partir o comprimido. Evitar álcool durante o tratamento."
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
-                     bg-white text-gray-900 focus:outline-none focus:border-blue-500
-                     focus:ring-1 focus:ring-blue-200 transition-all resize-none"
+          className={inputStyle + " resize-none"}
         />
       </div>
-
+ 
       {med.restricoes.length > 0 && (
-        <div className="flex gap-2 px-3 py-2.5 rounded-lg border border-amber-200
-                        bg-amber-50 text-amber-800 text-xs">
+        <div
+          className="bg-warning-subtle text-warning-text flex gap-2 px-3 py-2.5 rounded-xl border border-warning text-xs"
+        >
           <AlertTriangle size={14} className="shrink-0 mt-0.5" />
           <span>
             <strong>Restrição:</strong> {med.restricoes.join(", ")}. Avalie
@@ -194,19 +163,27 @@ export function StepDosage({ item, onChange, onConfirmar, onCancelar }: Props) {
           </span>
         </div>
       )}
-
+ 
       <div className="flex gap-3 pt-1">
         <button
           onClick={onCancelar}
-          className="flex-1 text-sm px-4 py-2 rounded-lg border border-gray-200
-                     text-gray-600 hover:bg-gray-50 transition-colors"
+          className="flex-1 text-sm px-4 py-2 rounded-xl border transition-colors"
+          style={{
+            background: "var(--surface)",
+            borderColor: "var(--border)",
+            color: "var(--text-secondary)",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--border-hover)")}
+          onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}
         >
           Cancelar
         </button>
         <button
           onClick={onConfirmar}
-          className="flex-1 text-sm px-4 py-2 rounded-lg bg-blue-900 text-white
-                     font-medium hover:bg-blue-800 active:scale-[0.98] transition-all"
+          className="flex-1 text-sm px-4 py-2 rounded-xl font-medium transition-all active:scale-[0.98]"
+          style={{ background: "var(--primary)", color: "var(--text-inverse)" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "var(--primary-hover)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "var(--primary)")}
         >
           Confirmar e adicionar
         </button>

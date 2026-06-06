@@ -1,96 +1,99 @@
 import { Pill } from "lucide-react";
-import { type Paciente, type ItemPrescricao, LABEL_TIPO_RECEITA, type TipoReceita } from "./Prescritpion";
+import { type Paciente, type ItemPrescricao } from "../../types/Prescritpion";
 
 interface Props {
   paciente: Paciente | null;
-  tipoReceita: TipoReceita | null;
   itensPrescritos: ItemPrescricao[];
   itemEmEdicao: ItemPrescricao | null;
 }
-
-export function PrescriptionSidebar({ paciente, tipoReceita, itensPrescritos, itemEmEdicao }: Props) {
+ 
+export function PrescriptionSidebar({ paciente, itensPrescritos, itemEmEdicao }: Props) {
   return (
-    <aside className="w-56 shrink-0 border-l border-gray-100 bg-gray-50
-                      flex flex-col gap-5 px-4 py-5 overflow-y-auto">
-
-      {tipoReceita && (
-        <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
-            Tipo de receita
-          </p>
-          <span className="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100
-                           px-2 py-1 rounded-full">
-            {LABEL_TIPO_RECEITA[tipoReceita]}
-          </span>
-        </div>
-      )}
-
+    <aside
+      className="w-52 bg-surface-alt border-border shrink-0 border-l flex flex-col gap-5 px-4 py-5 overflow-y-auto"
+    >
       {paciente ? (
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
+          <p
+            className="text-xs text-muted font-semibold uppercase tracking-wide mb-2"
+          >
             Paciente
           </p>
           <div className="flex flex-col gap-1.5">
-            <p className="text-sm font-medium text-gray-900">{paciente.nome}</p>
+            <p className="text-sm font-medium text-text-primary">
+              {paciente.nome}
+            </p>
             <div className="flex flex-col gap-0.5">
               {[
                 ["Nasc.", new Date(paciente.dataNascimento).toLocaleDateString("pt-BR")],
-                paciente.peso ? ["Peso", `${paciente.peso} kg`] : null,
-                paciente.convenio ? ["Convênio", paciente.convenio] : null,
+                paciente.peso    ? ["Peso",     `${paciente.peso} kg`]   : null,
+                paciente.convenio ? ["Convênio", paciente.convenio]       : null,
               ]
-                .filter(Boolean)
                 .filter((item): item is [string, string] => item !== null)
                 .map(([k, v]) => (
-                  <p key={k as string} className="text-xs text-gray-500">
-                    <span className="text-gray-400">{k}: </span>{v}
+                  <p key={k as string} className="text-xs text-text-muted">
+                    <span className="text-text-muted">{k}: </span>
+                    <span className="text-text-secondary">{v}</span>
                   </p>
                 ))}
             </div>
-
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide mb-1 text-text-muted" >
             Paciente
           </p>
-          <p className="text-xs text-gray-400">Não identificado nesta sessão.</p>
+          <p className="text-xs text-text-muted">
+            Não identificado nesta sessão.
+          </p>
         </div>
       )}
-
+ 
       <div>
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
+        <p
+          className="text-xs font-semibold uppercase tracking-wide mb-2"
+          style={{ color: "var(--text-muted)" }}
+        >
           Prescritos ({itensPrescritos.length})
         </p>
-
+ 
         {itensPrescritos.length === 0 && !itemEmEdicao && (
-          <p className="text-xs text-gray-400">Nenhum medicamento adicionado.</p>
+          <p className="text-xs text-text-muted">
+            Nenhum medicamento adicionado.
+          </p>
         )}
-
+ 
         <div className="flex flex-col gap-1.5">
           {itensPrescritos.map((item) => (
             <div
               key={item.id}
-              className="flex gap-2 px-2.5 py-2 rounded-lg bg-white border border-gray-200"
+              className="flex gap-2 px-2.5 py-2 rounded-xl border bg-surface border-border"
             >
-              <Pill size={12} className="text-gray-400 shrink-0 mt-0.5" />
+              <Pill size={12} className="text-text-muted shrink-0 mt-2"/>
               <div>
-                <p className="text-xs font-medium text-gray-800 leading-tight">
+                <p className="text-xs text-text-primary font-medium leading-tight">
                   {item.medicamento.principioAtivo}
                 </p>
-                <p className="text-xs text-gray-400">{item.medicamento.concentracao}</p>
+                <p className="text-xs text-text-muted">
+                  {item.medicamento.concentracao}
+                </p>
               </div>
             </div>
           ))}
-
+ 
           {itemEmEdicao && (
-            <div className="flex gap-2 px-2.5 py-2 rounded-lg bg-blue-50 border border-blue-200">
-              <Pill size={12} className="text-blue-500 shrink-0 mt-0.5" />
+            <div
+              className="flex gap-2 px-2.5 py-2 rounded-xl border bg-primary-subtle border-primary-color"
+            >
+              <Pill size={12} className="text-primary-color shrink-0 mt-2" />
               <div>
-                <p className="text-xs font-medium text-blue-800 leading-tight">
+                <p className="text-xs font-medium leading-tight text-primary-text" style={{ color: "var(--primary-text)" }}>
                   {itemEmEdicao.medicamento.principioAtivo}
                 </p>
-                <p className="text-xs text-blue-500">Em configuração...</p>
+                <p className="text-xs text-primary-text opacity-70">
+                  Em configuração...
+                </p>
               </div>
             </div>
           )}
