@@ -1,4 +1,4 @@
-import type { IConsultaDetailed, IConsultaSimplified } from "@medora_web/shared";
+import type { IConsultaDetailed, ITeleConsultaDetailed } from "@medora_web/shared";
 
 export function PatientInitials(nome: string) {
   return nome
@@ -13,7 +13,7 @@ export function canEnter(c: IConsultaDetailed): boolean {
   if (!c) return false;
   if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
 
-  const horario = new Date(c.dataHorario).getTime();
+  const horario = new Date(c.startDateTime).getTime();
   const agora = Date.now();
   const res = agora >= horario - 15 * 60 * 1000 && agora <= horario + 50 * 60 * 1000; //REMIDNER AJUSTAR JANELA DE ENTRAR
   return res
@@ -26,6 +26,10 @@ export function enterConsulta(id: string, navigate: any) {
 
   // Agora usamos o navigate que veio do componente
   navigate(`/teleconsulta/${id}/pre-sala`);
+}
+
+export function isTeleConsulta(consulta: IConsultaDetailed | ITeleConsultaDetailed): consulta is ITeleConsultaDetailed {
+  return consulta.type === 'teleconsulta' && 'meetingUrl' in consulta;
 }
 
 export function formatConsultaHorario(iso: string) {

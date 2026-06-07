@@ -18,7 +18,7 @@ import type { IConsultaDetailed, ITeleConsultaDetailed, StatusConsulta } from "@
 import { fetchConsultas } from "./Consulta";
 import { Calendar, CalendarDays, CircleAlert, RotateCcw, Video } from "lucide-react";
 import  ConsultaModal from "./ConsultaModal";
-import { formatConsultaHorario, isHoje, PatientInitials } from "./ConsultaHelpers";
+import { formatConsultaHorario, isHoje, isTeleConsulta, PatientInitials } from "./ConsultaHelpers";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 
@@ -28,7 +28,7 @@ type FiltroData = "hoje" | "amanha" | "semana" | "nenhum";
 
 function canEnter(c: ITeleConsultaDetailed): boolean {
   if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
-  const horario = new Date(c.dataHorario).getTime();
+  const horario = new Date(c.startDateTime).getTime();
   const agora = Date.now();
   return agora >= horario - 15 * 60 * 1000 && agora <= horario + 10 * 60 * 1000;
 }
@@ -65,15 +65,20 @@ interface ConsultaCardProps {
   onCardClick: (id: string) => void;
 }
 
-// ─── Consulta card ────────────────────────────────────────────────────────────
+// ─── Consulta card componentizar ────────────────────────────────────────────────────────────
 function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
   const cfg = statusCfg[consulta.status];
-  const hoje = isHoje(consulta.dataHorario);
+  const hoje = isHoje(consulta.startDateTime);
   const [isJoinable, setIsJoinable] = useState<boolean>(false);
+  const isTeleConsultaBool = isTeleConsulta(consulta);
 
   useEffect(() => {
-    setIsJoinable(canEnter(consulta))
-  }, [])
+  if (isTeleConsultaBool) {
+    setIsJoinable(canEnter(consulta));
+  } else {
+    setIsJoinable(false);
+  }
+}, [consulta, canEnter]);
 
   return (
     <Card
@@ -90,14 +95,14 @@ function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
       <Card.Content className="flex items-center justify-center flex-col gap-4 p-4">
         {/* Avatar com iniciais */}
         <Avatar size="md" color="accent">
-          <Avatar.Fallback>{PatientInitials(consulta.pacienteNome)}</Avatar.Fallback>
+          <Avatar.Fallback>{PatientInitials(consulta.patientNome)}</Avatar.Fallback>
         </Avatar>
 
         {/* Info */}
         <div className="flex flex-1 items-center min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium truncate">
-              {consulta.pacienteNome}
+              {consulta.patientNome}
             </span>
 
             {hoje && consulta.status === "agendado" && (
@@ -110,7 +115,7 @@ function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
           <div className="flex items-center gap-3 text-xs text-fg-muted flex-wrap">
             <span className="flex items-center gap-1">
               <Calendar />
-              {formatConsultaHorario(consulta.dataHorario)}
+              {formatConsultaHorario(consulta.startDateTime)}
             </span>
           </div>
         </div>
@@ -152,7 +157,7 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function ConsultaScreen() {
-  const [consultas, setConsultas] = useState<ITeleConsultaDetailed[]>([]);
+  const [consultas, setConsultas] = useState<IConsultaDetailed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todas");
@@ -196,12 +201,12 @@ export function ConsultaScreen() {
         .filter(
           (c) =>
             busca.trim() === "" ||
-            c.pacienteNome.toLowerCase().includes(busca.toLowerCase()),
+            c.patientNome.toLowerCase().includes(busca.toLowerCase()),
         )
         .filter((c) => {
           if (filtroData === "nenhum") return true;
 
-          const data = new Date(c.dataHorario);
+          const data = new Date(c.startDateTime);
           const hoje = new Date();
 
           if (filtroData === "hoje") {
@@ -225,8 +230,8 @@ export function ConsultaScreen() {
         })
         .sort(
           (a, b) =>
-            new Date(a.dataHorario).getTime() -
-            new Date(b.dataHorario).getTime(),
+            new Date(a.startDateTime).getTime() -
+            new Date(b.startDateTime).getTime(),
         ),
     [consultas, filtro, busca, filtroData],
   );
