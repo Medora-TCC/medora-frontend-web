@@ -103,22 +103,22 @@ export default function TermoUsoModal({
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container>
-          <Modal.Dialog className="max-w-xl w-full bg-zinc-900 border border-zinc-700/50 rounded-2xl overflow-hidden">
+          <Modal.Dialog className="max-w-xl w-full bg-surface border border-ring rounded-2xl overflow-hidden">
 
             {/* Header */}
-            <Modal.Header className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-zinc-800">
+            <Modal.Header className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-ring">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                  <ScrollText className="w-4 h-4 text-blue-400" />
+                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-accent/10 border border-accent-soft-hover">
+                  <ScrollText className="w-4 h-4 text-accent" />
                 </div>
                 <div>
-                  <Modal.Heading className="text-base font-bold text-white leading-tight">
+                  <Modal.Heading className="text-base font-bold text-text-primary leading-tight">
                     Termos de Uso
                   </Modal.Heading>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">
+                  <p className="text-[11px] text-text-secondary mt-0.5">
                     Medora Plataforma de Saúde &mdash; {version}
                   </p>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">
+                  <p className="text-[11px] text-text-secondary mt-0.5">
                     Consulta: {consultaId}
                   </p>
                 </div>
@@ -128,7 +128,7 @@ export default function TermoUsoModal({
                   isIconOnly
                   size="sm"
                   onPress={handleDecline}
-                  className="text-zinc-400 bg-transparent hover:bg-zinc-800 border-0"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg text-text-primary bg-surface hover:text-surface hover:bg-text-primary hover:cursor-pointer transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -137,14 +137,14 @@ export default function TermoUsoModal({
 
             {/* Scroll hint */}
             {!hasScrolled && (
-              <div className="flex items-center justify-between px-6 py-2 bg-amber-500/5 border-b border-amber-500/10">
-                <p className="text-xs text-amber-400/80">
+              <div className="flex items-center justify-between px-6 py-2 bg-warning-subtle border-b border-warning">
+                <p className="text-xs text-warning-text">
                   Leia os termos por completo para continuar
                 </p>
                 <Button
                   size="sm"
                   onPress={scrollToBottom}
-                  className="text-xs text-amber-400 bg-transparent border-0 h-7 px-2 hover:bg-amber-500/10"
+                  className="text-xs text-warning-text bg-transparent border-0 h-7 px-2 hover:bg-warning/50 transition"
                 >
                   Ir ao final <ChevronDown className="w-3 h-3 ml-1" />
                 </Button>
@@ -158,31 +158,31 @@ export default function TermoUsoModal({
                 onScroll={handleScroll}
                 className="overflow-y-auto px-6 py-5 max-h-[50vh]"
               >
-                <p className="text-sm text-zinc-400 leading-relaxed mb-6">
+                <p className="text-sm text-text-primary leading-relaxed mb-6">
                   Ao utilizar a plataforma Medora, você concorda com os termos e
                   condições descritos abaixo. Leia atentamente antes de prosseguir.
                   Última atualização:{" "}
-                  <span className="text-zinc-300">15 de maio de 2025</span>.
+                  <span className="text-text-primary">15 de maio de 2025</span>.
                 </p>
 
                 <div className="space-y-4">
                   {SECTIONS.map(({ icon: Icon, title, body }) => (
                     <div
                       key={title}
-                      className="rounded-xl bg-zinc-800/50 border border-zinc-700/30 px-4 py-4"
+                      className="rounded-xl bg-surface-raised border border-ring px-4 py-4"
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <Icon className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                        <p className="text-sm font-semibold text-white">{title}</p>
+                        <Icon className="w-3.5 h-3.5 text-accent shrink-0" />
+                        <p className="text-sm font-semibold text-text-primary">{title}</p>
                       </div>
-                      <p className="text-sm text-zinc-400 leading-relaxed">{body}</p>
+                      <p className="text-sm text-text-primary leading-relaxed">{body}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-2 mt-6 pt-5 border-t border-zinc-800">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <p className="text-xs text-zinc-500">
+                <div className="flex items-center gap-2 mt-6 pt-5">
+                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                  <p className="text-xs text-text-primary">
                     Fim do documento &mdash; {version} &mdash; Medora Saúde Ltda.
                   </p>
                 </div>
@@ -190,7 +190,7 @@ export default function TermoUsoModal({
             </Modal.Body>
 
             {/* Footer */}
-            <Modal.Footer className="flex-col items-stretch gap-4 px-6 py-4 border-t border-zinc-800">
+            <Modal.Footer className="flex-col items-stretch gap-4 px-6 py-4 border-t border-ring">
               {/* Checkbox nativo — sem conflito com HeroUI */}
               <label
                 className={`flex items-start gap-3 cursor-pointer group ${
@@ -207,12 +207,12 @@ export default function TermoUsoModal({
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                       checked
-                        ? "bg-blue-600 border-blue-600"
-                        : "border-zinc-600 bg-zinc-800 group-hover:border-zinc-500"
+                        ? "bg-accent border-ring"
+                        : "border-ring bg-surface-overlay group-hover:border-accent"
                     }`}
                   >
                     {checked && (
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
+                      <svg className="w-2.5 h-2.5 text-surface" viewBox="0 0 10 8" fill="none">
                         <path
                           d="M1 4l3 3 5-6"
                           stroke="currentColor"
@@ -224,10 +224,10 @@ export default function TermoUsoModal({
                     )}
                   </div>
                 </div>
-                <span className="text-sm text-zinc-400 leading-snug">
+                <span className="text-sm text-text-primary leading-snug">
                   Li e concordo com os{" "}
-                  <span className="text-white font-medium">Termos de Uso</span> e a{" "}
-                  <span className="text-white font-medium">Política de Privacidade</span>{" "}
+                  <span className="text-accent font-medium">Termos de Uso</span> e a{" "}
+                  <span className="text-accent font-medium">Política de Privacidade</span>{" "}
                   da Medora.
                 </span>
               </label>
@@ -236,7 +236,7 @@ export default function TermoUsoModal({
                 <Button
                   size="sm"
                   onPress={handleDecline}
-                  className="text-xs font-medium text-zinc-400 bg-zinc-800 border border-zinc-700/50 hover:bg-zinc-700"
+                  className="text-xs font-medium text-text-primary bg-surface-alt border border-ring hover:bg-text-primary/10"
                 >
                   Recusar
                 </Button>
