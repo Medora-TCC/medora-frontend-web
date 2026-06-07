@@ -17,6 +17,7 @@ interface TermosUsoModalProps {
   onAccept?: () => void;
   onDecline?: () => void;
   version?: string;
+  consultaId: string;
 }
 
 const SECTIONS = [
@@ -53,6 +54,7 @@ export default function TermoUsoModal({
   onAccept,
   onDecline,
   version = "v2.4.1",
+  consultaId
 }: TermosUsoModalProps) {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -115,6 +117,9 @@ export default function TermoUsoModal({
                   </Modal.Heading>
                   <p className="text-[11px] text-zinc-500 mt-0.5">
                     Medora Plataforma de Saúde &mdash; {version}
+                  </p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">
+                    Consulta: {consultaId}
                   </p>
                 </div>
               </div>

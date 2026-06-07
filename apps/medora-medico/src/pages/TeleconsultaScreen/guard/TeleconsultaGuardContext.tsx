@@ -38,6 +38,7 @@ export function TeleconsultaGuardProvider({ children }: { children: ReactNode })
           teleconsultaGuard.aceitarTermos(state.consultaId)
         }
         onDecline={() => teleconsultaGuard.reset()}
+        consultaId={state.fase === "termos_pendentes" ? state.consultaId : ""}
       />
     </TeleconsultaGuardCtx.Provider>
   )

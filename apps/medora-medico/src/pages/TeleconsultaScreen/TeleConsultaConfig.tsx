@@ -104,6 +104,7 @@ export default function TeleConsultaConfig() {
 
   // ── 1. Guard — primeiro hook, sempre ─────────────────────────────────────
   const { state, tentar } = useTeleconsultaGuard();
+  const [ termoAceitoGuard, setTermoAceitoGuard ] = useState<boolean | null>(null)
 
   // ── 2. Estado local ───────────────────────────────────────────────────────
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
@@ -119,6 +120,8 @@ export default function TeleConsultaConfig() {
   const [camOn, setCamOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
 
+
+
   const guardIniciado = useRef(false);
 
   useEffect(() => {
@@ -126,7 +129,21 @@ export default function TeleConsultaConfig() {
       guardIniciado.current = true;
       tentar(id);
     }
+
+    if(state.fase !== "termos_pendentes"){
+      setTermoAceitoGuard(true)
+    }
   }, []);
+
+   useEffect(() => {
+    console.log("fase: " + state.fase);
+    
+    if(state.fase === "termos_pendentes" || state.fase === "idle"){
+      setTermoAceitoGuard(false)
+    }else{
+      setTermoAceitoGuard(true)
+    }
+  }, [state.fase]);
 
   useEffect(() => {
     return () => {
@@ -221,7 +238,6 @@ export default function TeleConsultaConfig() {
 
   // ── Render principal ──────────────────────────────────────────────────────
   const prontoPeloGuard = state.fase === "liberado"
-  const termoAceitoGuard = state.fase === "termos_pendentes"
   const pronto = prontoPeloGuard && (camPerm === "granted" || micPerm === "granted")
 
 
