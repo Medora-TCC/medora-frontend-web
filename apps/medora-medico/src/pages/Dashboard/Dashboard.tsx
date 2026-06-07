@@ -9,6 +9,7 @@ import {
   Bell
 } from "lucide-react";
 import { useNavigate } from "react-router";
+import ConsultaModal from "../../components/Consulta/ConsultaModal";
 
 export default function Dashboard() {
 
@@ -21,6 +22,8 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-text-primary">Bom dia, Dr. João</h1>
           <p className="text-text-muted">Você tem <span className="font-bold">8</span> consultas agendadas para hoje.</p>
         </header>
+
+        <ConsultaModal></ConsultaModal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatBox icon={<Users className="text-blue-500" />} label="Consultas" value="12" />
