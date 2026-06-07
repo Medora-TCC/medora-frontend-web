@@ -1,4 +1,3 @@
-// pages/TeleconsultaScreen/TeleconsultaLayout.tsx
 import { Outlet } from "react-router"
 import { TeleconsultaGuardProvider } from "./guard/TeleconsultaGuardContext"
 
