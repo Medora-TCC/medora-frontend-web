@@ -17,10 +17,10 @@ import type { IConsultaDetailed, ITeleConsultaDetailed, StatusConsulta } from "@
 
 import { fetchConsultas } from "./Consulta";
 import { Calendar, CalendarDays, CircleAlert, RotateCcw, Video } from "lucide-react";
-import  ConsultaModal from "./ConsultaModal";
 import { formatConsultaHorario, isHoje, isTeleConsulta, PatientInitials } from "./ConsultaHelpers";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
+import ConsultaModal from "../../components/Consulta/ConsultaModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;

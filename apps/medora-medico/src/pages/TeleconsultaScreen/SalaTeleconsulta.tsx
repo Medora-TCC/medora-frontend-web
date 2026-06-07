@@ -408,7 +408,7 @@ export default function SalaTeleConsulta() {
   // ── Encerrar ─────────────────────────────────────────────────────────────
   function encerrar() {
     localStream?.getTracks().forEach((t) => t.stop());
-    navigate(`../consulta`);
+    navigate(`../../consulta`);
   }
 
   return (
