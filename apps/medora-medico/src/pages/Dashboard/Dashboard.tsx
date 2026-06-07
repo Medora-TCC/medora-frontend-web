@@ -10,6 +10,7 @@ import {
   Calendar
 } from "lucide-react";
 import { useNavigate } from "react-router";
+import ConsultaModal from "../../components/Consulta/ConsultaModal";
 
 // Dados fictícios para o gráfico em Tailwind puro
 const weeklyData = [
