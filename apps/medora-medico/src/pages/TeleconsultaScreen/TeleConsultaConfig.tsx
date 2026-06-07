@@ -11,6 +11,7 @@ import {
   CheckCircle,
   ChevronDown,
 } from "lucide-react";
+import { useTeleconsultaGuard } from "./guard/TeleconsultaGuardContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type PermissionState = "idle" | "requesting" | "granted" | "denied" | "error";
@@ -264,13 +265,13 @@ export default function TeleConsultaConfig() {
     };
   }, []);
 
+  const { tentar } = useTeleconsultaGuard()
+
   function handleEntrar() {
     // Para os streams de preview — a sala vai criar os próprios
     videoStream?.getTracks().forEach((t) => t.stop());
     audioStream?.getTracks().forEach((t) => t.stop());
-    navigate(`../teleconsulta/${id}/sala`, {
-      state: { camOn, micOn, selectedCam, selectedMic },
-    });
+    tentar(id!)
   }
 
   const pronto = camPerm === "granted" || micPerm === "granted";

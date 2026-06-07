@@ -15,6 +15,8 @@ import ProfessionalProfilePage from "./pages/ProfessionalProfilePage/Professiona
 import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
 import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 import ConfigPage from './pages/ConfigPage/ConfigPage';
+import { TeleconsultaGuardProvider } from './pages/TeleconsultaScreen/guard/TeleconsultaGuardContext';
+import { TeleconsultaLayout } from './pages/TeleconsultaScreen/TeleconsultaLayout';
 
 function App() {
   return (
@@ -32,9 +34,11 @@ function App() {
                 <Route path="" element={<Dashboard />} />
                 <Route path="prontuario" element={<MedicalRecordPage />} />
                 <Route path="perfil" element={<ProfessionalProfilePage />} />
-
-                <Route path='teleconsulta/:id/pre-sala' element={<TeleConsultaConfig/>} />
-                <Route path='teleconsulta/:id/sala' element={<SalaTeleConsulta/>} />
+                <Route path="teleconsulta" element={<TeleconsultaLayout />}>
+                  <Route path=":id/pre-sala" element={<TeleConsultaConfig />} />
+                  <Route path=":id/sala"     element={<SalaTeleConsulta />} />
+                </Route>
+                {/* <Route path='teleconsulta/:id/sala' element={<SalaTeleConsulta/>} /> */}
               </Route>
 
               <Route element={<Layout />}>
