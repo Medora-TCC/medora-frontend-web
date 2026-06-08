@@ -57,7 +57,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
       <LexicalComposer initialConfig={initialConfig}>
         <div className="flex flex-col h-full border border-border p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
           <ToolbarPlugin />
-          <div className=" h-full w-full overflow-hidden">
+          <div className=" h-full w-full overflow-hidden rounded-b-lg">
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
