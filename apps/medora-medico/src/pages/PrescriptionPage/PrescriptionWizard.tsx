@@ -51,7 +51,7 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
 
   return (
     <div
-      className="bg-surface flex flex-col w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-border"
+      className="bg-surface my-auto flex flex-col w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-border"
     >
       <header
         className="flex items-center justify-between px-6 py-3 border-b border-border"
