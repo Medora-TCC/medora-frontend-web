@@ -71,7 +71,7 @@ export default function Dashboard() {
                   size="sm"
                   variant="ghost"
                   className="text-primary-color font-semibold border-none hover:bg-primary/10"
-                  onPress={() => navigate("/consultas")}
+                  onPress={() => navigate("../consulta")}
                 >
                   Ver todas
                 </Button>
