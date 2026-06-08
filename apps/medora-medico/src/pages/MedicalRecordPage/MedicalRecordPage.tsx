@@ -95,8 +95,8 @@ export function MedicalRecordPage() {
 
       <section className="flex flex-col md:flex-row flex-1 overflow-hidden">
         <section className="px-2 py-4 border-r">
-          <div className="px-6 py-5 border-b border-gray-100 sticky top-0 bg-white">
-            <h2 className="text-2xl font-bold text-gray-800">
+          <div className="px-6 py-5 border-b border-border sticky top-0 bg-surface">
+            <h2 className="text-2xl font-bold text-text-primary">
               Prontuários anteriores
             </h2>
           </div>
@@ -115,13 +115,13 @@ export function MedicalRecordPage() {
                   {prontuariosAnteriores.map((prontuario) => (
                     <div
                       key={prontuario.id}
-                      className="p-2 grid grid-cols-[70%_20%] grid-rows-2 gap-x-4 w-full bg-surface-alt rounded-lg shadow font-semibold align-middle focus-visible:outline-2 focus-visible:ring-offset-1"
+                      className="p-2 grid grid-cols-[70%_20%] grid-rows-2 gap-x-4 w-full bg-surface-alt rounded-sm shadow font-semibold align-middle focus-visible:outline-2 focus-visible:ring-offset-1"
                     >
                       <span className="col-span-1 text-[18px] ">
                         {prontuario.tipoConsulta}
                       </span>
                       <MedicalRecordModal medicalRecord={prontuario} />
-                      <span className="col-span-1 row-span-1 text-gray-700">
+                      <span className="col-span-1 row-span-1 text-text-secondary">
                         Data: {prontuario.date}
                       </span>
                     </div>
@@ -131,9 +131,9 @@ export function MedicalRecordPage() {
 
           }
         </section>
-        <section className="flex-1 flex flex-col bg-gray-50 py-4 pb-4">
+        <section className="flex-1 flex flex-col bg-surface-alt py-4 pb-4">
           <div className="flex justify-between px-4 pt-2 pb-4">
-            <h2 className="text-2xl font-bold text-gray-700">
+            <h2 className="text-2xl font-bold text-text-primary">
               Novo prontuário
             </h2>
           </div>

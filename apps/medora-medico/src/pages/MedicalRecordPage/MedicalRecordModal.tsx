@@ -11,7 +11,7 @@ interface MedicalRecordModalProps {
 export function MedicalRecordModal({ medicalRecord }: MedicalRecordModalProps): JSX.Element {
     return (
         <Modal>
-            <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end"> <ArrowRight /></Button>
+            <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end rounded-lg"> <ArrowRight /></Button>
             <Modal.Backdrop variant="opaque">
                 <Modal.Container>
                     <Modal.Dialog className="w-[80%] max-w-none h-[90%] max-h-none">
