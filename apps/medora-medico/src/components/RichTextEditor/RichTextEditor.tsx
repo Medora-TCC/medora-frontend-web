@@ -55,13 +55,13 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
 
     return (
       <LexicalComposer initialConfig={initialConfig}>
-        <div className="flex flex-col h-full border border-slate-200 p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
+        <div className="flex flex-col h-full border border-border p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
           <ToolbarPlugin />
           <div className=" h-full w-full overflow-hidden">
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll"
+                  className="h-full mt-2 p-4 outline-none bg-surface-raised text-primary overflow-y-scroll"
                   aria-label="Digite o prontuário"
                 />
               }
