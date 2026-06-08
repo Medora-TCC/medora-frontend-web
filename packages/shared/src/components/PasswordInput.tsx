@@ -75,6 +75,7 @@ export function PasswordInput({ id, value, onChange, label, hasError, placeholde
                     id={id}
                     type={isVisible ? "text" : "password"}
                     value={value}
+                    autoComplete="off" 
                     onChange={handleTyping}
                     onFocus={() => setShowPopover(true)}
                     placeholder={placeholder || "Digite sua senha"}

@@ -12,7 +12,6 @@ import {
 import { useNavigate } from "react-router";
 import ConsultaModal from "../../components/Consulta/ConsultaModal";
 
-// Dados fictícios para o gráfico em Tailwind puro
 const weeklyData = [
   { name: 'Seg', consultas: 8, percentage: '53%' },
   { name: 'Ter', consultas: 12, percentage: '80%' },
@@ -26,7 +25,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <main className="p-6 space-y-6 max-w-7xl mx-auto w-full">
+      <main className="p-6 space-y-5 max-w-7xl mx-auto w-full">
 
         {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -35,7 +34,6 @@ export default function Dashboard() {
             <p className="text-text-muted">Você tem <span className="font-bold text-primary-color">8</span> consultas agendadas para hoje.</p>
           </div>
           <div className="flex gap-2">
-            {/* AJUSTADO: Agora aponta exatamente para a rota desejada */}
             <Button
               size="sm"
               variant="outline"
@@ -60,11 +58,11 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Coluna da Esquerda */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-5">
 
             {/* 2° WIDGET: Próximas Consultas do Dia */}
             <div className="bg-surface-alt rounded-xl shadow-sm border border-divider overflow-hidden">
-              <div className="p-5 border-b border-divider flex justify-between items-center">
+              <div className="p-4 border-b border-divider flex justify-between items-center">
                 <div>
                   <h2 className="font-bold text-lg">Próximas Consultas do Dia</h2>
                   <p className="text-xs text-text-muted">Acesso rápido aos atendimentos</p>
@@ -103,30 +101,27 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* 4° GRÁFICO SEMANAL */}
-            <div className="bg-surface-alt p-5 rounded-xl border border-divider shadow-sm">
-              <div className="mb-4">
+            <div className="bg-surface-alt p-4 rounded-xl border border-divider shadow-sm">
+              <div className="mb-2">
                 <h3 className="font-bold text-lg">Fluxo Semanal de Consultas</h3>
                 <p className="text-xs text-text-muted">Total de atendimentos realizados por dia</p>
               </div>
 
-              {/* Container do Gráfico Customizado */}
-              <div className="flex items-end justify-between h-48 pt-6 px-2 max-w-md mx-auto">
+              {/* Altura reduzida para h-36 e pt-4 para encaixar sem gerar scroll no monitor de 1080p */}
+              <div className="flex items-end justify-between h-36 pt-4 px-2 max-w-md mx-auto">
                 {weeklyData.map((day) => (
                   <div key={day.name} className="flex flex-col items-center gap-1 flex-1">
-                    {/* AJUSTADO: Número agora fixo e visível o tempo todo */}
                     <span className="text-xs font-bold text-text-primary mb-1">
                       {day.consultas}
                     </span>
 
-                    {/* Barra do Gráfico */}
-                    <div className="w-8 bg-zinc-100 rounded-t-md relative flex items-end h-28 overflow-hidden">
+                    {/* Reduzido sutilmente para h-20 para manter a proporção com o container pai */}
+                    <div className="w-8 bg-zinc-100 rounded-t-md relative flex items-end h-20 overflow-hidden">
                       <div
                         className="w-full bg-blue-500 rounded-t-md transition-all duration-500"
                         style={{ height: day.percentage }}
                       />
                     </div>
-                    {/* Legenda do Dia */}
                     <span className="text-xs text-text-muted font-medium mt-1">{day.name}</span>
                   </div>
                 ))}
@@ -136,11 +131,11 @@ export default function Dashboard() {
           </div>
 
           {/* Coluna da Direita */}
-          <div className="space-y-6">
+          <div className="space-y-5">
 
             {/* Teleconsulta Ativa */}
-            <div className="bg-primary-color p-6 rounded-xl text-white shadow-lg">
-              <h3 className="font-bold text-lg mb-2">Teleconsulta ativa</h3>
+            <div className="bg-primary-color p-5 rounded-xl text-white shadow-lg">
+              <h3 className="font-bold text-lg mb-1">Teleconsulta ativa</h3>
               <p className="text-sm opacity-90 mb-4">Inicie sua sala de teleconsulta agora para receber o paciente <span className="font-bold">Carlos Miranda</span>.</p>
               <Button
                 className="bg-white text-primary-color font-bold w-full shadow-md"
@@ -151,7 +146,7 @@ export default function Dashboard() {
             </div>
 
             {/* 3° WIDGET: Prontuários Pendentes */}
-            <div className="bg-surface-alt p-5 rounded-xl border border-divider shadow-sm">
+            <div className="bg-surface-alt p-4 rounded-xl border border-divider shadow-sm">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-bold text-base flex items-center gap-2">
                   <FileText size={18} className="text-orange-500" />
@@ -174,7 +169,7 @@ export default function Dashboard() {
             </div>
 
             {/* Lembretes */}
-            <div className="bg-surface-alt p-5 rounded-xl border border-divider shadow-sm">
+            <div className="bg-surface-alt p-4 rounded-xl border border-divider shadow-sm">
               <h3 className="font-bold mb-3">Lembretes</h3>
               <ul className="text-sm space-y-3">
                 <li className="flex gap-2 items-start text-text-muted">
@@ -195,11 +190,9 @@ export default function Dashboard() {
   );
 }
 
-// --- COMPONENTES AUXILIARES ---
-
 function StatBox({ icon, label, value, subtext }: any) {
   return (
-    <div className="bg-surface-alt p-5 rounded-xl border border-divider flex items-center gap-4 shadow-sm hover:border-gray-300 transition-all">
+    <div className="bg-surface-alt p-4 rounded-xl border border-divider flex items-center gap-4 shadow-sm hover:border-gray-300 transition-all">
       <div className="p-3 bg-surface rounded-xl border border-divider shadow-sm">{icon}</div>
       <div>
         <p className="text-xs text-text-muted font-bold uppercase tracking-wider">{label}</p>
@@ -212,7 +205,7 @@ function StatBox({ icon, label, value, subtext }: any) {
 
 function CompactPatientItem({ name, time, type, status, onAction }: any) {
   return (
-    <div className="flex items-center justify-between p-4 hover:bg-surface/50 transition-colors">
+    <div className="flex items-center justify-between p-3.5 hover:bg-surface/50 transition-colors">
       <div className="flex items-center gap-4">
         <div className="flex flex-col items-center justify-center bg-surface border border-divider rounded-lg h-12 w-12 text-center">
           <span className="text-primary-color font-bold text-sm leading-none">{time}</span>
@@ -227,8 +220,9 @@ function CompactPatientItem({ name, time, type, status, onAction }: any) {
       </div>
 
       <div className="flex items-center gap-3">
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide hidden sm:inline-block ${status === 'Aguardando' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
-          }`}>
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide hidden sm:inline-block ${
+          status === 'Aguardando' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+        }`}>
           {status}
         </span>
         <Button
@@ -249,7 +243,7 @@ function PendingDocumentItem({ patient, date, onPress }: any) {
   return (
     <div
       onClick={onPress}
-      className="p-3 bg-surface border border-divider rounded-lg flex items-center justify-between hover:border-orange-200 cursor-pointer transition-all"
+      className="p-2.5 bg-surface border border-divider rounded-lg flex items-center justify-between hover:border-orange-200 cursor-pointer transition-all"
     >
       <div>
         <p className="text-sm font-medium text-text-primary">{patient}</p>
