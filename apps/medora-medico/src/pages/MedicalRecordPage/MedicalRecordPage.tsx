@@ -82,7 +82,7 @@ export function MedicalRecordPage() {
         placement="bottom end"
         aria-live="assertive"
       />
-      <section className="w-full px-6 py-4 shrink-0 shadow-md z-10 font-semibold">
+      <section className="w-full px-6 py-4 shrink-0 z-10 font-semibold border-b-[3px] border-border">
         <section className="flex flex-col">
           <span className="text-[20px] truncate">{paciente.nome}</span>
 
@@ -94,7 +94,7 @@ export function MedicalRecordPage() {
       </section>
 
       <section className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        <section className="px-2 py-4 border-r">
+        <section className="px-2 py-4 border-r-4 border-border">
           <div className="px-6 py-5 border-b border-border sticky top-0 bg-surface">
             <h2 className="text-2xl font-bold text-text-primary">
               Prontuários anteriores

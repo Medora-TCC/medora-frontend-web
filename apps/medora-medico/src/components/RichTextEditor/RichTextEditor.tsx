@@ -61,7 +61,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  className="h-full mt-2 p-4 outline-none bg-surface-raised text-primary overflow-y-scroll"
+                  className="h-full mt-2 p-4 outline-none bg-surface-raised text-primary overflow-y-auto"
                   aria-label="Digite o prontuário"
                 />
               }
