@@ -54,7 +54,7 @@ export default function MainLayout() {
                
               <Sidebar.Item 
               icon={Users} 
-              label="Disponibilidade"
+              label="Configurar Horários"
               isActive={location.pathname.startsWith('/medico/disponibilidade')}
               href="/medico/disponibilidade"/>
               <Sidebar.Item 
