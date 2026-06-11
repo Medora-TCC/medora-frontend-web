@@ -57,11 +57,11 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
       <LexicalComposer initialConfig={initialConfig}>
         <div className="flex flex-col h-full border border-border p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
           <ToolbarPlugin />
-          <div className=" h-full w-full overflow-hidden rounded-b-lg">
+          <div className="mt h-full w-full overflow-hidden bg-surface-raised rounded-b-lg">
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  className="h-full mt-2 p-4 outline-none bg-surface-raised text-primary overflow-y-auto"
+                  className="h-full mt-2 p-4 outline-none text-primary overflow-y-auto"
                   aria-label="Digite o prontuário"
                 />
               }
@@ -89,10 +89,10 @@ export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="border w-full h-full border-slate-200 p-4 rounded-2xl bg-white overflow-y-hidden">
+      <div className="border w-full h-full bg-surface-raised p-4 rounded-2xl overflow-y-hidden">
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none text-slate-800 cursor-default overflow-y-auto" />
+            <ContentEditable className="outline-none   text-primar cursor-default overflow-y-auto" />
           }
           ErrorBoundary={LexicalErrorBoundary}
         />

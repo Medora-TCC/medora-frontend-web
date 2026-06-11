@@ -1,11 +1,17 @@
 import { Spinner } from "@heroui/react";
 import { useEffect, useState, type JSX } from "react";
 import { MedicalRecordModal } from "./MedicalRecordModal";
-import type { MedicalRecordDTO } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
+import type { MedicalRecordDTO, MedicalRecordStatus } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
 import { fetchProntuarios as fetchMedicalRecords } from "./MedicalRecord";
 
 interface MedicalRecordHistoryProps {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+const BadgeStatus : Record<MedicalRecordStatus, string>= {
+  "Inativado": "bg-danger-subtle text-danger-text border border-danger",
+  "Ativo": "bg-primary-subtle text-primary-text border border-primary-color",
+  "Finalizado": "bg-success-subtle text-success border border-success"
 }
 
 export function MedicalRecordHistory({
@@ -34,10 +40,10 @@ export function MedicalRecordHistory({
   }, []);
 
   return (
-    <section className="px-2 py-4 border-r-4 border-border">
+    <section className="px-2 border-r-4 border-border">
       <div className="px-6 py-5 border-b border-border sticky top-0 bg-surface">
-        <h2 className="text-2xl font-bold text-text-primary">
-          Prontuários anteriores
+        <h2 className="text-2xl font-bold text-text-primary text-center">
+          Histórico
         </h2>
       </div>
 
@@ -61,15 +67,21 @@ export function MedicalRecordHistory({
               {prontuariosAnteriores.map((prontuario) => (
                 <div
                   key={prontuario.id}
-                  className="p-2 grid grid-cols-[70%_20%] grid-rows-2 gap-x-4 w-full bg-surface-alt rounded-sm shadow font-semibold align-middle focus-visible:outline-2 focus-visible:ring-offset-1"
+                  className="p-3 grid grid-cols-[1fr_auto] grid-rows-3 gap-x-4 w-full bg-surface-alt rounded-sm shadow font-semibold focus-visible:outline-2 focus-visible:ring-offset-1"
                 >
-                  <span className="col-span-1 text-[18px] ">
+                  <span className="col-start-1 row-start-1 text-[18px] self-center">
                     {prontuario.tipoConsulta}
                   </span>
-                  <MedicalRecordModal medicalRecord={prontuario} />
-                  <span className="col-span-1 row-span-1 text-text-secondary">
+
+                  <div className="col-start-2 row-span-2 flex items-center">
+                    <MedicalRecordModal medicalRecord={prontuario} />
+                  </div>
+
+                  <span className="col-start-1 row-start-2 text-text-secondary self-center">
                     Data: {prontuario.date}
                   </span>
+
+                  <span className={`col-start-1 row-start-3 w-[40%] text-center rounded-2xl ${BadgeStatus[prontuario.status]}`}>{prontuario.status}</span>
                 </div>
               ))}
             </>
