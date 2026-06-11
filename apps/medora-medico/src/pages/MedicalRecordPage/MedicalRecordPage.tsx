@@ -32,7 +32,7 @@ export function MedicalRecordPage() {
       </section>
 
       <section className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        <MedicalRecordHistory setError={setError}/>
+        <MedicalRecordHistory setError={setError} />
         <MedicalRecordComponent setError={setError} />
       </section>
     </section>

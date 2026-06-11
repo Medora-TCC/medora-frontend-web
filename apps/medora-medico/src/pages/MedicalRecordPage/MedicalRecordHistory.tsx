@@ -1,22 +1,27 @@
-import { Spinner } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import { useEffect, useState, type JSX } from "react";
 import { MedicalRecordModal } from "./MedicalRecordModal";
 import type { MedicalRecordDTO, MedicalRecordStatus } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
 import { fetchProntuarios as fetchMedicalRecords } from "./MedicalRecord";
+import { useNavigate } from "react-router";
+import { ArrowRight } from "lucide-react";
 
 interface MedicalRecordHistoryProps {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const BadgeStatus : Record<MedicalRecordStatus, string>= {
+const BadgeStatus: Record<MedicalRecordStatus, string> = {
   "Inativado": "bg-danger-subtle text-danger-text border border-danger",
-  "Ativo": "bg-primary-subtle text-primary-text border border-primary-color",
+  "Não finalizado": "bg-primary-subtle text-primary-text border border-primary-color",
   "Finalizado": "bg-success-subtle text-success border border-success"
 }
 
 export function MedicalRecordHistory({
   setError,
 }: MedicalRecordHistoryProps): JSX.Element {
+
+  const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
 
   const [prontuariosAnteriores, setProntuariosAnteriores] = useState<
@@ -74,14 +79,20 @@ export function MedicalRecordHistory({
                   </span>
 
                   <div className="col-start-2 row-span-2 flex items-center">
-                    <MedicalRecordModal medicalRecord={prontuario} />
+                    {prontuario.status !== "Não finalizado" ?
+                      <MedicalRecordModal medicalRecord={prontuario} /> :
+                      <div>
+                        <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end rounded-lg" type="button" onClick={() => navigate("/medico/prontuario", { state: { prontuario } })}>
+                          <ArrowRight />
+                        </Button>
+                      </div>}
                   </div>
 
                   <span className="col-start-1 row-start-2 text-text-secondary self-center">
                     Data: {prontuario.date}
                   </span>
 
-                  <span className={`col-start-1 row-start-3 w-[40%] text-center rounded-2xl ${BadgeStatus[prontuario.status]}`}>{prontuario.status}</span>
+                  <span className={`col-start-1 row-start-3 w-[60%] text-center rounded-2xl ${BadgeStatus[prontuario.status]}`}>{prontuario.status}</span>
                 </div>
               ))}
             </>

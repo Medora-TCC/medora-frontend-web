@@ -1,4 +1,4 @@
-export type MedicalRecordStatus = "Ativo" | "Finalizado" | "Inativado";
+export type MedicalRecordStatus = "Não finalizado" | "Finalizado" | "Inativado";
 
 export interface MedicalRecordDTO {
   id: string;

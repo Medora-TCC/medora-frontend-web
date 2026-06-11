@@ -14,7 +14,6 @@ export function MedicalRecordModal({
   return (
     <Modal>
       <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end rounded-lg">
-        {" "}
         <ArrowRight />
       </Button>
       <Modal.Backdrop variant="opaque">

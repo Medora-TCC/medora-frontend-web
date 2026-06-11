@@ -6,6 +6,7 @@ import {
 import { ModalConfirmacao } from "@medora_web/shared";
 import { toast } from "@heroui/react";
 import type { MedicalRecordDTO } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
+import { useLocation } from "react-router";
 
 interface MedicalRecordComponentProps {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -14,6 +15,12 @@ interface MedicalRecordComponentProps {
 export function MedicalRecordComponent({
   setError,
 }: MedicalRecordComponentProps): JSX.Element {
+
+  var prontuario: MedicalRecordDTO | null = null
+
+  const location = useLocation();
+  prontuario = location.state?.prontuario;
+
   const [text, setText] = useState<string>("");
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
 
@@ -70,7 +77,7 @@ export function MedicalRecordComponent({
           ref={editorRef}
           setText={setText}
           setIsEmpty={setIsEmpty}
-          content={null}
+          content={prontuario === null || prontuario === undefined ? null : prontuario.medicalRecord}
         />
       </div>
       <div className="mt-4 p-4 w-full flex justify-end ">
