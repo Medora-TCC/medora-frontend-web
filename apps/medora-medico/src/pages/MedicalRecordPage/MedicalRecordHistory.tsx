@@ -1,5 +1,5 @@
-import { Button, Spinner } from "@heroui/react";
-import { useEffect, useState, type JSX } from "react";
+import { Button, Checkbox, Label, Spinner } from "@heroui/react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import { MedicalRecordModal } from "./MedicalRecordModal";
 import type { MedicalRecordDTO, MedicalRecordStatus } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
 import { fetchProntuarios as fetchMedicalRecords } from "./MedicalRecord";
@@ -23,8 +23,13 @@ export function MedicalRecordHistory({
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [apenasNaoFinalizados, setApenasNaoFinalizados] = useState<boolean>(false)
 
   const [prontuariosAnteriores, setProntuariosAnteriores] = useState<
+    MedicalRecordDTO[]
+  >([]);
+
+  const [prontuariosAnterioresFiltrado, setProntuariosAnterioresFiltrado] = useState<
     MedicalRecordDTO[]
   >([]);
 
@@ -40,9 +45,23 @@ export function MedicalRecordHistory({
     }
   };
 
+  const filtrar = useMemo(() => {
+
+    if(apenasNaoFinalizados) {
+      return prontuariosAnteriores.filter(p => p.status === "Não finalizado")
+    }
+
+    return prontuariosAnteriores;
+
+  }, [prontuariosAnteriores, apenasNaoFinalizados])
+
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    setProntuariosAnterioresFiltrado(filtrar);
+  }, [apenasNaoFinalizados, prontuariosAnteriores]);
 
   return (
     <section className="px-2 border-r-4 border-border">
@@ -50,6 +69,18 @@ export function MedicalRecordHistory({
         <h2 className="text-2xl font-bold text-text-primary text-center">
           Histórico
         </h2>
+        <div className="w-fit mx-auto">
+          <Checkbox id="buscar-nao-finalizados" className="w-fit cursor-pointer" onChange={(e) => {
+            setApenasNaoFinalizados(e);
+          }}>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content>
+              <Label htmlFor="buscar-nao-finalizados" className="cursor-pointer">Listar apenas não finalizados</Label>
+            </Checkbox.Content>
+          </Checkbox>
+        </div>
       </div>
 
       {isLoading ? (
@@ -63,13 +94,13 @@ export function MedicalRecordHistory({
         </div>
       ) : (
         <div className="flex flex-col gap-4 p-2 overflow-y-auto w-full md:w-80">
-          {prontuariosAnteriores.length < 1 ? (
+          {prontuariosAnterioresFiltrado.length < 1 ? (
             <p className="w-full text-center text-muted mt-5">
               Nenhum prontuário encontrado
             </p>
           ) : (
             <>
-              {prontuariosAnteriores.map((prontuario) => (
+              {prontuariosAnterioresFiltrado.map((prontuario) => (
                 <div
                   key={prontuario.id}
                   className="p-3 grid grid-cols-[1fr_auto] grid-rows-3 gap-x-4 w-full bg-surface-alt rounded-sm shadow font-semibold focus-visible:outline-2 focus-visible:ring-offset-1"
