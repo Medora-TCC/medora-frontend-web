@@ -70,6 +70,7 @@ export function MedicalRecordComponent({
           ref={editorRef}
           setText={setText}
           setIsEmpty={setIsEmpty}
+          content={null}
         />
       </div>
       <div className="mt-4 p-4 w-full flex justify-end ">

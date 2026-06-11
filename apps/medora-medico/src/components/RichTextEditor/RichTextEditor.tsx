@@ -39,10 +39,11 @@ export interface RichTextEditorRef {
 interface RichTextProps {
   setText: (e: string) => void;
   setIsEmpty: (e: boolean) => void;
+  content: string | null
 }
 
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
-  ({ setText, setIsEmpty }, ref) => {
+  ({ setText, setIsEmpty, content }, ref) => {
 
     const internalRef = ref as React.RefObject<RichTextEditorRef>;
 
@@ -71,6 +72,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
             <ListPlugin />
             <GetContentPlugin onChange={setText} setIsEmpty={setIsEmpty} />
             <ClearPlugin editorRef={internalRef} />
+            <LoadContentPlugin json={content} />
           </div>
         </div>
       </LexicalComposer>
@@ -118,13 +120,18 @@ function ClearPlugin({ editorRef }: { editorRef: React.RefObject<RichTextEditorR
   return null;
 }
 
-function LoadContentPlugin({ json }: { json: string }): null {
+function LoadContentPlugin({ json: content }: { json: string | null }): null {
+
+  if(!content) {
+    return null;
+  }
+
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    const editorState = editor.parseEditorState(json);
+    const editorState = editor.parseEditorState(content);
     editor.setEditorState(editorState);
-  }, [editor, json]);
+  }, [editor, content]);
 
   return null;
 }
