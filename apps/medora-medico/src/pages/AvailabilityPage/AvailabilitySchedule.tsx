@@ -8,6 +8,7 @@ import { Card, Button } from '@heroui/react';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService from '../../api/services/Availability';
+import { href } from 'react-router';
 
 
 type SlotType   = 'presential' | 'telemedicine' | 'hybrid';
@@ -233,7 +234,7 @@ export function AvailabilityHistorical() {
             size="sm"
             variant="outline"
             className="flex items-center gap-1.5 text-text-secondary border-border rounded-md font-medium"
-            onClick={() => console.log('Navegar para Configurar Disponibilidade')}
+            onClick={() => (window.location.href = 'disponibilidade') }
           >
             <Settings size={15} />
             Configurar
