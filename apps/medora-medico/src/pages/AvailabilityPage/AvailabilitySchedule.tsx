@@ -237,7 +237,7 @@ export function AvailabilityHistorical() {
             onClick={() => (window.location.href = 'disponibilidade') }
           >
             <Settings size={15} />
-            Configurar
+            Configurar Horários
           </Button>
         </header>
 
