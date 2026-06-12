@@ -15,7 +15,7 @@ export default function MainLayout() {
 
   // Liste os caminhos completos como eles aparecem na URL
   const locationsSidebar = ['/', '/home', '/medico/teleconsulta'];
-  const locationsFooter = ['/medico/prontuario', '/medico/consulta'];
+  const locationsFooter = ['/medico/prontuario', '/medico/consulta', '/medico/agenda'];
 
   const isPreSala = /\/medico\/teleconsulta\/.*\/pre-sala/.test(location.pathname);
   const isSala = /\/medico\/teleconsulta\/.*\/sala/.test(location.pathname);
