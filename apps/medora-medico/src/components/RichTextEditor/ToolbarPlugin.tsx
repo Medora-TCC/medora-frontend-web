@@ -65,7 +65,7 @@ function ToolbarButton({ onClick, active = false, title, children }: ToolbarButt
         "focus-visible:ring-2 focus-visible:ring-indigo-500",
         active
           ? "bg-indigo-100 text-indigo-700 shadow-inner"
-          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+          : "text-secondary hover:bg-surface-alt hover:text-primary",
       ].join(" ")}
     >
       {children}
@@ -77,7 +77,7 @@ function Separator() {
   return (
     <div
       role="separator"
-      className="w-px h-5 bg-slate-200 mx-1 self-center rounded-full"
+      className="w-px h-5 bg-surface mx-1 self-center rounded-full"
     />
   );
 }
@@ -183,7 +183,7 @@ export function ToolbarPlugin() {
     <div
       role="toolbar"
       aria-label="Opções de formatação"
-      className="flex h-fit items-center gap-0.5 px-2 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm w-fit"
+      className="flex h-fit items-center gap-0.5 px-2 py-1.5 bg-surface-raised border border-border rounded-xl shadow-sm w-fit"
     >
       <ToolbarButton onClick={formatBold} active={isBold} title="Negrito (Ctrl+B)">
         <Bold size={15} strokeWidth={2.5} />
