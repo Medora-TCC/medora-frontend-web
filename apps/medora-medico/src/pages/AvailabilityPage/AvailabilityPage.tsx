@@ -1,481 +1,556 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Card, toast, ToastProvider, Button, ToggleButton } from '@heroui/react';
-import { Clock, CheckCircle2, Pencil, Trash2, MousePointer2, Circle } from 'lucide-react';
-import { Input } from '@medora_web/shared';
-import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
+import { Card, toast, ToastProvider, Button } from '@heroui/react';
+import {
+  Clock,
+  CheckCircle2,
+  Pencil,
+  Trash2,
+  Plus,
+  Monitor,
+  Building2,
+  RefreshCw,
+  Calendar,
+  ChevronDown,
+  AlertCircle,
+} from 'lucide-react';
 import AvailabilityService from '../../api/services/Availability';
+import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
-export type SlotStatus = 'inactive' | 'presential' | 'telemedicine' | 'hybrid';
 
-export interface Slot {
-  time: string;
-  status: SlotStatus;
-  hasConflict?: boolean;
+export type SlotMode = 'presential' | 'telemedicine' | 'hybrid';
+
+interface DayShift {
+  id: string;
+  start: string;
+  end: string;
+  mode: SlotMode;
 }
 
+interface WeekDay {
+  label: string;
+  value: number;
+}
+
+
+const WEEK_DAYS: WeekDay[] = [
+  { label: 'Segunda',  value: 1 },
+  { label: 'Terça',    value: 2 },
+  { label: 'Quarta',   value: 3 },
+  { label: 'Quinta',   value: 4 },
+  { label: 'Sexta',    value: 5 },
+  { label: 'Sábado',   value: 6 },
+  { label: 'Domingo',  value: 0 },
+];
+
+const DURATION_OPTIONS = [
+  { label: '15 minutos', value: '15' },
+  { label: '20 minutos', value: '20' },
+  { label: '30 minutos', value: '30' },
+  { label: '45 minutos', value: '45' },
+  { label: '60 minutos', value: '60' },
+];
+
+const REPEAT_OPTIONS = [
+  { label: '1 semana',  value: '1'  },
+  { label: '2 semanas', value: '2'  },
+  { label: '4 semanas', value: '4'  },
+  { label: '6 semanas', value: '6'  },
+  { label: '8 semanas', value: '8'  },
+];
+
+const MODE_CONFIG: Record<SlotMode, {
+  label: string;
+  icon: React.ReactNode;
+  colorClass: string;
+  bgClass: string;
+  borderClass: string;
+}> = {
+  presential:   {
+    label: 'Presencial',
+    icon: <Building2 size={13} />,
+    colorClass: 'text-primary-text',
+    bgClass: 'bg-primary-subtle',
+    borderClass: 'border-primary/30',
+  },
+  telemedicine: {
+    label: 'Telemedicina',
+    icon: <Monitor size={13} />,
+    colorClass: 'text-warning-text',
+    bgClass: 'bg-warning-subtle',
+    borderClass: 'border-warning/30',
+  },
+  hybrid: {
+    label: 'Ambos',
+    icon: <RefreshCw size={13} />,
+    colorClass: 'text-success-text',
+    bgClass: 'bg-success-subtle',
+    borderClass: 'border-success/30',
+  },
+};
+
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+
+function SelectField({
+  label,
+  icon,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  icon?: React.ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+  options: { label: string; value: string }[];
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
+        {icon}
+        {label}
+      </label>
+      <div className="relative flex items-center border border-border rounded-lg bg-surface h-10 focus-within:border-primary-hover transition-colors">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full h-full px-3 pr-8 bg-transparent outline-none text-sm text-text-primary cursor-pointer appearance-none"
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value} className="bg-surface text-text-primary">
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-text-muted" />
+      </div>
+    </div>
+  );
+}
+
+function ModeSelect({
+  value,
+  onChange,
+}: {
+  value: SlotMode;
+  onChange: (v: SlotMode) => void;
+}) {
+  const cfg = MODE_CONFIG[value];
+  return (
+    <div className={`relative flex items-center border rounded-lg h-9 px-2.5 pr-7 text-xs font-medium cursor-pointer transition-colors ${cfg.bgClass} ${cfg.borderClass} ${cfg.colorClass}`}>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as SlotMode)}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      >
+        {(Object.keys(MODE_CONFIG) as SlotMode[]).map((k) => (
+          <option key={k} value={k}>{MODE_CONFIG[k].label}</option>
+        ))}
+      </select>
+      <span className="flex items-center gap-1.5 pointer-events-none whitespace-nowrap">
+        {cfg.icon}
+        {cfg.label}
+      </span>
+      <ChevronDown size={11} className="absolute right-2 pointer-events-none opacity-50" />
+    </div>
+  );
+}
+
+function TimeInput({
+  value,
+  onChange,
+  hasError,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  hasError?: boolean;
+}) {
+  return (
+    <input
+      type="time"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`h-9 px-2.5 rounded-lg border text-sm text-text-primary bg-surface outline-none transition-colors
+        focus:border-primary-hover
+        ${hasError ? 'border-danger bg-danger-subtle' : 'border-border'}`}
+    />
+  );
+}
+
+
 export default function AvailabilityPage() {
-  const [startTime, setStartTime] = useState('08:00');
-  const [endTime, setEndTime] = useState('17:00');
   const [duration, setDuration] = useState('15');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [generatedSlots, setGeneratedSlots] = useState<Slot[]>([]);
-  const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
-  const [repeatWeeks, setRepeatWeeks] = useState<number>(2);
-  
-  const [brushMode, setBrushMode] = useState<SlotStatus>('presential');
-  const [isMouseDown, setIsMouseDown] = useState(false);
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDayData, setEditingDayData] = useState<any>(null);
-  
-  const [isSelectedFirstButton, setisSelectedFirstButton] = useState(false);
-
-  const WEEK_DAYS = [
-    { label: 'D', value: 0 },
-    { label: 'S', value: 1 },
-    { label: 'T', value: 2 },
-    { label: 'Q', value: 3 },
-    { label: 'Q', value: 4 },
-    { label: 'S', value: 5 },
-    { label: 'S', value: 6 }
-  ];
+  const [repeatWeeks, setRepeatWeeks] = useState('4');
+  const [shifts, setShifts] = useState<Record<number, DayShift[]>>({});
+  const [shiftErrors, setShiftErrors] = useState<Record<string, string>>({});
 
   const [loading, setLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [visibleHistory, setVisibleHistory] = useState<any[]>([]);
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingDayData, setEditingDayData] = useState<any>(null);
+
   const doctorId = '1';
-  const token = 'seu-token-de-auth';
+  const token = '';
 
 
   const fetchAvailabilityHistory = async () => {
     try {
       setIsLoadingHistory(true);
-      const startDate = new Date().toISOString().split('T')[0];
-      const endDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
-      const response = await AvailabilityService.GetAllAvailabilityByRangeDateAndDoctorId(doctorId, startDate, endDate, token);
-      
+      const start = new Date().toISOString().split('T')[0];
+      const end = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const response = await AvailabilityService.GetAllAvailabilityByRangeDateAndDoctorId(
+        doctorId, start, end, token,
+      );
+console.log(response);
+
       if (Array.isArray(response)) {
-        const agrupadoPorDia: Record<string, any> = {};
-
+        const grouped: Record<string, any> = {};
         response.forEach((slot: any) => {
-           if (!slot.startDateTime) return;
-           const dateKey = slot.startDateTime.split('T')[0];
-           
-           if (!agrupadoPorDia[dateKey]) {
-              agrupadoPorDia[dateKey] = {
-                  id: slot.id,
-                  date: dateKey,
-                  start: slot.time,
-                  end: slot.time,
-                  duration: 15,
-                  slots: 0,
-                  isSeries: false,
-              };
-           }
-
-           agrupadoPorDia[dateKey].slots += 1;
-           if (slot.time < agrupadoPorDia[dateKey].start) {
-               agrupadoPorDia[dateKey].start = slot.time;
-           }
-           
-           const timeEnd = slot.endDateTime ? new Date(slot.endDateTime).toISOString().split('T')[1].substring(0, 5) : slot.time;
-           if (timeEnd > agrupadoPorDia[dateKey].end) {
-               agrupadoPorDia[dateKey].end = timeEnd;
-           }
+          if (!slot.startDateTime) return;
+          const key = slot.startDateTime.split('T')[0];
+          if (!grouped[key]) {
+            grouped[key] = { id: slot.id, date: key, start: slot.time, end: slot.time, duration: 15, slots: 0, isSeries: false };
+          }
+          grouped[key].slots += 1;
+          if (slot.time < grouped[key].start) grouped[key].start = slot.time;
+          const timeEnd = "23:59"
+          if (timeEnd > grouped[key].end) grouped[key].end = timeEnd;
         });
-
-        const dadosFormatados = Object.values(agrupadoPorDia).sort((a: any, b: any) => a.date.localeCompare(b.date));
-        setVisibleHistory(dadosFormatados);
+        console.log("teste" , Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date)));
+        setVisibleHistory(
+          Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date)),
+        );
       } else {
         setVisibleHistory([]);
       }
-    } catch (error) {
+    } catch {
       toast.danger('Erro ao carregar os horários cadastrados.');
     } finally {
       setIsLoadingHistory(false);
     }
   };
 
-  useEffect(() => {
-    fetchAvailabilityHistory();
+  useEffect(() => { fetchAvailabilityHistory(); }, []);
+
+
+  const addShift = useCallback((dayValue: number) => {
+    setShifts((prev) => ({
+      ...prev,
+      [dayValue]: [
+        ...(prev[dayValue] ?? []),
+        { id: uid(), start: '08:00', end: '12:00', mode: 'presential' as SlotMode },
+      ],
+    }));
   }, []);
 
-  const handleGenerateSlots = () => {
-    const slots: Slot[] = [];
-    const dur = parseInt(duration, 10);
-    
-    if (!startTime || !endTime || isNaN(dur) || dur <= 0) {
-        toast.warning('Preencha os horários e a duração corretamente.');
-        return;
-    }
-
-    if (startTime >= endTime) {
-    toast.warning('O horário inicial deve ser menor que o horário final.');
-      return;
-    }
-
-    if (dur < 15){
-        toast.warning('A duração mínima da consulta é de 15 minutos.');
-        return;
-    }
-
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
-
-    let currentMinutes = startHour * 60 + startMin;
-    const endMinutes = endHour * 60 + endMin;
-
-    while (currentMinutes + dur <= endMinutes) {
-      const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
-      const m = (currentMinutes % 60).toString().padStart(2, '0');
-      slots.push({ time: `${h}:${m}`, status: 'presential' });
-      currentMinutes += dur;
-    }
-
-    setGeneratedSlots(slots);
-  };
-
-  const handleSlotPaint = useCallback((index: number) => {
-    setGeneratedSlots(prevSlots => {
-      const newSlots = [...prevSlots];
-      newSlots[index] = { ...newSlots[index], status: brushMode };
-      return newSlots;
+  const removeShift = useCallback((dayValue: number, shiftId: string) => {
+    setShifts((prev) => {
+      const updated = (prev[dayValue] ?? []).filter((s) => s.id !== shiftId);
+      const next = { ...prev };
+      if (updated.length === 0) delete next[dayValue];
+      else next[dayValue] = updated;
+      return next;
     });
-  }, [brushMode]);
+    setShiftErrors((prev) => {
+      const next = { ...prev };
+      delete next[shiftId];
+      return next;
+    });
+  }, []);
+
+  const updateShift = useCallback(<K extends keyof DayShift>(
+    dayValue: number,
+    shiftId: string,
+    field: K,
+    value: DayShift[K],
+  ) => {
+    setShifts((prev) => ({
+      ...prev,
+      [dayValue]: (prev[dayValue] ?? []).map((s) =>
+        s.id === shiftId ? { ...s, [field]: value } : s,
+      ),
+    }));
+    if (field === 'start' || field === 'end') {
+      setShiftErrors((prev) => { const next = { ...prev }; delete next[shiftId]; return next; });
+    }
+  }, []);
+
+
+  const validate = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+    let valid = true;
+    Object.values(shifts).flat().forEach((s) => {
+      if (s.start >= s.end) {
+        errors[s.id] = 'Horário final deve ser maior que o inicial';
+        valid = false;
+      }
+    });
+    setShiftErrors(errors);
+    return valid;
+  }, [shifts]);
 
   const handleSave = async () => {
+    if (!validate()) {
+      toast.warning('Corrija os horários com erro antes de salvar.');
+      return;
+    }
+    if (Object.keys(shifts).length === 0) {
+      toast.warning('Adicione pelo menos um turno para salvar.');
+      return;
+    }
     try {
       setLoading(true);
-      
-      const payload = {
-        doctorId,
-        repeatWeeks,
-        weekDays: selectedWeekDays,
-        startTime,
-        endTime,
-        duration: parseInt(duration, 10),
-        slots: generatedSlots.filter(s => s.status !== 'inactive')
-      };
-
-      await AvailabilityService.CreateDailyAvailability(payload, token);
-      
-      toast.success('Horários cadastrados com sucesso!');
-      setGeneratedSlots([]);
+      const weekDayEntries = Object.entries(shifts).map(([day, dayShifts]) => ({
+        weekDay: Number(day),
+        shifts: dayShifts.map((s) => ({ start: s.start, end: s.end, mode: s.mode })),
+      }));
+      await AvailabilityService.CreateDailyAvailability(
+        { doctorId, duration: parseInt(duration), repeatWeeks: parseInt(repeatWeeks), weekDays: weekDayEntries },
+        token,
+      );
+      toast.success('Grade de horários salva com sucesso!');
+      setShifts({});
       fetchAvailabilityHistory();
-    } catch (error) {
-      toast.danger('Erro ao cadastrar horários.');
+    } catch {
+      toast.danger('Erro ao salvar os horários.');
     } finally {
       setLoading(false);
     }
   };
 
+  const hasAnyShift = Object.keys(shifts).length > 0;
+
   return (
     <>
-    <ToastProvider/>
-    
-    <div className="max-w-5xl mx-auto p-6 space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold text-(--primary) text-primary">Configurar Disponibilidade</h1>
-        <p className="text-default-500 mt-2">
-          Defina seu intervalo de trabalho para gerarmos seus horários de atendimento automaticamente.
-        </p>
-      </div>
+      <ToastProvider />
 
-      <Card className="p-4 shadow-sm border border-default-200">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-3">
-            <label className="text-sm font-medium text-default-700">Repetir as configurações por quantas semanas?</label>
-            <div className="flex gap-2">
-              {[2, 4, 6, 8].map((weeks) => (
-                <button
-                  key={weeks}
-                  onClick={() => setRepeatWeeks(weeks)}
-                  className={`px-4 py-2 text-sm rounded-md transition-all font-medium border-2
-                    ${repeatWeeks === weeks 
-                      ? 'bg-(--primary) border-(--primary) text-white shadow-sm' 
-                      : 'bg-transparent border-default-200 text-default-600 hover:border-primary/50'}`}
-                >
-                  {weeks} semanas
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
 
-          <div className="flex flex-col gap-3">
-              <label className="text-sm font-medium text-default-700">Repetir nos dias da semana:</label>
-              <div className="flex gap-2 flex-wrap">
-                {WEEK_DAYS.map((day) => (
-                  <button
-                    key={day.value}
-                    onClick={() => {
-                      setSelectedWeekDays(prev => 
-                        prev.includes(day.value) 
-                          ? prev.filter(d => d !== day.value) 
-                          : [...prev, day.value]
-                      )
-                    }}
-                    className={`w-10 h-10 rounded-full border-2 transition-all font-medium ${
-                      selectedWeekDays.includes(day.value) 
-                        ? 'bg-(--primary) border-(--primary) text-white' 
-                        : 'bg-transparent border-default-200 text-default-600 hover:border-primary/50'
-                    }`}
-                  >
-                    {day.label}
-                  </button>
-                ))}
-              </div>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-primary-text">Configurar Horários</h1>
+          <p className="text-text-secondary mt-1 text-sm leading-relaxed">
+            Defina seus turnos de trabalho. Nossa plataforma gerará automaticamente os horários
+            fracionados para agendamento.
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-            <Input
-              id="start-time"
-              type="time"
-              label="Horário Inicial"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
-            <Input
-              id="end-time"
-              type="time"
-              label="Horário Final"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
-            <Input
-              id="duration"
-              type="number"
-              label="Duração da Consulta (min)"
+        <Card className="p-5 border border-border bg-surface shadow-none rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <SelectField
+              label="Duração Padrão da Consulta"
+              icon={<Clock size={13} />}
               value={duration}
-              onChange={(e) => setDuration(e.target.value)}
+              onChange={setDuration}
+              options={DURATION_OPTIONS}
+            />
+            <SelectField
+              label="Repetir padrão por"
+              icon={<Calendar size={13} />}
+              value={repeatWeeks}
+              onChange={setRepeatWeeks}
+              options={REPEAT_OPTIONS}
             />
           </div>
-          
-          <Button 
-            onClick={handleGenerateSlots}
-            className="w-full md:w-auto flex items-center justify-center gap-2 mt-4 hover:scale-[1.02] transition-all"
-          >
-            <Clock size={20} />
-            Gerar Template de Horários
-          </Button>
-        </div>
-      </Card>
-        <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Dia Modelo (Horários Base)</h2>
-              <span className="text-sm text-default-500">
-                Selecione a disponibilidade dos horários
-              </span>
-            </div>
-      {generatedSlots.length > 0 && (
-        <div className="space-y-6">
-          <div className="h-px bg-default-200 w-full" />
-          
-          <div className="flex gap-4 items-center p-3 bg-default-50 rounded-lg border border-default-200">
-            <MousePointer2 size={18} className="text-default-500" />
-            <span className="text-sm font-medium text-default-700">Modo do Pincel:</span>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setBrushMode('presential')}
-                className={`px-3 py-1.5 text-sm rounded-md transition-all font-medium 
-                  ${brushMode === 'presential' ? 'bg-(--primary) text-white shadow-sm' :
-                     'bg-white border border-default-200 text-default-600 hover:bg-default-100'}`}
-              >
-                Presencial
-              </button>
-              <button 
-                onClick={() => setBrushMode('telemedicine')}
-                className={`px-3 py-1.5 text-sm rounded-md transition-all font-medium 
-                  ${brushMode === 'telemedicine' ? 'bg-warning text-white shadow-sm' 
-                    : 'bg-white border border-default-200 text-default-600 hover:bg-default-100'}`}
-              >
-                Telemedicina
-              </button>
-              <button 
-                onClick={() => setBrushMode('hybrid')}
-                className={`px-3 py-1.5 text-sm rounded-md transition-all font-medium 
-                  ${brushMode === 'hybrid' ? 'text-white shadow-sm bg-gradient-to-br from-warning from-50% to-[var(--primary)] to-50%' 
-                    : 'bg-white border border-default-200 text-default-600 hover:bg-default-100'}`}
-              >
-                Ambos
-              </button>
-              <button 
-                onClick={() => setBrushMode('inactive')}
-                className={`px-3 py-1.5 text-sm rounded-md transition-all font-medium 
-                  ${brushMode === 'inactive' ? 'bg-default-200 text-default-700 shadow-sm' 
-                    : 'bg-white border border-default-200 text-default-600 hover:bg-default-100'}`}
-              >
-                Desativar
-              </button>
-            </div>
+        </Card>
+
+        <Card className="border border-border bg-surface shadow-none rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-sm font-semibold text-primary-text">Turnos Semanais</h2>
           </div>
 
-          <div 
-            className="select-none touch-none" 
-            onMouseLeave={() => setIsMouseDown(false)}
-            onMouseUp={() => setIsMouseDown(false)}
-          >
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-              {generatedSlots.map((slot, index) => {
-                let slotStyles = 'bg-default-100 border-default-200 text-default-600';
-                if (slot.status === 'presential') {
-                  slotStyles = 'bg-(--primary) border-(--primary) text-white shadow-md';
-                } else if (slot.status === 'telemedicine') {
-                  slotStyles = 'bg-warning border-warning text-white shadow-md';
-                } else if (slot.status === 'hybrid') {
-                  slotStyles = 'bg-gradient-to-br from-warning from-50% to-[var(--primary)] to-50% border-transparent text-white shadow-md';
-                } else if (slot.status === 'inactive') {
-                  slotStyles = 'bg-transparent border-dashed border-default-300 text-default-400 opacity-60';
-                }
+          <div className="divide-y divide-border">
+            {WEEK_DAYS.map((day) => {
+              const dayShifts = shifts[day.value] ?? [];
+              const isEmpty = dayShifts.length === 0;
 
-                return (
-                  <button
-                    key={slot.time + index}
-                    onMouseDown={() => {
-                      setIsMouseDown(true);
-                      handleSlotPaint(index);
-                    }}
-                    onMouseEnter={() => {
-                      if (isMouseDown) {
-                        handleSlotPaint(index);
-                      }
-                    }}
-                    onMouseUp={() => setIsMouseDown(false)}
-                    className={`flex items-center justify-center py-2 px-3 rounded-lg border-2 transition-colors duration-75 font-medium cursor-pointer select-none ${slotStyles}`}
-                  >
-                    {slot.time}
-                  </button>
-                );
-              })}
-            </div>
+              return (
+                <div
+                  key={day.value}
+                  className="flex items-start gap-4 px-5 py-3.5 hover:bg-surface-alt transition-colors group"
+                >
+                  <div className="w-20 shrink-0 pt-2">
+                    <span className="text-sm font-medium text-text-primary">{day.label}</span>
+                  </div>
+
+                  <div className="flex flex-col gap-2.5 flex-1 min-w-0">
+                    {isEmpty ? (
+                      <span className="text-sm text-text-muted italic pt-1.5">
+                        Indisponível neste dia
+                      </span>
+                    ) : (
+                      dayShifts.map((shift) => (
+                        <div key={shift.id} className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <TimeInput
+                              value={shift.start}
+                              onChange={(v) => updateShift(day.value, shift.id, 'start', v)}
+                              hasError={!!shiftErrors[shift.id]}
+                            />
+                            <span className="text-xs text-text-muted">até</span>
+                            <TimeInput
+                              value={shift.end}
+                              onChange={(v) => updateShift(day.value, shift.id, 'end', v)}
+                              hasError={!!shiftErrors[shift.id]}
+                            />
+                            <ModeSelect
+                              value={shift.mode}
+                              onChange={(v) => updateShift(day.value, shift.id, 'mode', v)}
+                            />
+                            <button
+                              onClick={() => removeShift(day.value, shift.id)}
+                              className="p-1.5 rounded-md text-danger hover:bg-danger-subtle transition-colors"
+                              aria-label="Remover turno"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                          {shiftErrors[shift.id] && (
+                            <span className="flex items-center gap-1 text-xs text-danger">
+                              <AlertCircle size={12} />
+                              {shiftErrors[shift.id]}
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="shrink-0 pt-1.5">
+                    <button
+                      onClick={() => addShift(day.value)}
+                      className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover transition-colors
+                        opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    >
+                      <Plus size={14} />
+                      Adicionar
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="flex justify-end pt-4">
-            <div className="text-right w-full md:w-auto">
-              <Button 
-                className="w-full md:w-auto bg-(--primary) text-white flex items-center justify-center gap-2 hover:scale-[1.02] hover:opacity-90 transition-all mb-1"
-                onClick={handleSave}
-                
-              >
-                <CheckCircle2 size={20} />
-                Cadastrar
-              </Button>
-              <span className="text-xs text-default-500">Isso definirá sua agenda básica.</span>
-            </div>
+          <div className="px-5 py-4 border-t border-border bg-surface-alt flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p className="text-xs text-text-muted">
+              Os horários serão fracionados automaticamente com base na duração configurada.
+            </p>
+            <Button
+              onClick={handleSave}
+              isDisabled={!hasAnyShift || loading}
+              className="shrink-0 bg-primary text-white font-semibold rounded-md px-5 h-10 flex items-center gap-2
+                hover:bg-primary-hover transition-colors disabled:opacity-50"
+            >
+              {!loading && <CheckCircle2 size={16} />}
+              Salvar Grade de Horários
+            </Button>
           </div>
-        </div>
-      )}
+        </Card>
 
-      <div className="mt-12 space-y-4">
-        
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div className="space-y-4">
           <div>
-              <h2 className="text-xl font-semibold text-primary">Próximos 5 dias configurados</h2>
-              <p className="text-sm text-default-500">
-                  Resumo das suas próximas agendas cadastradas.
-              </p>
+            <h2 className="text-base font-semibold text-primary-text">Próximos 5 dias configurados</h2>
+            <p className="text-sm text-text-secondary mt-0.5">
+              Resumo das suas próximas agendas cadastradas.
+            </p>
           </div>
-        </div>
-        
-        <div className="max-h-112.5 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+
           {isLoadingHistory ? (
-            <div className="text-center py-10 bg-slate-50 rounded-xl border border-slate-200 mt-4">
-               <p className="text-default-500 font-medium animate-pulse">Carregando próximas agendas...</p>
+            <div className="text-center py-10 rounded-xl border border-border bg-surface-alt">
+              <p className="text-sm text-text-muted animate-pulse">Carregando agendas...</p>
+            </div>
+          ) : visibleHistory.length === 0 ? (
+            <div className="text-center py-10 rounded-xl border border-dashed border-border bg-surface-alt">
+              <Calendar size={30} className="mx-auto text-text-muted mb-2 opacity-40" />
+              <p className="text-sm font-medium text-text-secondary">Nenhuma agenda encontrada</p>
+              <p className="text-xs text-text-muted mt-1">Configure novos turnos acima e salve.</p>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {visibleHistory.map((item) => (
-                  <Card key={item.id} className="p-4 border border-default-200 shadow-sm flex flex-col gap-3 group relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-(--primary) opacity-50" />
-                  
-                  <div className="flex justify-between items-start pl-2">
-                <div>
-                    <span className="font-semibold text-lg flex items-center gap-2">
-                        {new Date(item.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}
-                        {item.isSeries && (
-                            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full" title="Gerado em série">
-                                Série
-                            </span>
-                        )}
-                    </span>
-                    <div className="text-sm text-default-600 flex items-center gap-1 mt-1">
-                        <Clock size={14} /> 
-                        {item.start} às {item.end}
-                    </div>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                    <span className="px-2 py-1 bg-primary/10 text-(--primary) text-xs font-bold rounded">
-                    {item.duration} min
-                    </span>
-                    <span className="text-xs text-default-400 mt-1">
-                        {item.slots} vagas
-                    </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end items-center gap-2 pt-2 border-t border-default-100 pl-2">
-                <Button 
-                    isIconOnly
-                    variant="ghost"
-                    className="text-primary hover:bg-primary/20 hover:scale-105 transition-all"
-                    onClick={() => {
-                        setEditingDayData(item);
-                        setIsEditModalOpen(true);
-                    }}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {visibleHistory.map((item) => (
+                <Card
+                  key={item.id}
+                  className="p-4 border border-border bg-surface shadow-none rounded-xl relative overflow-hidden group"
                 >
-                    <Pencil size={18} />
-                </Button>
-                <Button 
-                    isIconOnly
-                    variant="ghost"
-                    className="text-danger hover:bg-danger-soft-hover hover:scale-105 transition-all"
-                    onClick={async () => {
+                  <div className="absolute top-0 left-0 w-0.5 h-full bg-primary opacity-70" />
+
+                  <div className="pl-3 flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-primary-text flex items-center gap-1.5 flex-wrap">
+                        {new Date(item.date).toLocaleDateString('pt-BR', {
+                          timeZone: 'UTC',
+                          weekday: 'short',
+                          day: '2-digit',
+                          month: 'short',
+                        })}
+                        {item.isSeries && (
+                          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
+                            Série
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-1 mt-1 text-xs text-text-secondary">
+                        <Clock size={12} />
+                        {item.start} às {item.end}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary whitespace-nowrap">
+                        {item.duration} min
+                      </span>
+                      <span className="text-xs text-text-muted">{item.slots} vagas</span>
+                    </div>
+                  </div>
+
+                  <div className="pl-3 mt-3 pt-3 border-t border-border flex justify-end gap-1">
+                    <button
+                      className="p-1.5 rounded-md text-primary hover:bg-primary/10 transition-colors"
+                      aria-label="Editar agenda"
+                      onClick={() => { setEditingDayData(item); setIsEditModalOpen(true); }}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      className="p-1.5 rounded-md text-danger hover:bg-danger-subtle transition-colors"
+                      aria-label="Excluir agenda"
+                      onClick={async () => {
                         try {
                           await AvailabilityService.DeleteAvailabilityById(item.id, token);
                           toast.success('Agenda excluída com sucesso!');
                           fetchAvailabilityHistory();
-                        } catch (error) {
+                        } catch {
                           toast.danger('Erro ao excluir agenda.');
                         }
-                    }}
-                >
-                    <Trash2 size={18} />
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
 
-        {visibleHistory.length === 0 && (
-          <div className="text-center py-10 bg-slate-50 rounded-xl border border-slate-200 mt-4">
-             <p className="text-default-500 font-medium">Nenhuma agenda encontrada.</p>
-             <p className="text-sm text-default-400 mt-1">Configure novos horários acima.</p>
-          </div>
-        )}
-        </>
-      )}
-      </div>
-
-        <div className="mt-6 flex justify-center">
-            <Button 
-              className="bg-transparent text-(--primary) border border-(--primary) hover:bg-primary-50 w-full md:w-auto"
-              onClick={() => console.log('Navegar para Gestão de Agenda')}
+          <div className="flex justify-center pt-2">
+            <button
+              onClick={() => (window.location.href = 'agenda')}
+              className="text-sm font-medium text-primary hover:text-primary-hover underline underline-offset-2 transition-colors"
             >
-              Ver agenda completa e editar horários &rarr;
-            </Button>
+              Ver agenda completa e editar horários →
+            </button>
+          </div>
         </div>
+
       </div>
-      
-      <EditAvailabilityModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
+
+      <EditAvailabilityModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
         dayData={editingDayData}
         editType="single"
       />
-      
-    </div>
     </>
   );
 }
