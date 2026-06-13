@@ -24,52 +24,53 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <main className="p-6 space-y-5 max-w-7xl mx-auto w-full">
+      {/* Mantido py-3 para garantir o encaixe perfeito na tela */}
+      <main className="py-3 px-6 space-y-3 max-w-7xl mx-auto w-full">
 
         {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Bom dia, Dr. Pedro Silva</h1>
-            <p className="text-text-muted">Você tem <span className="font-bold text-primary-color">8</span> consultas agendadas para hoje.</p>
+            <h1 className="text-xl font-bold text-text-primary">Bom dia, Dr. Pedro Silva</h1>
+            <p className="text-xs text-text-muted">Você tem <span className="font-bold text-primary-color">8</span> consultas agendadas para hoje.</p>
           </div>
           <div className="flex gap-2">
             <Button
               size="sm"
               variant="outline"
               onPress={() => navigate("/medico/agenda")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 h-8.5 font-medium"
             >
-              <Calendar size={16} />
+              <Calendar size={15} />
               Ver Agenda
             </Button>
           </div>
         </header>
 
         {/* 1° ROW DE MÉTRICAS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatBox icon={<Users className="text-blue-500" />} label="Consultas Hoje" value="12" subtext="+2 em relação a ontem" />
-          <StatBox icon={<Clock className="text-orange-500" />} label="Pendências" value="03" subtext="Requerem atenção" />
-          <StatBox icon={<DollarSign className="text-green-500" />} label="Receita do Mês" value="R$ 14.200" subtext="Meta de 85% batida" />
-          <StatBox icon={<Star className="text-yellow-500" />} label="Avaliação Média" value="4.9" subtext="Baseado em 120 avaliações" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatBox icon={<Users size={20} className="text-blue-500" />} label="Consultas Hoje" value="12" subtext="+2 em relação a ontem" />
+          <StatBox icon={<Clock size={20} className="text-orange-500" />} label="Pendências" value="03" subtext="Requerem atenção" />
+          <StatBox icon={<DollarSign size={20} className="text-green-500" />} label="Receita do Mês" value="R$ 14.200" subtext="Meta de 85% batida" />
+          <StatBox icon={<Star size={20} className="text-yellow-500" />} label="Avaliação Média" value="4.9" subtext="Baseado em 120 avaliações" />
         </div>
 
         {/* Bloco Principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
 
           {/* Coluna da Esquerda */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="lg:col-span-2 space-y-3">
 
             {/* 2° WIDGET: Próximas Consultas do Dia */}
             <div className="bg-surface-alt rounded-xl shadow-sm border border-divider overflow-hidden">
-              <div className="p-4 border-b border-divider flex justify-between items-center">
+              <div className="p-3 border-b border-divider flex justify-between items-center">
                 <div>
-                  <h2 className="font-bold text-lg">Próximas Consultas do Dia</h2>
+                  <h2 className="font-bold text-base">Próximas Consultas do Dia</h2>
                   <p className="text-xs text-text-muted">Acesso rápido aos atendimentos</p>
                 </div>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-primary-color font-semibold border-none hover:bg-primary/10"
+                  className="text-primary-color font-semibold border-none hover:bg-primary/10 h-7 text-xs"
                   onPress={() => navigate("/consultas")}
                 >
                   Ver todas
@@ -100,28 +101,27 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-surface-alt p-4 rounded-xl border border-divider shadow-sm">
-              <div className="mb-2">
-                <h3 className="font-bold text-lg">Fluxo Semanal de Consultas</h3>
+            {/* Fluxo Semanal de Consultas - Ganho sutil de altura (h-26) */}
+            <div className="bg-surface-alt p-3 rounded-xl border border-divider shadow-sm">
+              <div className="mb-1">
+                <h3 className="font-bold text-base">Fluxo Semanal de Consultas</h3>
                 <p className="text-xs text-text-muted">Total de atendimentos realizados por dia</p>
               </div>
 
-              {/* Altura reduzida para h-36 e pt-4 para encaixar sem gerar scroll no monitor de 1080p */}
-              <div className="flex items-end justify-between h-36 pt-4 px-2 max-w-md mx-auto">
+              <div className="flex items-end justify-between h-26 pt-2 px-2 max-w-md mx-auto">
                 {weeklyData.map((day) => (
-                  <div key={day.name} className="flex flex-col items-center gap-1 flex-1">
-                    <span className="text-xs font-bold text-text-primary mb-1">
+                  <div key={day.name} className="flex flex-col items-center gap-0.5 flex-1">
+                    <span className="text-xs font-bold text-text-primary">
                       {day.consultas}
                     </span>
 
-                    {/* Reduzido sutilmente para h-20 para manter a proporção com o container pai */}
-                    <div className="w-8 bg-zinc-100 rounded-t-md relative flex items-end h-20 overflow-hidden">
+                    <div className="w-7 bg-zinc-100 rounded-t-sm relative flex items-end h-16 overflow-hidden">
                       <div
-                        className="w-full bg-blue-500 rounded-t-md transition-all duration-500"
+                        className="w-full bg-blue-500 rounded-t-sm transition-all duration-500"
                         style={{ height: day.percentage }}
                       />
                     </div>
-                    <span className="text-xs text-text-muted font-medium mt-1">{day.name}</span>
+                    <span className="text-xs text-text-muted font-medium mt-0.5">{day.name}</span>
                   </div>
                 ))}
               </div>
@@ -130,14 +130,15 @@ export default function Dashboard() {
           </div>
 
           {/* Coluna da Direita */}
-          <div className="space-y-5">
+          <div className="space-y-3">
 
             {/* Teleconsulta Ativa */}
-            <div className="bg-primary-color p-5 rounded-xl text-white shadow-lg">
-              <h3 className="font-bold text-lg mb-1">Teleconsulta ativa</h3>
-              <p className="text-sm opacity-90 mb-4">Inicie sua sala de teleconsulta agora para receber o paciente <span className="font-bold">Carlos Miranda</span>.</p>
+            <div className="bg-primary-color p-4 rounded-xl text-white shadow-lg">
+              <h3 className="font-bold text-base mb-0.5">Teleconsulta ativa</h3>
+              <p className="text-xs opacity-90 mb-2.5">Inicie sua sala virtual para receber o paciente <span className="font-bold">Carlos Miranda</span>.</p>
               <Button
-                className="bg-white text-primary-color font-bold w-full shadow-md"
+                size="sm"
+                className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs"
                 onPress={() => navigate("teleconsulta/Vf8kQ2mLpX/pre-sala")}
               >
                 Abrir Sala Virtual
@@ -145,15 +146,15 @@ export default function Dashboard() {
             </div>
 
             {/* 3° WIDGET: Prontuários Pendentes */}
-            <div className="bg-surface-alt p-4 rounded-xl border border-divider shadow-sm">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-base flex items-center gap-2">
-                  <FileText size={18} className="text-orange-500" />
+            <div className="bg-surface-alt p-3 rounded-xl border border-divider shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-sm flex items-center gap-1.5">
+                  <FileText size={16} className="text-orange-500" />
                   Prontuários Pendentes
                 </h3>
-                <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-0.5 rounded-full">2 novos</span>
+                <span className="bg-orange-100 text-orange-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">2 novos</span>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 <PendingDocumentItem
                   patient="Mariana Costa"
                   date="Ontem, 17:30"
@@ -168,16 +169,16 @@ export default function Dashboard() {
             </div>
 
             {/* Lembretes */}
-            <div className="bg-surface-alt p-4 rounded-xl border border-divider shadow-sm">
-              <h3 className="font-bold mb-3">Lembretes</h3>
-              <ul className="text-sm space-y-3">
+            <div className="bg-surface-alt p-3 rounded-xl border border-divider shadow-sm">
+              <h3 className="font-bold text-sm mb-2">Lembretes</h3>
+              <ul className="text-xs space-y-1.5">
                 <li className="flex gap-2 items-start text-text-muted">
-                  <div className="h-2 w-2 rounded-full bg-orange-500 mt-1.5 shrink-0" />
-                  <p>Confirme sua consulta com Julia Mattos às 16h30 <span className="text-orange-500 font-medium">(5h restantes)</span></p>
+                  <div className="h-1.5 w-1.5 rounded-full bg-orange-500 mt-1 shrink-0" />
+                  <p>Confirme com Julia Mattos às 16h30 <span className="text-orange-500 font-medium">(5h rest.)</span></p>
                 </li>
                 <li className="flex gap-2 items-start text-text-muted">
-                  <div className="h-2 w-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
-                  <p>Reunião clínica com a equipe de cardiologia às 18h30</p>
+                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500 mt-1 shrink-0" />
+                  <p>Reunião clínica com equipe de cardio às 18h30</p>
                 </li>
               </ul>
             </div>
@@ -191,12 +192,12 @@ export default function Dashboard() {
 
 function StatBox({ icon, label, value, subtext }: any) {
   return (
-    <div className="bg-surface-alt p-4 rounded-xl border border-divider flex items-center gap-4 shadow-sm hover:border-gray-300 transition-all">
-      <div className="p-3 bg-surface rounded-xl border border-divider shadow-sm">{icon}</div>
+    <div className="bg-surface-alt p-3 rounded-xl border border-divider flex items-center gap-3 shadow-sm hover:border-gray-300 transition-all">
+      <div className="p-2 bg-surface rounded-lg border border-divider shadow-sm shrink-0">{icon}</div>
       <div>
-        <p className="text-xs text-text-muted font-bold uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-text-primary my-0.5">{value}</p>
-        {subtext && <p className="text-[11px] text-text-muted/80">{subtext}</p>}
+        <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider leading-none">{label}</p>
+        <p className="text-xl font-bold text-text-primary my-0.5">{value}</p>
+        {subtext && <p className="text-[10px] text-text-muted/80 leading-none">{subtext}</p>}
       </div>
     </div>
   );
@@ -204,34 +205,36 @@ function StatBox({ icon, label, value, subtext }: any) {
 
 function CompactPatientItem({ name, time, type, status, onAction }: any) {
   return (
-    <div className="flex items-center justify-between p-3.5 hover:bg-surface/50 transition-colors">
-      <div className="flex items-center gap-4">
-        <div className="flex flex-col items-center justify-center bg-surface border border-divider rounded-lg h-12 w-12 text-center">
-          <span className="text-primary-color font-bold text-sm leading-none">{time}</span>
+    <div className="flex items-center justify-between py-2 px-3 hover:bg-surface/50 transition-colors">
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col items-center justify-center bg-surface border border-divider rounded-lg h-9 w-9 text-center shrink-0">
+          <span className="text-primary-color font-bold text-xs leading-none">{time}</span>
         </div>
         <div>
-          <p className="font-semibold text-sm text-text-primary">{name}</p>
-          <span className="text-xs text-text-muted flex items-center gap-1.5 mt-0.5">
+          {/* Aumentado levemente para text-sm para dar mais destaque ao nome */}
+          <p className="font-semibold text-sm text-text-primary leading-tight">{name}</p>
+          <span className="text-[10px] text-text-muted flex items-center gap-1 mt-0.5">
             <span className={`h-1.5 w-1.5 rounded-full ${type === 'Telemedicina' ? 'bg-purple-500' : 'bg-blue-500'}`} />
             {type}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide hidden sm:inline-block ${
+      <div className="flex items-center gap-2">
+        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide hidden sm:inline-block ${
           status === 'Aguardando' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
         }`}>
           {status}
         </span>
+        {/* Altura ajustada para h-8 para melhor proporção */}
         <Button
           size="sm"
           variant={type === 'Telemedicina' ? 'secondary' : 'primary'}
           onPress={onAction}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 h-8 text-xs px-3 font-medium"
         >
           {type === 'Telemedicina' ? 'Atender' : 'Prontuário'}
-          <ArrowUpRight size={14} />
+          <ArrowUpRight size={13} />
         </Button>
       </div>
     </div>
@@ -245,11 +248,12 @@ function PendingDocumentItem({ patient, date, onPress }: any) {
       className="p-2.5 bg-surface border border-divider rounded-lg flex items-center justify-between hover:border-orange-200 cursor-pointer transition-all"
     >
       <div>
-        <p className="text-sm font-medium text-text-primary">{patient}</p>
-        <p className="text-xs text-text-muted">Atendimento em: {date}</p>
+        {/* Ajustado para text-sm */}
+        <p className="text-sm font-medium text-text-primary leading-tight">{patient}</p>
+        <p className="text-[10px] text-text-muted mt-0.5">Atendimento em: {date}</p>
       </div>
-      <Button size="sm" isIconOnly variant="ghost" className="border-none text-text-muted hover:text-orange-500" onPress={onPress}>
-        <ChevronRight size={16} />
+      <Button size="sm" isIconOnly variant="ghost" className="border-none text-text-muted hover:text-orange-500 h-6 w-6 min-w-6" onPress={onPress}>
+        <ChevronRight size={14} />
       </Button>
     </div>
   );
