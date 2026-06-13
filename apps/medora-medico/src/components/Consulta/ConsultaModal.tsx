@@ -192,16 +192,18 @@ export default function ConsultaModal({
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800 bg-zinc-900/80 backdrop-blur-sm">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-ring bg-surface backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                   {currentConsulta && (
                     <span
                       className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
                         currentConsulta.status === "finalizado"
-                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                          ? "bg-success-soft border-success-soft text-success"
                           : currentConsulta.status === "em_atendimento"
                             ? "bg-blue-500/10 border-blue-500/20 text-blue-400"
-                            : "bg-zinc-700/40 border-zinc-600/30 text-zinc-400"
+                            : currentConsulta.status === "cancelado"
+                              ? "bg-danger/10 border-danger-soft text-danger"
+                              : "bg-text/20 border-text text-text-secondary"
                       }`}
                     >
                       {currentConsulta.status === "finalizado" && (
