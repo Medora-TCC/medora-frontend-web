@@ -18,10 +18,10 @@ export function EditAvailabilityModal({ isOpen, onClose, dayData, editType }: Ed
     if (isOpen && dayData) {
 
       const slots: string[] = [];
-      const dur = dayData.duration;
+      const dur = 15;
       const [startHour, startMin] = dayData.start.split(':').map(Number);
       const [endHour, endMin] = dayData.end.split(':').map(Number);
-      
+      console.log(dayData);
       let currentMinutes = startHour * 60 + startMin;
       const endMinutes = endHour * 60 + endMin;
 
