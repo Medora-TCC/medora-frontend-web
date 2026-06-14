@@ -8,7 +8,6 @@ import { Card, Button } from '@heroui/react';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService from '../../api/services/Availability';
-import { href } from 'react-router';
 
 
 type SlotType   = 'presential' | 'telemedicine' | 'hybrid';

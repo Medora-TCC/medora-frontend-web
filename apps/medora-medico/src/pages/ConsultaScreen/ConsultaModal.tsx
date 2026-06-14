@@ -2,8 +2,7 @@ import { Button, Modal, Spinner } from "@heroui/react";
 import type { IConsultaDetailed } from "@medora_web/shared";
 import { useEffect, useState } from "react";
 import { FindConsultaDetailedById } from "./Consulta";
-import { canEnter, enterConsulta } from "./ConsultaHelpers";
-import { Video } from "lucide-react";
+import { canEnter } from "./ConsultaHelpers";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 
 

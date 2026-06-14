@@ -1,7 +1,7 @@
 
 
-import type { IConsultaDetailed, IConsultaSimplified } from "@medora_web/shared";
-import { delay, http, HttpResponse } from "msw";
+import type { IConsultaDetailed } from "@medora_web/shared";
+import { http, HttpResponse } from "msw";
 
 const mockConsulta: IConsultaDetailed = {
     id: "tc-001",
@@ -14,7 +14,7 @@ const mockConsulta: IConsultaDetailed = {
     tags: ["hipertensão", "retorno"],
 };
 
-const mockConsultaListEmpty: IConsultaDetailed[] = []
+// const mockConsultaListEmpty: IConsultaDetailed[] = []
 
 const mockConsultaList: IConsultaDetailed[] = [
     mockConsulta,
