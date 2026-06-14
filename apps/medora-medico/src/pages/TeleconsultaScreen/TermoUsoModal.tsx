@@ -103,7 +103,7 @@ export default function TermoUsoModal({
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container>
-          <Modal.Dialog className="max-w-xl w-full bg-surface border border-ring rounded-2xl overflow-hidden">
+          <Modal.Dialog className="max-w-5xl w-full bg-surface border border-ring rounded-2xl overflow-hidden">
 
             {/* Header */}
             <Modal.Header className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-ring">
@@ -152,42 +152,40 @@ export default function TermoUsoModal({
             )}
 
             {/* Body */}
-            <Modal.Body className="p-0">
+            <Modal.Body 
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="overflow-y-auto px-6 py-5 flex-1"
+        >
+          <p className="text-sm text-text-primary leading-relaxed mb-6">
+            Ao utilizar a plataforma Medora, você concorda com os termos e
+            condições descritos abaixo. Leia atentamente antes de prosseguir.
+            Última atualização:{" "}
+            <span className="text-text-primary">15 de maio de 2025</span>.
+          </p>
+
+          <div className="space-y-4">
+            {SECTIONS.map(({ icon: Icon, title, body }) => (
               <div
-                ref={scrollRef}
-                onScroll={handleScroll}
-                className="overflow-y-auto px-6 py-5 max-h-[50vh]"
+                key={title}
+                className="rounded-xl bg-surface-raised border border-ring px-4 py-4"
               >
-                <p className="text-sm text-text-primary leading-relaxed mb-6">
-                  Ao utilizar a plataforma Medora, você concorda com os termos e
-                  condições descritos abaixo. Leia atentamente antes de prosseguir.
-                  Última atualização:{" "}
-                  <span className="text-text-primary">15 de maio de 2025</span>.
-                </p>
-
-                <div className="space-y-4">
-                  {SECTIONS.map(({ icon: Icon, title, body }) => (
-                    <div
-                      key={title}
-                      className="rounded-xl bg-surface-raised border border-ring px-4 py-4"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon className="w-3.5 h-3.5 text-accent shrink-0" />
-                        <p className="text-sm font-semibold text-text-primary">{title}</p>
-                      </div>
-                      <p className="text-sm text-text-primary leading-relaxed">{body}</p>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon className="w-3.5 h-3.5 text-accent shrink-0" />
+                  <p className="text-sm font-semibold text-text-primary">{title}</p>
                 </div>
-
-                <div className="flex items-center gap-2 mt-6 pt-5">
-                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                  <p className="text-xs text-text-primary">
-                    Fim do documento &mdash; {version} &mdash; Medora Saúde Ltda.
-                  </p>
-                </div>
+                <p className="text-sm text-text-primary leading-relaxed">{body}</p>
               </div>
-            </Modal.Body>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 mt-6 pt-5">
+            <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+            <p className="text-xs text-text-primary">
+              Fim do documento &mdash; {version} &mdash; Medora Saúde Ltda.
+            </p>
+          </div>
+        </Modal.Body>
 
             {/* Footer */}
             <Modal.Footer className="flex-col items-stretch gap-4 px-6 py-4 border-t border-ring">
@@ -247,12 +245,12 @@ export default function TermoUsoModal({
                   onPress={handleAccept}
                   className={`text-xs font-semibold ${
                     canAccept
-                      ? "bg-blue-600 text-white hover:bg-blue-500"
-                      : "bg-zinc-800 text-zinc-600"
+                      ? "bg-accent text-surface hover:bg-accent/75"
+                      : "bg-surface text-text-muted"
                   }`}
                 >
                   {loading ? (
-                    <Spinner size="sm" />
+                    <Spinner size="sm" className="text-surface"/>
                   ) : (
                     <>
                       {canAccept && <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />}
