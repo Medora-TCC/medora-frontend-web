@@ -15,7 +15,9 @@ export function SignaturePage() {
             <PDFViewer documentUrl={"/Curriculo.pdf"} />
           </div>
         </Suspense>
-        <ModalConfirmacao onConfirm={() => {}} disabled={false} texto={"Deseja assinar o documento ?"} textoBotao={"Assinar"} />
+        <div className="w-full flex justify-end items-end col-start-2 mt-4 pr-8">
+          <ModalConfirmacao onConfirm={() => { }} disabled={false} texto={"Deseja assinar o documento ?"} textoBotao={"Assinar"} />
+        </div>
       </section>
     </section>)
 }

@@ -56,7 +56,7 @@ export default function PDFViewer({ documentUrl }: PDFViewerProps): JSX.Element 
       className="w-full h-full bg-surface-alt"
     >
       <div
-        className={`m-auto px-2 py-8 flex flex-col gap-8 transition-opacity duration-300 ${isResizing ? "opacity-0" : "opacity-100"}`}
+        className={`m-auto px-2 py-4 flex flex-col gap-8 transition-opacity duration-300 ${isResizing ? "opacity-0" : "opacity-100"}`}
 
       >
         <div ref={containerRef} className={`w-[50%] m-auto`}>
