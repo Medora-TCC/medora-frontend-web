@@ -145,6 +145,7 @@ export function MedicalRecordPage() {
               onConfirm={SalvarProntuario}
               disabled={isEmpty}
               texto="Deseja mesmo salvar? ATENÇÃO: Após salvo o prontuário não pode mais ser alterado"
+              textoBotao="Salvar"
             />
           </div>
         </section>
