@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
 import {
   Avatar,
   Button,
@@ -16,7 +15,7 @@ import {
 import type { IConsultaDetailed, ITeleConsultaDetailed, StatusConsulta } from "@medora_web/shared";
 
 import { fetchConsultas } from "./Consulta";
-import { Calendar, CalendarDays, CircleAlert, RotateCcw, Video } from "lucide-react";
+import { Calendar, CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
 import  ConsultaModal from "./ConsultaModal";
 import { formatConsultaHorario, isHoje, PatientInitials } from "./ConsultaHelpers";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";

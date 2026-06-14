@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
-import { Avatar, Button, Chip } from "@heroui/react";
+import { Chip } from "@heroui/react";
 import {
   Mic,
   MicOff,
@@ -13,7 +13,6 @@ import {
   Maximize2,
   Minimize2,
   MonitorUp,
-  Hand,
   Stethoscope,
   X,
   Send,
@@ -96,7 +95,7 @@ function ParticipantTile({
         <div className="flex flex-col items-center gap-3">
           <div
             className={`
-              flex items-center justify-center rounded-full bg-accent/20 text-accent font-semibold select-none
+              flex items-center justify-center rounded-full bg-accent-soft-hover text-accent font-semibold select-none
               ${large ? "size-24 text-3xl" : "size-14 text-xl"}
             `}
           >
@@ -109,7 +108,7 @@ function ParticipantTile({
       )}
 
       {/* Overlay inferior */}
-      <div className="absolute bottom-0 left-0 right-0 px-3 py-2 bg-gradient-to-t from-black/70 to-transparent flex items-center justify-between">
+      <div className="absolute bottom-0 left-0 right-0 px-3 py-2 bg-linear-to-t from-black/70 to-transparent flex items-center justify-between">
         <span className="text-white text-xs font-medium truncate">{name}</span>
         {muted && (
           <div className="flex items-center justify-center size-5 rounded-full bg-danger/80">
@@ -266,7 +265,7 @@ export default function SalaTeleConsulta() {
 
   // UI
   const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | null>(null);
-  const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
+  // const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -430,7 +429,7 @@ export default function SalaTeleConsulta() {
           `}
         >
           <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center size-7 rounded-lg bg-accent/20">
+            <div className="flex items-center justify-center size-7 rounded-lg bg-accent-soft-hover">
               <Stethoscope size={14} className="text-accent" />
             </div>
             <span className="text-white text-sm font-medium">Teleconsulta</span>
@@ -511,7 +510,7 @@ export default function SalaTeleConsulta() {
         <div
           className={`
             absolute bottom-0 left-0 right-0 z-20 flex items-end justify-center
-            pb-5 bg-gradient-to-t from-black/70 to-transparent
+            pb-5 bg-linear-to-t from-black/70 to-transparent
             transition-opacity duration-300
             ${controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"}
           `}
@@ -573,7 +572,7 @@ export default function SalaTeleConsulta() {
       {/* ── Painel lateral ──────────────────────────────── */}
       <div
         className={`
-          flex-shrink-0 transition-all duration-300 ease-in-out
+          shrink-0 transition-all duration-300 ease-in-out
           ${sidePanel ? "w-80" : "w-0 overflow-hidden"}
         `}
       >

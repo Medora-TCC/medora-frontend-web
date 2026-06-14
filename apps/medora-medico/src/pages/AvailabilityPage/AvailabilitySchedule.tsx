@@ -206,7 +206,7 @@ export function AvailabilityHistorical() {
                 <button
                   key={date.toISOString()}
                   onClick={() => setSelectedDate(date)}
-                  className={`flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 min-w-[48px] transition-all
+                  className={`flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 min-w-12 transition-all
                     ${isActive
                       ? 'bg-primary text-white shadow-sm'
                       : 'hover:bg-surface-raised text-text-secondary'}`}
