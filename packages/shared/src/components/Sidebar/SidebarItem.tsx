@@ -7,26 +7,32 @@ interface SidebarItemProps {
   label: string;
   children?: ReactNode;
   isActive?: boolean;
+  href?: string;
 }
 
-export function SidebarItem({ icon: Icon, label, children, isActive }: SidebarItemProps) {
+
+
+export function SidebarItem({ icon: Icon, label, children, isActive, href }: SidebarItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const hasChildren = !!children;
-
+  const Component = !hasChildren && href ? 'a' : 'button';
   return (
     <div 
-    className="px-3 w-full overflow-hidden"
+    className="[.section-marker+&]:mt-0 mt-5 px-3 w-full overflow-hidden"
     onMouseLeave={() => setIsOpen(false)}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
+      <Component
+        href={!hasChildren && href ? href : undefined}
+        onClick={() => {
+          if (hasChildren) setIsOpen(!isOpen);
+        }}
         className={`
-          w-full flex items-center p-3 rounded-lg transition-all
+          w-full flex items-center p-3 rounded-lg transition-all relative
           ${isActive 
             ? 'bg-primary-subtle text-primary-text'
             : 'text-text-secondary hover:bg-surface-raised hover:text-text-primary'
           }
-        `}
-      >
+        `}>
+        
         <div className="flex items-center justify-center w-8 shrink-0">
           <Icon size={22} />
         </div>
@@ -50,7 +56,7 @@ export function SidebarItem({ icon: Icon, label, children, isActive }: SidebarIt
             `} 
           />
         )}
-      </button>
+      </Component>
 
       <div className={`
         overflow-hidden transition-all duration-300

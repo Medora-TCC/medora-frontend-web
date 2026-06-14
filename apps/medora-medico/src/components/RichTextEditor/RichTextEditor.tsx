@@ -39,10 +39,11 @@ export interface RichTextEditorRef {
 interface RichTextProps {
   setText: (e: string) => void;
   setIsEmpty: (e: boolean) => void;
+  content: string | null
 }
 
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
-  ({ setText, setIsEmpty }, ref) => {
+  ({ setText, setIsEmpty, content }, ref) => {
 
     const internalRef = ref as React.RefObject<RichTextEditorRef>;
 
@@ -55,13 +56,13 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
 
     return (
       <LexicalComposer initialConfig={initialConfig}>
-        <div className="flex flex-col h-full border border-slate-200 p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
+        <div className="flex flex-col h-full border border-border p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
           <ToolbarPlugin />
-          <div className=" h-full w-full overflow-hidden">
+          <div className="mt h-full w-full overflow-hidden bg-surface-raised rounded-b-lg">
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  className="h-full mt-2 p-4 outline-none bg-white text-slate-800 overflow-y-scroll"
+                  className="h-full mt-2 p-4 outline-none text-primary overflow-y-auto"
                   aria-label="Digite o prontuário"
                 />
               }
@@ -71,6 +72,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
             <ListPlugin />
             <GetContentPlugin onChange={setText} setIsEmpty={setIsEmpty} />
             <ClearPlugin editorRef={internalRef} />
+            <LoadContentPlugin json={content} />
           </div>
         </div>
       </LexicalComposer>
@@ -89,10 +91,10 @@ export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="border w-full h-full border-slate-200 p-4 rounded-2xl bg-white overflow-y-hidden">
+      <div className="border w-full h-full bg-surface-raised p-4 rounded-2xl overflow-y-hidden">
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none text-slate-800 cursor-default overflow-y-auto" />
+            <ContentEditable className="outline-none   text-primar cursor-default overflow-y-auto" />
           }
           ErrorBoundary={LexicalErrorBoundary}
         />
@@ -118,13 +120,18 @@ function ClearPlugin({ editorRef }: { editorRef: React.RefObject<RichTextEditorR
   return null;
 }
 
-function LoadContentPlugin({ json }: { json: string }): null {
+function LoadContentPlugin({ json: content }: { json: string | null }): null {
+
+  if(!content) {
+    return null;
+  }
+
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    const editorState = editor.parseEditorState(json);
+    const editorState = editor.parseEditorState(content);
     editor.setEditorState(editorState);
-  }, [editor, json]);
+  }, [editor, content]);
 
   return null;
 }

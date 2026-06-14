@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router";
 import Navbar from "../Header/Header";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
-import { ClipboardList, LayoutDashboard, LogOut, Settings, Stethoscope, UserCircle, Users } from "lucide-react";
+import { Activity, Calendar, ClipboardList, LayoutDashboard, Settings, Users } from "lucide-react";
 import { useState } from "react";
 
 export default function MainLayout() {
@@ -15,7 +15,7 @@ export default function MainLayout() {
 
   // Liste os caminhos completos como eles aparecem na URL
   const locationsSidebar = ['/', '/home', '/medico/teleconsulta'];
-  const locationsFooter = ['/medico/prontuario', '/medico/consulta', '/medico/prescricao'];
+  const locationsFooter = ['/medico/prontuario', '/medico/consulta', '/medico/prescricao', '/medico/agenda'];
 
   const isPreSala = /\/medico\/teleconsulta\/.*\/pre-sala/.test(location.pathname);
   const isSala = /\/medico\/teleconsulta\/.*\/sala/.test(location.pathname);
@@ -34,42 +34,53 @@ export default function MainLayout() {
 
             <Sidebar.Header>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-600 rounded-xl shrink-0 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                  <Stethoscope className="text-white" size={24} />
+                <div className="w-10 h-10 bg-primary-color rounded-xl shrink-0 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <Activity size={48} color="#2563eb" strokeWidth={1.25} />
                 </div>
                 <div className="flex flex-col whitespace-nowrap transition-all duration-300 opacity-0 group-hover:opacity-100 max-md:opacity-100">
-                  <span className="text-white font-bold text-lg leading-tight">healthConnect</span>
-                  <span className="text-indigo-400 text-[10px] uppercase tracking-widest font-semibold">Medical System</span>
+                  <span className="text-text-primary font-bold text-lg leading-tight">Medora</span>
+                  <span className="text-primary-color text-[10px] uppercase tracking-widest font-semibold">Medical System</span>
                 </div>
               </div>
             </Sidebar.Header>
 
             <div className="flex-1 py-4">
-              <Sidebar.Section title="Principal" />
-              <Sidebar.Item icon={LayoutDashboard} label="Dashboard" isActive />
-              <Sidebar.Section title="Agenda" />
-              <Sidebar.Item icon={Users} label="Disponibilidade">
-                <Sidebar.SubItem label="Cadastrar Disponibilidade" href="/medico/disponibilidade" />
-                <Sidebar.SubItem label="Agenda" href="/medico/agenda" />
-              </Sidebar.Item>
-
-
-              <Sidebar.Section title="Gestão" />
+              <Sidebar.Section title="Geral" />
+              <Sidebar.Item
+              icon={LayoutDashboard}
+               label="Dashboard"
+               isActive={location.pathname === '/medico'}
+               href="/medico"/>
+               
+              <Sidebar.Item 
+              icon={Users} 
+              label="Configurar Horários"
+              isActive={location.pathname.startsWith('/medico/disponibilidade')}
+              href="/medico/disponibilidade"/>
+              <Sidebar.Item 
+              icon={Calendar}
+              label="Agenda"
+              isActive={location.pathname.startsWith('/medico/agenda')}
+              href="/medico/agenda"/>
+                
               {/* <Sidebar.Item icon={Users} label="Pacientes">
                 <Sidebar.SubItem label="Listagem Geral" href="/pacientes" />
                 <Sidebar.SubItem label="Prontuários" href="/prontuarios" />
                 <Sidebar.SubItem label="Novo Cadastro" href="/pacientes/novo" />
               </Sidebar.Item> */}
 
-              <Sidebar.Item icon={ClipboardList} label="Consultas">
-                <Sidebar.SubItem label="Consultas" href="/medico/consulta" />
-              </Sidebar.Item>
-
+              <Sidebar.Item 
+              icon={ClipboardList} 
+              label="Consultas"
+              isActive={location.pathname.startsWith('/medico/consulta')}
+              href="/medico/consulta"/>
+               
               {/* <Sidebar.Item icon={MessageSquare} label="Mensagens" /> */}
-              <Sidebar.Section title="Configurações" />
-              <Sidebar.Item icon={Settings} label="Ajustes" >
-                <Sidebar.SubItem label="Configurações de conta" href="/medico/configuracoes"/>
-              </Sidebar.Item>
+              <Sidebar.Item 
+              icon={Settings} 
+              label="Ajustes"
+              isActive={location.pathname.startsWith('/medico/configuracoes')}
+              href="/medico/configuracoes"/>
             </div>
 
           </Sidebar.Root>
