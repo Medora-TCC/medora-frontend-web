@@ -1,4 +1,5 @@
 @import "tailwindcss";
 @source "../../../packages/shared/src";
+@import "@heroui/styles";
+@import "@medora_web/shared/theme.css";
 
-@import "@medora_web/shared/theme.css"

@@ -1,4 +1,4 @@
-export * from "./Teste";
+export * from "./ThemeToggle";
 export * from "./Input";
 export * from "./Button";
 export * from "./Carousel"
@@ -9,3 +9,4 @@ export * from "./FloatingCard";
 export * from "./Layout";
 export * from "./Sidebar/Sidebar";
 export * from "./Sidebar/SidebarToggle";
+export * from "./ModalConfirmacao"

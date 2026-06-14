@@ -1,13 +1,14 @@
 
+import React from "react";
+
 interface FloatingCardProps {
-    className: string;
-    icon: string;
+    className?: string;
+    icon: React.ReactNode;
     title: string;
     subtitle: string;
 }
 
-
-export function FloatingCard({ className, icon, title, subtitle }: FloatingCardProps){
+export function FloatingCard({ className = '', icon, title, subtitle }: FloatingCardProps){
     return (
         <div className={`absolute z-20 backdrop-blur-md bg-surface/80 border border-surface-overlay shadow-xl rounded-2xl p-4 flex items-center gap-4 animate-appearance-in ${className}`}>
             <div className="text-2xl bg-primary-subtle p-2 rounded-full flex items-center justify-center">

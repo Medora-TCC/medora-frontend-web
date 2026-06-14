@@ -1,0 +1,165 @@
+import { ListItemNode, ListNode } from "@lexical/list";
+import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { HeadingNode } from "@lexical/rich-text";
+import { forwardRef, useEffect, useImperativeHandle, useRef, type JSX } from "react";
+import { ToolbarPlugin } from "./ToolbarPlugin";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { $createParagraphNode, $getRoot } from "lexical";
+
+const theme = {
+  text: {
+    bold: "font-bold",
+    underline: "underline",
+    strikethrough: "line-through",
+  },
+  heading: {
+    h1: "text-4xl font-bold",
+    h2: "text-3xl font-bold",
+    h3: "text-2xl font-semibold",
+  },
+  list: {
+    ul: "list-disc ml-6",
+    ol: "list-decimal ml-6",
+  },
+};
+
+function onError(error: Error): void {
+  console.error(error);
+}
+
+export interface RichTextEditorRef {
+  clear: () => void;
+}
+
+interface RichTextProps {
+  setText: (e: string) => void;
+  setIsEmpty: (e: boolean) => void;
+  content: string | null
+}
+
+export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextProps>(
+  ({ setText, setIsEmpty, content }, ref) => {
+
+    const internalRef = ref as React.RefObject<RichTextEditorRef>;
+
+    const initialConfig = {
+      namespace: "EditorProntuario",
+      theme: theme,
+      onError,
+      nodes: [HeadingNode, ListNode, ListItemNode],
+    };
+
+    return (
+      <LexicalComposer initialConfig={initialConfig}>
+        <div className="flex flex-col h-full border border-border p-1 rounded-2xl overflow-hidden shadow-sm mx-4">
+          <ToolbarPlugin />
+          <div className="mt h-full w-full overflow-hidden bg-surface-raised rounded-b-lg">
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable
+                  className="h-full mt-2 p-4 outline-none text-primary overflow-y-auto"
+                  aria-label="Digite o prontuário"
+                />
+              }
+              ErrorBoundary={LexicalErrorBoundary}
+            />
+            <HistoryPlugin />
+            <ListPlugin />
+            <GetContentPlugin onChange={setText} setIsEmpty={setIsEmpty} />
+            <ClearPlugin editorRef={internalRef} />
+            <LoadContentPlugin json={content} />
+          </div>
+        </div>
+      </LexicalComposer>
+    );
+  }
+)
+
+export function MedicalRecordViewer({ json }: { json: string }): JSX.Element {
+  const initialConfig = {
+    namespace: "MedicalRecordViewer",
+    theme: theme,
+    onError,
+    nodes: [HeadingNode, ListNode, ListItemNode],
+    editable: false,
+  };
+
+  return (
+    <LexicalComposer initialConfig={initialConfig}>
+      <div className="border w-full h-full bg-surface-raised p-4 rounded-2xl overflow-y-hidden">
+        <RichTextPlugin
+          contentEditable={
+            <ContentEditable className="outline-none   text-primar cursor-default overflow-y-auto" />
+          }
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <LoadContentPlugin json={json} />
+      </div>
+    </LexicalComposer>
+  );
+}
+
+function ClearPlugin({ editorRef }: { editorRef: React.RefObject<RichTextEditorRef> }) {
+  const [editor] = useLexicalComposerContext();
+
+  useImperativeHandle(editorRef, () => ({
+    clear: () => {
+      editor.update(() => {
+        const root = $getRoot();
+        root.clear();
+        root.append($createParagraphNode())
+      })
+    }
+  }));
+
+  return null;
+}
+
+function LoadContentPlugin({ json: content }: { json: string | null }): null {
+
+  if(!content) {
+    return null;
+  }
+
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    const editorState = editor.parseEditorState(content);
+    editor.setEditorState(editorState);
+  }, [editor, content]);
+
+  return null;
+}
+
+interface GetContentProps {
+  onChange: (text: string) => void;
+  setIsEmpty: (e: boolean) => void;
+}
+
+function GetContentPlugin({ onChange, setIsEmpty }: GetContentProps): null {
+  const [editor] = useLexicalComposerContext();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+
+      timerRef.current = setTimeout(() => {
+        const json = JSON.stringify(editorState.toJSON());
+        onChange(json);
+
+        editorState.read(() => {
+          const root = $getRoot();
+          setIsEmpty(root.getTextContent().trim() === "")
+        })
+      }, 1000);
+    });
+  }, [editor, onChange]);
+
+  return null;
+}
