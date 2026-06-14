@@ -16,12 +16,12 @@ export function ModalConfirmacao({ onConfirm, disabled, texto, textoBotao }: Mod
                     <Modal.Dialog className="bg-surface">
                         <Modal.CloseTrigger />
                         <Modal.Header>
-                            <Modal.Heading className="text-1.5xl font-semibold text-inverse">{texto}</Modal.Heading>
+                            <Modal.Heading className="text-1.5xl font-semibold text-text-primary">{texto}</Modal.Heading>
                         </Modal.Header>
                         <Modal.Body>
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button className="w-full text-inverse" onClick={(e) => { e.preventDefault; onConfirm() }} slot="close">
+                            <Button className="w-full text-text-inverse" onClick={(e) => { e.preventDefault; onConfirm() }} slot="close">
                                 Continuar
                             </Button>
                             <Button variant="danger-soft" className="w-full" slot="close">

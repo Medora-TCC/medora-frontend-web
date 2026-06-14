@@ -16,42 +16,44 @@ import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
 import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 import ConfigPage from './pages/ConfigPage/ConfigPage';
 import { PrescriptionPage } from './pages/PrescriptionPage/PrescriptionPage';
+import { SignaturePage } from './pages/SignaturePage/SignaturePage';
 
 function App() {
   return (
     <>
       <ThemeProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/medico" element={<MainLayout />}>
-                <Route path="disponibilidade" element={< AvailabilityPage />} />
-                <Route path="agenda" element={< AvailabilityHistorical />} />
-                
-                <Route path="configuracoes" element={<ConfigPage />} />
-         
-                <Route path="consulta" element={<ConsultaScreen/>} />
-                <Route path="" element={<Dashboard />} />
-                <Route path="prontuario" element={<MedicalRecordPage />} />
-                <Route path="prescricao" element={<PrescriptionPage />} />
-                <Route path="perfil" element={<ProfessionalProfilePage />} />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/medico" element={<MainLayout />}>
+              <Route path="disponibilidade" element={< AvailabilityPage />} />
+              <Route path="agenda" element={< AvailabilityHistorical />} />
 
-                <Route path='teleconsulta/:id/pre-sala' element={<TeleConsultaConfig/>} />
-                <Route path='teleconsulta/:id/sala' element={<SalaTeleConsulta/>} />
-              </Route>
+              <Route path="configuracoes" element={<ConfigPage />} />
 
-              <Route element={<Layout />}>
-                  <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
-                  <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
-                  <Route path="/login" element={<LoginScreen />} />
-                  <Route path="/cadastro" element={<RegisterPage />} />
-                  <Route path="/server-error" element={<ServerErrorPage />}/>
-                  <Route path="/connection-error" element={<ConnectionErrorPage />}/>
-                  <Route path="/" element={< HomePage  />} />
-                  <Route path="*" element={<NotFound />} />
-                  
-              </Route>
-             </Routes>
-          </BrowserRouter>
+              <Route path="consulta" element={<ConsultaScreen />} />
+              <Route path="" element={<Dashboard />} />
+              <Route path="prontuario" element={<MedicalRecordPage />} />
+              <Route path="prescricao" element={<PrescriptionPage />} />
+              <Route path="assinatura" element={<SignaturePage />} />
+              <Route path="perfil" element={<ProfessionalProfilePage />} />
+
+              <Route path='teleconsulta/:id/pre-sala' element={<TeleConsultaConfig />} />
+              <Route path='teleconsulta/:id/sala' element={<SalaTeleConsulta />} />
+            </Route>
+
+            <Route element={<Layout />}>
+              <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
+              <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
+              <Route path="/login" element={<LoginScreen />} />
+              <Route path="/cadastro" element={<RegisterPage />} />
+              <Route path="/server-error" element={<ServerErrorPage />} />
+              <Route path="/connection-error" element={<ConnectionErrorPage />} />
+              <Route path="/" element={< HomePage />} />
+              <Route path="*" element={<NotFound />} />
+
+            </Route>
+          </Routes>
+        </BrowserRouter>
       </ThemeProvider>
     </>
   );
