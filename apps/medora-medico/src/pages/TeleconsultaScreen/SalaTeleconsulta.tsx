@@ -19,6 +19,7 @@ import {
   Clock,
   ClipboardClock,
 } from "lucide-react";
+import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
@@ -268,6 +269,7 @@ export default function SalaTeleConsulta() {
   const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Chat
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -388,7 +390,7 @@ export default function SalaTeleConsulta() {
 
   // ── Prontuario ─────────────────────────────────────────────────────────────────
   function openProntuario() {
-    setSidePanel((p) => (p === "chat" ? null : "chat"));
+    setSidePanel((p) => (p === "prontuario" ? null : "prontuario"));
     setUnread(0);
   }
 
@@ -416,7 +418,15 @@ export default function SalaTeleConsulta() {
   if (sidePanel === "chat") {
     positionClass = "left-[calc(50%-160px)] -translate-x-1/2"; // Ajuste o valor do chat aqui
   } else if (sidePanel === "prontuario") {
-    positionClass = "left-[calc(50%-220px)] -translate-x-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+    positionClass = "left-[calc(50%-480px)] -translate-x-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+  }
+
+  let sidePanelWidth = "w-0 overflow-hidden"
+
+  if (sidePanel === "chat") {
+    sidePanelWidth = "w-80"; // Ajuste o valor do chat aqui
+  } else if (sidePanel === "prontuario") {
+    sidePanelWidth = "w-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
   }
 
   return (
@@ -552,7 +562,7 @@ export default function SalaTeleConsulta() {
 
             <ControlBtn
               onClick={openProntuario}
-              active={sidePanel === "chat"}
+              active={sidePanel === "prontuario"}
               label="Prontuário"
             >
               <ClipboardClock  size={20} />
@@ -584,7 +594,7 @@ export default function SalaTeleConsulta() {
       <div
         className={`
           shrink-0 transition-all duration-300 ease-in-out
-          ${sidePanel ? "w-80" : "w-0 overflow-hidden"}
+          ${sidePanelWidth}
         `}
       >
         {sidePanel === "chat" && (
@@ -593,6 +603,11 @@ export default function SalaTeleConsulta() {
             onSend={sendMessage}
             onClose={() => setSidePanel(null)}
           />
+        )}
+        {sidePanel === "prontuario" && (
+          <div className="h-full">
+            <MedicalRecordComponent setError={setError}/>
+          </div>
         )}
       </div>
     </div>
