@@ -6,8 +6,6 @@ import ConsultaModal from "./ConsultaModal";
 import { canEnter, enterConsulta, PatientInitials } from "./ConsultaHelpers";
 import { useNavigate } from "react-router";
 
-const navigate = useNavigate();
-
 // ─── Configurações de status ──────────────────────────────────────────────────
 
 const STATUS_CHIP_CFG: Record<
@@ -109,6 +107,9 @@ interface ConsultaCardProps {
 }
 
 function ConsultaCard({ consulta: c, top, left, width, height, onClick }: ConsultaCardProps) {
+
+  const navigate = useNavigate();
+
   const cfg      = STATUS_BLOCK_CFG[c.status];
   const chipCfg  = STATUS_CHIP_CFG[c.status];
   const entrar   = canEnter(c);
