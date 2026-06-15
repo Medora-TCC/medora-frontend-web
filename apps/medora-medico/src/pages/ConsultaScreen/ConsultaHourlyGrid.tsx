@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, Button, Chip, useOverlayState } from "@heroui/react";
 import { Video } from "lucide-react";
 import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
-import ConsultaModal from "./ConsultaModal";
 import { canEnter, enterConsulta, PatientInitials } from "./ConsultaHelpers";
 import { useNavigate } from "react-router";
+import ConsultaModal from "../../components/Consulta/ConsultaModal";
 
 // ─── Configurações de status ──────────────────────────────────────────────────
 

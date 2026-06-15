@@ -21,6 +21,7 @@ import { formatConsultaHorario, isHoje, isTeleConsulta, PatientInitials } from "
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import ConsultaModal from "../../components/Consulta/ConsultaModal";
+import { ConsultaCard } from "./ConsultaCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
@@ -66,78 +67,6 @@ interface ConsultaCardProps {
 }
 
 // ─── Consulta card componentizar ────────────────────────────────────────────────────────────
-function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
-  const cfg = statusCfg[consulta.status];
-  const hoje = isHoje(consulta.startDateTime);
-  const [isJoinable, setIsJoinable] = useState<boolean>(false);
-  const isTeleConsultaBool = isTeleConsulta(consulta);
-
-  useEffect(() => {
-  if (isTeleConsultaBool) {
-    setIsJoinable(canEnter(consulta));
-  } else {
-    setIsJoinable(false);
-  }
-}, [consulta, canEnter]);
-
-  return (
-    <Card
-      onClick={() => onCardClick(consulta.id)}
-      className={`
-        transition-all duration-300 shadow-md h-60
-        ${
-          isJoinable
-            ? "border border-success/30 bg-success/5 hover:bg-success/10"
-            : "hover:bg-surface-secondary"
-        }
-      `}
-    >
-      <Card.Content className="flex items-center justify-center flex-col gap-4 p-4">
-        {/* Avatar com iniciais */}
-        <Avatar size="md" color="accent">
-          <Avatar.Fallback>{PatientInitials(consulta.patientNome)}</Avatar.Fallback>
-        </Avatar>
-
-        {/* Info */}
-        <div className="flex flex-1 items-center min-w-0 flex-col gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium truncate">
-              {consulta.patientNome}
-            </span>
-
-            {hoje && consulta.status === "agendado" && (
-              <Chip size="sm" color="warning" variant="soft">
-                hoje
-              </Chip>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 text-xs text-fg-muted flex-wrap">
-            <span className="flex items-center gap-1">
-              <Calendar />
-              {formatConsultaHorario(consulta.startDateTime)}
-            </span>
-          </div>
-        </div>
-
-        {/* Badge status */}
-        <Chip
-          size="sm"
-          color={cfg.color}
-          variant="soft"
-          className="hidden sm:flex shrink-0"
-        >
-          {cfg.label}
-        </Chip>
-
-        <EnterConsultaButton
-        isJoinable={isJoinable}
-        id={consulta.id}
-        />
-      </Card.Content>
-    </Card>
-  );
-}
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ filtro }: { filtro: Filtro }) {
@@ -374,7 +303,7 @@ export function ConsultaScreen() {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             {loading ? (
               <>
                 <SkeletonCard />
