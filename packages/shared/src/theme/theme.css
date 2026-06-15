@@ -1,116 +1,173 @@
-@import "@heroui/styles"; 
+@import "@heroui/styles";
 
 :root {
-  --surface: #ffffff;
-  --surface-alt: #f8fafc;
-  --surface-raised: #f1f5f9;
-  --surface-overlay: #e2e8f0;
+  /* ─── Surfaces ─── */
+  --surface:         #FAFAF9;
+  --surface-alt:     #F5F5F4;
+  --surface-raised:  #EEEEEC;
+  --surface-overlay: #E7E7E4;
 
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-inverse: #ffffff;
+  /* ─── Typography ─── */
+  --text-primary:    #111827;
+  --text-secondary:  #4B5563;
+  --text-muted:      #9CA3AF;
+  --text-inverse:    #FFFFFF;
 
-  --border: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --ring: #2563eb40;
+  /* ─── Borders ─── */
+  --border:          #E4E4E0;
+  --border-hover:    #C9C9C4;
+  --ring:            #1d4ed840;
 
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-subtle: #eff6ff;
-  --primary-text: #1e40af;
+  /* ─── Primary ─── */
+  --primary:         #1d4ed8;
+  --primary-hover:   #1a45c4;
+  --primary-subtle:  #EFF4FF;
+  --primary-text:    #1a3fa0;
 
-  --accent: #0d9488;
-  --accent-hover: #0f766e;
-  --accent-subtle: #f0fdfa;
-  --accent-text: #0f766e;
+  /* ─── Accent → mesma família do primary ─── */
+  --accent:          #1d4ed8;
+  --accent-hover:    #1a45c4;
+  --accent-subtle:   #EFF4FF;
+  --accent-text:     #1a3fa0;
 
-  --success: #16a34a;
-  --success-subtle: #f0fdf4;
-  --success-text: #15803d;
+  /* ─── Semantic ─── */
+  --success:         #16a34a;
+  --success-subtle:  #F0FDF4;
+  --success-text:    #15803d;
 
-  --warning: #f59e0b;
-  --warning-subtle: #fffbeb;
-  --warning-text: #92400e;
+  --warning:         #d97706;
+  --warning-subtle:  #FFFBEB;
+  --warning-text:    #92400e;
 
-  --danger: #dc2626;
-  --danger-subtle: #fef2f2;
-  --danger-text: #991b1b;
+  --danger:          #dc2626;
+  --danger-subtle:   #FEF2F2;
+  --danger-text:     #991b1b;
 }
 
 [data-theme="dark"] {
-  --surface: #0F172A;
-  --surface-alt: #1E293B;
-  --surface-raised: #334155;
-  --surface-overlay: #475569;
+  /* ─── Surfaces — grafite ─── */
+  --surface:         #1C1C1E;
+  --surface-alt:     #242426;
+  --surface-raised:  #2E2E30;
+  --surface-overlay: #3A3A3C;
 
-  --text-primary: #F1F5F9;
-  --text-secondary: #CBD5E1;
-  --text-muted: #64748B;
-  --text-inverse: #0F172A;
+  /* ─── Typography ─── */
+  --text-primary:    #F5F5F4;
+  --text-secondary:  #A8A8A6;
+  --text-muted:      #6B6B68;
+  --text-inverse:    #1C1C1E;
 
-  --border: #334155;
-  --border-hover: #475569;
-  --ring: #60A5FA40;
+  /* ─── Borders ─── */
+  --border:          #3A3A3C;
+  --border-hover:    #4A4A4C;
+  --ring:            #5B9CF640;
 
-  --primary: #60A5FA;
-  --primary-hover: #93C5FD;
-  --primary-subtle: #1E3A8A30;
-  --primary-text: ##93C5FD;
+  /* ─── Primary ─── */
+  --primary:         #5B9CF6;
+  --primary-hover:   #7AB3F8;
+  --primary-subtle:  #1d4ed820;
+  --primary-text:    #93C5FD;
 
-  --accent: #2DD4BF;
-  --accent-hover: #5EEAD4;
-  --accent-subtle: #0F766E20;
-  --accent-text: #5EEAD4;
+  /* ─── Accent → mesma família do primary ─── */
+  --accent:          #5B9CF6;
+  --accent-hover:    #7AB3F8;
+  --accent-subtle:   #1d4ed820;
+  --accent-text:     #93C5FD;
 
-  --success: #FBBF24;
-  --success-subtle: #4ADE80;
-  --success-text: #86EFAC;
+  /* ─── Semantic ─── */
+  --success:         #34D399;
+  --success-subtle:  #16a34a18;
+  --success-text:    #6EE7B7;
 
-  --warning: #f59e0b;
-  --warning-subtle: #fffbeb;
-  --warning-text: #FDE68A;
+  --warning:         #FBBF24;
+  --warning-subtle:  #d9770618;
+  --warning-text:    #FDE68A;
 
-  --danger: #F87171;
-  --danger-subtle: #DC262620;
-  --danger-text: #FCA5A5;
+  --danger:          #F87171;
+  --danger-subtle:   #dc262618;
+  --danger-text:     #FCA5A5;
+
+  /* ─── HeroUI internal tokens ─── */
+  --heroui-background:            #1C1C1E;
+  --heroui-foreground:            #F5F5F4;
+
+  --heroui-content1:              #242426;
+  --heroui-content1-foreground:   #F5F5F4;
+  --heroui-content2:              #2E2E30;
+  --heroui-content2-foreground:   #A8A8A6;
+  --heroui-content3:              #3A3A3C;
+  --heroui-content3-foreground:   #A8A8A6;
+  --heroui-content4:              #4A4A4C;
+  --heroui-content4-foreground:   #6B6B68;
+
+  --heroui-default:               #2E2E30;
+  --heroui-default-foreground:    #F5F5F4;
+  --heroui-default-50:            #1C1C1E;
+  --heroui-default-100:           #242426;
+  --heroui-default-200:           #2E2E30;
+  --heroui-default-300:           #3A3A3C;
+  --heroui-default-400:           #4A4A4C;
+  --heroui-default-500:           #6B6B68;
+  --heroui-default-600:           #A8A8A6;
+  --heroui-default-700:           #D4D4D0;
+  --heroui-default-800:           #EEEEEC;
+  --heroui-default-900:           #F5F5F4;
+
+  --heroui-primary:               #5B9CF6;
+  --heroui-primary-foreground:    #FFFFFF;
+  --heroui-primary-50:            #1d4ed815;
+  --heroui-primary-100:           #1d4ed825;
+  --heroui-primary-200:           #1d4ed840;
+  --heroui-primary-300:           #2558C8;
+  --heroui-primary-400:           #3B72D4;
+  --heroui-primary-500:           #5B9CF6;
+  --heroui-primary-600:           #7AB3F8;
+  --heroui-primary-700:           #93C5FD;
+  --heroui-primary-800:           #BFDBFE;
+  --heroui-primary-900:           #DBEAFE;
+
+  /* ─── Secondary → azul médio ─── */
+  --heroui-secondary:             #3B72D4;
+  --heroui-secondary-foreground:  #FFFFFF;
+
+  --heroui-divider:               #3A3A3C;
+  --heroui-focus:                 #5B9CF6;
 }
 
-
 @theme {
-  --color-surface: var(--surface);
-  --color-surface-alt: var(--surface-alt);
-  --color-surface-raised: var(--surface-raised);
+  --color-surface:         var(--surface);
+  --color-surface-alt:     var(--surface-alt);
+  --color-surface-raised:  var(--surface-raised);
   --color-surface-overlay: var(--surface-overlay);
 
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  --color-text-inverse: var(--text-inverse);
+  --color-text-primary:    var(--text-primary);
+  --color-text-secondary:  var(--text-secondary);
+  --color-text-muted:      var(--text-muted);
+  --color-text-inverse:    var(--text-inverse);
 
-  --color-border: var(--border);
-  --color-border-hover: var(--border-hover);
-  --color-ring: var(--ring);
+  --color-border:          var(--border);
+  --color-border-hover:    var(--border-hover);
+  --color-ring:            var(--ring);
 
-  --color-primary-color: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-subtle: var(--primary-subtle);
-  --color-primary-text: var(--primary-text);
+  --color-primary-color:   var(--primary);
+  --color-primary-hover:   var(--primary-hover);
+  --color-primary-subtle:  var(--primary-subtle);
+  --color-primary-text:    var(--primary-text);
 
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-subtle: var(--accent-subtle);
-  --color-accent-text: var(--accent-text);
+  --color-accent:          var(--accent);
+  --color-accent-hover:    var(--accent-hover);
+  --color-accent-subtle:   var(--accent-subtle);
+  --color-accent-text:     var(--accent-text);
 
-  --color-success: var(--success);
-  --color-success-subtle: var(--success-subtle);
-  --color-success-text: var(--success-text);
+  --color-success:         var(--success);
+  --color-success-subtle:  var(--success-subtle);
+  --color-success-text:    var(--success-text);
 
-  --color-warning: var(--warning);
-  --color-warning-subtle: var(--warning-subtle);
-  --color-warning-text: var(--warning-text);
+  --color-warning:         var(--warning);
+  --color-warning-subtle:  var(--warning-subtle);
+  --color-warning-text:    var(--warning-text);
 
-  --color-danger: var(--danger);
-  --color-danger-subtle: var(--danger-subtle);
-  --color-danger-text: var(--danger-text);
+  --color-danger:          var(--danger);
+  --color-danger-subtle:   var(--danger-subtle);
+  --color-danger-text:     var(--danger-text);
 }

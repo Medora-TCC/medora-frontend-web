@@ -1,4 +1,4 @@
-export * from "./Teste";
+export * from "./ThemeToggle";
 export * from "./Input";
 export * from "./Button";
 export * from "./Carousel"

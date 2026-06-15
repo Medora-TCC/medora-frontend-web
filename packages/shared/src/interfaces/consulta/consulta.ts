@@ -1,6 +1,6 @@
 export type StatusConsulta = 'agendado' | 'em_espera' | 'em_atendimento' | 'finalizado' | 'cancelado';
 
-export interface IConsulta {
+export interface IConsultaDetailed {
   id: string;
   pacienteId: string;
   pacienteNome: string;
@@ -11,11 +11,18 @@ export interface IConsulta {
   tags?: string[];
 }
 
-export interface IConsultaDetalhada extends IConsulta {
-  prescricaoId?: string;
-  historicoPaciente?: string;
+export interface IConsultaSimplified{
+  id: string;
+  pacienteId: string;
+  pacienteNome: string;
+  medicoId: string;
+  dataHorario: string;
+  status: StatusConsulta;
+  observacoes?: string;
+  tags?: string[];
 }
 
-export interface ITeleConsulta extends IConsulta {
+
+export interface ITeleConsultaDetailed extends IConsultaDetailed {
    salaVirtualUrl?: string;
 }

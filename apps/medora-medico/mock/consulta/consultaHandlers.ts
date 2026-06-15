@@ -1,9 +1,9 @@
 
 
-import type { IConsulta } from "@medora_web/shared"
-import { delay, http, HttpResponse } from "msw";
+import type { IConsultaDetailed } from "@medora_web/shared";
+import { http, HttpResponse } from "msw";
 
-const mockConsulta: IConsulta = {
+const mockConsulta: IConsultaDetailed = {
     id: "tc-001",
     pacienteId: "pac-123",
     pacienteNome: "João Silva",
@@ -14,14 +14,16 @@ const mockConsulta: IConsulta = {
     tags: ["hipertensão", "retorno"],
 };
 
-const mockConsultaList: IConsulta[] = [
+// const mockConsultaListEmpty: IConsultaDetailed[] = []
+
+const mockConsultaList: IConsultaDetailed[] = [
     mockConsulta,
     {
         id: "tc-002",
         pacienteId: "pac-789",
         pacienteNome: "Maria Souza",
         medicoId: "med-456",
-        dataHorario: "2026-05-11T09:00:00.000Z",
+        dataHorario: "2026-05-11T09:00:00.000-03:00",
         status: 'em_espera',
         // observacoes e tags ausentes — campos opcionais
     },
@@ -30,7 +32,7 @@ const mockConsultaList: IConsulta[] = [
         pacienteId: "pac-321",
         pacienteNome: "Carlos Mendes",
         medicoId: "med-456",
-        dataHorario: "2026-05-08T10:30:00.000Z",
+        dataHorario: "2026-05-08T10:30:00.000-03:00",
         status: 'finalizado',
         tags: ["primeira-consulta"],
         // salaVirtualUrl ausente — sala já encerrada
@@ -40,7 +42,7 @@ const mockConsultaList: IConsulta[] = [
         pacienteId: "pac-404",
         pacienteNome: "Ana Pereira",
         medicoId: "med-789",
-        dataHorario: "2026-05-12T16:00:00.000Z",
+        dataHorario: "2026-05-12T16:00:00.000-03:00",
         status: "cancelado",
         observacoes: "Paciente com diabetes tipo 2",
         tags: ["diabetes", "acompanhamento"],
@@ -50,8 +52,18 @@ const mockConsultaList: IConsulta[] = [
         pacienteId: "pac-505",
         pacienteNome: "Roberto Lima",
         medicoId: "med-789",
-        dataHorario: "2026-05-07T08:00:00.000Z",
+        dataHorario: "2026-05-21T08:00:00.000-03:00",
         status: "finalizado",
+        observacoes: "Pós-operatório",
+        tags: ["cirurgia", "retorno"],
+    },
+    {
+        id: "tc-006",
+        pacienteId: "pac-506",
+        pacienteNome: "Pedro Pedroso",
+        medicoId: "med-789",
+        dataHorario: "2026-05-27T23:50:00.000-03:00",
+        status: "agendado",
         observacoes: "Pós-operatório",
         tags: ["cirurgia", "retorno"],
     },
@@ -60,7 +72,6 @@ const mockConsultaList: IConsulta[] = [
 export const consultaHandlers = [
     // GET /api/consultas — lista todas
     http.get("/api/consultas", async () => {
-        await delay(1500)
         return HttpResponse.json(mockConsultaList);
     }),
 
@@ -78,11 +89,24 @@ export const consultaHandlers = [
         return HttpResponse.json(consulta);
     }),
 
+    http.get("/api/consultas/details/:id",({ params }) => {
+        const consulta = mockConsultaList.find((tc) => tc.id === params.id);
+
+        if (!consulta) {
+            return HttpResponse.json(
+                { message: "Consulta não encontrada" },
+                { status: 404 }
+            );
+        }
+
+        return HttpResponse.json(consulta);
+    }),
+
     // POST /api/consultas — cria nova
     http.post("/api/consultas", async ({ request }) => {
-        const body = (await request.json()) as Omit<IConsulta, "id">;
+        const body = (await request.json()) as Omit<IConsultaDetailed, "id">;
 
-        const nova: IConsulta = {
+        const nova: IConsultaDetailed = {
             ...body,
             id: `tc-${Date.now()}`
         };
@@ -101,8 +125,8 @@ export const consultaHandlers = [
             );
         }
 
-        const body = (await request.json()) as Partial<IConsulta>;
-        const atualizada: IConsulta = { ...consulta, ...body };
+        const body = (await request.json()) as Partial<IConsultaDetailed>;
+        const atualizada: IConsultaDetailed = { ...consulta, ...body };
 
         return HttpResponse.json(atualizada);
     }),

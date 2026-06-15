@@ -11,6 +11,7 @@ import AvailabilityService from '../../api/services/Availability';
 import { href } from 'react-router';
 
 
+
 type SlotType   = 'presential' | 'telemedicine' | 'hybrid';
 type SlotStatus = 'available' | 'scheduled' | 'confirmed' | 'canceled' | 'completed';
 

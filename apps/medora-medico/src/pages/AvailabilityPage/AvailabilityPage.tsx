@@ -78,6 +78,7 @@ const MODE_CONFIG: Record<SlotMode, {
     colorClass: 'text-violet-700',
     bgClass: 'bg-violet-100',
     borderClass: 'border-violet-300',
+
   },
   hybrid: {
     label: 'Ambos',
