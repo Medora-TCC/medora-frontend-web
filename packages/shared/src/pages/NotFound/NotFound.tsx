@@ -2,9 +2,9 @@ import notFoundIcon from "../../assets/notFound.svg";
 import { useNavigate } from "react-router";
 import { Button } from "@heroui/react";
 
-interface NotFoundProps {
-  homeUrl: string;
-}
+// interface NotFoundProps {
+//   homeUrl: string;
+// }
 
 export function NotFound() {
 

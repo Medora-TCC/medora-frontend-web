@@ -1,4 +1,4 @@
-import type { IConsultaDetailed, IConsultaSimplified } from "@medora_web/shared";
+import type { IConsultaDetailed } from "@medora_web/shared";
 
 export function PatientInitials(nome: string) {
   return nome

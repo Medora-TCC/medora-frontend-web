@@ -13,6 +13,8 @@ export function MedicalRecordPage() {
     dataNascimento: "12/12/1970",
   };
 
+  console.log(error)
+
   return (
     <section className="w-full max-h-[90vh] min-h-full bg-surface overflow-hidden flex flex-col">
       <ToastProvider

@@ -4,6 +4,7 @@ import { Video } from "lucide-react";
 import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
 import ConsultaModal from "./ConsultaModal";
 import { canEnter, enterConsulta, PatientInitials } from "./ConsultaHelpers";
+import { useNavigate } from "react-router";
 
 // ─── Configurações de status ──────────────────────────────────────────────────
 
@@ -106,6 +107,9 @@ interface ConsultaCardProps {
 }
 
 function ConsultaCard({ consulta: c, top, left, width, height, onClick }: ConsultaCardProps) {
+
+  const navigate = useNavigate();
+
   const cfg      = STATUS_BLOCK_CFG[c.status];
   const chipCfg  = STATUS_CHIP_CFG[c.status];
   const entrar   = canEnter(c);
@@ -176,7 +180,7 @@ function ConsultaCard({ consulta: c, top, left, width, height, onClick }: Consul
                 className="h-4 px-1.5 text-[9px] ml-auto gap-0.5"
                 onPress={(e) => {
                   e.continuePropagation?.();
-                  enterConsulta(c.id);
+                  enterConsulta(c.id, navigate);
                 }}
               >
                 <Video className="size-2.5" />

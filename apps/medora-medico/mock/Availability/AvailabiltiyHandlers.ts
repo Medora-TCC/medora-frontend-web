@@ -1,5 +1,5 @@
 import { http, HttpResponse, delay } from 'msw';
-import { type DailyAvailabilitySlotDTO, type AvailabilitySlotStatus, type AvailabilitySlotType } from "@medora_web/shared";
+import { type DailyAvailabilitySlotDTO } from "@medora_web/shared";
 
 function getIsoDateWithOffset(daysOffset: number, time: string) {
   const date = new Date();
