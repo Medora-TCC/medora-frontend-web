@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
 import {
-  Avatar,
   Button,
   Card,
   Chip,
@@ -13,26 +11,17 @@ import {
   useOverlayState,
 } from "@heroui/react";
 
-import type { IConsultaDetailed, ITeleConsultaDetailed, StatusConsulta } from "@medora_web/shared";
+import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
 
 import { fetchConsultas } from "./Consulta";
-import { Calendar, CalendarDays, CircleAlert, RotateCcw, Video } from "lucide-react";
-import { formatConsultaHorario, isHoje, isTeleConsulta, PatientInitials } from "./ConsultaHelpers";
+import { CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
-import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import ConsultaModal from "../../components/Consulta/ConsultaModal";
 import { ConsultaCard } from "./ConsultaCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
 type FiltroData = "hoje" | "amanha" | "semana" | "nenhum";
-
-function canEnter(c: ITeleConsultaDetailed): boolean {
-  if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
-  const horario = new Date(c.startDateTime).getTime();
-  const agora = Date.now();
-  return agora >= horario - 15 * 60 * 1000 && agora <= horario + 10 * 60 * 1000;
-}
 
 // ─── Status config → Chip color + label ───────────────────────────────────────
 const statusCfg: Record<
@@ -61,10 +50,6 @@ function SkeletonCard() {
   );
 }
 
-interface ConsultaCardProps {
-  consulta: IConsultaDetailed;
-  onCardClick: (id: string) => void;
-}
 
 // ─── Consulta card componentizar ────────────────────────────────────────────────────────────
 

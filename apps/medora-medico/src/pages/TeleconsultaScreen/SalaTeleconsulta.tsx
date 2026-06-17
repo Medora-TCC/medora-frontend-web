@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
-import { Avatar, Button, Chip } from "@heroui/react";
+import { Chip } from "@heroui/react";
 import {
   Mic,
   MicOff,
@@ -266,7 +266,7 @@ export default function SalaTeleConsulta() {
 
   // UI
   const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | null>(null);
-  const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
+  // const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
   const [error, setError] = useState<string | null>(null);

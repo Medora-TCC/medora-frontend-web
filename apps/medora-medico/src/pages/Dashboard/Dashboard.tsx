@@ -10,7 +10,6 @@ import {
   Calendar
 } from "lucide-react";
 import { useNavigate } from "react-router";
-import ConsultaModal from "../../components/Consulta/ConsultaModal";
 
 const weeklyData = [
   { name: 'Seg', consultas: 8, percentage: '53%' },

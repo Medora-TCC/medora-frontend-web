@@ -3,7 +3,7 @@ import { canEnter, formatConsultaHorario, isHoje, isTeleConsulta, PatientInitial
 import { useEffect, useState } from "react";
 import { Avatar, Card, Chip } from "@heroui/react";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
-import { Calendar, CalendarDays } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 interface ConsultaCardProps {
   consulta: IConsultaDetailed;
