@@ -62,10 +62,17 @@ export default function LoginScreen() {
               className="flex flex-col gap-1 w-full"
               name="email"
               type="email"
+              isRequired
             >
               <Label className="text-text-muted ">Email</Label>
-              <Input className={"rounded-xl"} placeholder="" type="email" />
-              <FieldError>Insira um email válido</FieldError>
+              <Input className={"rounded-xl bg-surface-raised "} placeholder="" type="email" />
+              <FieldError>
+                {({ validationDetails }) =>
+                validationDetails.valueMissing
+                    ? "Email é obrigatório"
+                    : "Insira um email válido"
+                }
+            </FieldError>
             </TextField>
             <TextField
               className="flex flex-col gap-1 w-full"
@@ -74,12 +81,19 @@ export default function LoginScreen() {
             >
               <Label className="text-text-muted ">Senha</Label>
               <Input
-                className={"rounded-xl"}
+                className={"rounded-xl bg-surface-raised "}
                 id="input-type-email"
                 placeholder=""
                 type="password"
+                required
               />
-              <FieldError>Insira um email válido</FieldError>
+              <FieldError>
+                {({ validationDetails }) =>
+                validationDetails.valueMissing
+                    ? "Senha é obrigatória"
+                    : ""
+                }
+            </FieldError>
             </TextField>
             <div className="flex flex-col items-center gap-5 mt-5">
               <Button size="lg" className={"w-45 rounded-xl"} type="submit">

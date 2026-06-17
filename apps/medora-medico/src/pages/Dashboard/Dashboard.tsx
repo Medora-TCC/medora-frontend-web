@@ -118,7 +118,7 @@ export default function Dashboard() {
 
                     <div className="w-7 bg-zinc-100 rounded-t-sm relative flex items-end h-16 overflow-hidden">
                       <div
-                        className="w-full bg-blue-500 rounded-t-sm transition-all duration-500"
+                        className="w-full bg-accent rounded-t-sm transition-all duration-500"
                         style={{ height: day.percentage }}
                       />
                     </div>

@@ -48,10 +48,17 @@ export function ForgotPassword() {
                   className="flex flex-col gap-1 w-full"
                   name="email"
                   type="email"
+                  isRequired
                 >
                   <Label className="text-text-muted ">Email</Label>
                   <Input className={"rounded-xl"} placeholder="" type="email" />
-                  <FieldError>Insira um email válido</FieldError>
+                  <FieldError>
+                    {({ validationDetails }) =>
+                    validationDetails.valueMissing
+                        ? "Email é obrigatório"
+                        : "Insira um email válido"
+                    }
+                </FieldError>
                 </TextField>
                 <div className="w-full flex flex-col items-center gap-5 mt-5">
                   <Button size="lg" className={"w-45 rounded-xl"} type="submit">
