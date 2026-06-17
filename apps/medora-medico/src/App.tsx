@@ -1,5 +1,5 @@
 import ConsultaScreen from './pages/ConsultaScreen/ConsultaScreen';
-import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage } from "@medora_web/shared";
+import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage, ForgotPassword, VerifyEmailScreen } from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
@@ -46,6 +46,8 @@ function App() {
                   <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
                   <Route path="/login" element={<LoginScreen />} />
                   <Route path="/cadastro" element={<RegisterPage />} />
+                  <Route path='/esqueci-a-senha' element={<ForgotPassword/>}/>
+                  <Route path='/verificar-email' element={<VerifyEmailScreen/>}/>
                   <Route path="/server-error" element={<ServerErrorPage />}/>
                   <Route path="/connection-error" element={<ConnectionErrorPage />}/>
                   <Route path="/" element={< HomePage  />} />
