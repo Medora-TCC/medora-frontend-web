@@ -17,6 +17,7 @@ import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 import ConfigPage from './pages/ConfigPage/ConfigPage';
 import { TeleconsultaGuardProvider } from './pages/TeleconsultaScreen/guard/TeleconsultaGuardContext';
 import { TeleconsultaLayout } from './pages/TeleconsultaScreen/TeleconsultaLayout';
+import ResetPassword from '../../../packages/shared/src/pages/ResetPassword/ResetPassword';
 
 function App() {
   return (
@@ -48,11 +49,11 @@ function App() {
                   <Route path="/cadastro" element={<RegisterPage />} />
                   <Route path='/esqueci-a-senha' element={<ForgotPassword/>}/>
                   <Route path='/verificar-email' element={<VerifyEmailScreen/>}/>
+                  <Route path='/trocar-senha' element={<ResetPassword/>} />
                   <Route path="/server-error" element={<ServerErrorPage />}/>
                   <Route path="/connection-error" element={<ConnectionErrorPage />}/>
                   <Route path="/" element={< HomePage  />} />
                   <Route path="*" element={<NotFound />} />
-                  
               </Route>
              </Routes>
           </BrowserRouter>

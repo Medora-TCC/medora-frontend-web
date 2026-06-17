@@ -63,6 +63,7 @@ export default function LoginScreen() {
               name="email"
               type="email"
               isRequired
+              defaultValue="email123@email.com"
             >
               <Label className="text-text-muted ">Email</Label>
               <Input className={"rounded-xl bg-surface-raised "} placeholder="" type="email" />
@@ -78,6 +79,8 @@ export default function LoginScreen() {
               className="flex flex-col gap-1 w-full"
               name="senha"
               type="password"
+              isRequired
+              defaultValue="senha123"
             >
               <Label className="text-text-muted ">Senha</Label>
               <Input
@@ -85,7 +88,6 @@ export default function LoginScreen() {
                 id="input-type-email"
                 placeholder=""
                 type="password"
-                required
               />
               <FieldError>
                 {({ validationDetails }) =>

@@ -68,21 +68,6 @@ export function ForgotPassword() {
               </Form>
             </div>
           </div>
-          <div
-            id="fpassword-submit"
-            className="flex flex-col items-center justify-center mt-5 gap-2"
-          >
-            {/* <Button
-              size="lg"
-              className={"w-35 rounded-xl"}
-              onPress={(e) => {
-                e.continuePropagation?.();
-                handleSend(navigate);
-              }}
-            >
-              Recuperar Senha
-            </Button> */}
-          </div>
         </div>
       </div>
     </div>
