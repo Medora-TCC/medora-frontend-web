@@ -8,7 +8,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface PDFViewerProps {
-  documentUrl: string;
+  documentUrl: string | null;
 }
 
 export default function PDFViewer({ documentUrl }: PDFViewerProps): JSX.Element {

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { DocsList } from "./DocsList";
 import { Spinner } from "@heroui/react";
 import { ModalConfirmacao } from "@medora_web/shared";
@@ -12,10 +12,14 @@ const MOCK_DOCS = [
     status: 'pending' as const,
     patient: 'Joãozinho da Silva',
     date: '14/06/2026',
+    path: "/TesteReceita.pdf"
   },
 ];
 
 export function SignaturePage() {
+
+  const [documentoSelecionado, setDocumentoSelecionado] = useState<string | null>(null); 
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="shrink-0 py-4 border-b border-divider">
@@ -26,7 +30,7 @@ export function SignaturePage() {
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-[40%] shrink-0 overflow-y-auto border-r border-divider p-4">
-          <DocsList docs={MOCK_DOCS} />
+          <DocsList docs={MOCK_DOCS} setDocumentoSelecionado={setDocumentoSelecionado} />
         </aside>
 
         <div className="flex flex-1 flex-col overflow-hidden min-w-0">
@@ -38,7 +42,7 @@ export function SignaturePage() {
                 </div>
               }
             >
-              <PDFViewer documentUrl="/Teste.pdf" />
+              <PDFViewer documentUrl={documentoSelecionado} />
             </Suspense>
           </div>
 

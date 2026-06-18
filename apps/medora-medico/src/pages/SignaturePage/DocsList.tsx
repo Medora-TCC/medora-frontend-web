@@ -1,4 +1,5 @@
 import { Calendar, CheckCircle, Clock, FileBadge, FileText, User, type LucideIcon } from "lucide-react";
+import type { Dispatch, SetStateAction } from "react";
 
 interface Doc {
   id: string;
@@ -6,6 +7,7 @@ interface Doc {
   status: 'pending' | 'signed';
   patient: string;
   date: string;
+  path: string;
 }
 
 const statusConfig = {
@@ -30,15 +32,16 @@ const docTypeIcon: Record<string, LucideIcon> = {
 
 interface DocCardProps {
   doc: Doc;
+  setDocumentoSelecionado: Dispatch<SetStateAction<string | null>>;
 }
 
-function DocCard({ doc }: DocCardProps) {
+function DocCard({ doc, setDocumentoSelecionado }: DocCardProps) {
   const status = statusConfig[doc.status];
   const StatusIcon = status.icon;
   const DocIcon = docTypeIcon[doc.type] ?? FileText;
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-divider bg-surface p-4 transition-colors hover:border-default-300">
+    <article className="flex flex-col gap-3 rounded-xl border border-divider bg-surface p-4 transition-colors hover:border-default-300 cursor-pointer" onClick={() => {setDocumentoSelecionado(doc.path)}}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50">
@@ -68,7 +71,12 @@ function DocCard({ doc }: DocCardProps) {
   );
 }
 
-export function DocsList({ docs }: { docs: Doc[] }) {
+interface DocsListProps {
+  docs: Doc[];
+  setDocumentoSelecionado: Dispatch<SetStateAction<string | null>>;
+}
+
+export function DocsList({ docs, setDocumentoSelecionado }: DocsListProps) {
   const pendingCount = docs.filter(d => d.status === 'pending').length;
 
   return (
@@ -84,7 +92,7 @@ export function DocsList({ docs }: { docs: Doc[] }) {
 
       <div className="flex flex-col gap-2.5">
         {docs.map(doc => (
-          <DocCard key={doc.id} doc={doc} />
+          <DocCard key={doc.id} doc={doc} setDocumentoSelecionado={setDocumentoSelecionado}/>
         ))}
       </div>
     </section>
