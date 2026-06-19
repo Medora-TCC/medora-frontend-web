@@ -17,6 +17,7 @@ import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 import ConfigPage from './pages/ConfigPage/ConfigPage';
 import { TeleconsultaLayout } from './pages/TeleconsultaScreen/TeleconsultaLayout';
 import ResetPassword from '../../../packages/shared/src/pages/ResetPassword/ResetPassword';
+import FinancialManagement from './pages/FinancialManagementPage/FinancialManagement';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
                 <Route path="" element={<Dashboard />} />
                 <Route path="prontuario" element={<MedicalRecordPage />} />
                 <Route path="perfil" element={<ProfessionalProfilePage />} />
+                <Route path="financeiro" element={<FinancialManagement/>} />
                 <Route path="teleconsulta" element={<TeleconsultaLayout />}>
                   <Route path=":id/pre-sala" element={<TeleConsultaConfig />} />
                   <Route path=":id/sala"     element={<SalaTeleConsulta />} />
