@@ -8,7 +8,6 @@ import { Card, Button } from '@heroui/react';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService from '../../api/services/Availability';
-import { href } from 'react-router';
 
 
 type SlotType   = 'presential' | 'telemedicine' | 'hybrid';
@@ -207,7 +206,7 @@ export function AvailabilityHistorical() {
                 <button
                   key={date.toISOString()}
                   onClick={() => setSelectedDate(date)}
-                  className={`flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 min-w-[48px] transition-all
+                  className={`flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 min-w-12 transition-all
                     ${isActive
                       ? 'bg-primary text-white shadow-sm'
                       : 'hover:bg-surface-raised text-text-secondary'}`}

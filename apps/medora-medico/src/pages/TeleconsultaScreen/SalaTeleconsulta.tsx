@@ -298,6 +298,8 @@ export default function SalaTeleConsulta() {
   // ── Inicializa stream local ──────────────────────────────────────────────
   useEffect(() => {
     let active = true;
+    console.log(error);
+    
     const constraints: MediaStreamConstraints = {
       video: state.selectedCam
         ? { deviceId: { exact: state.selectedCam } }

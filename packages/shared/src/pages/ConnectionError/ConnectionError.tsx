@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { JSX } from "react";
+import type {  JSX } from "react";
 import { useNavigate } from "react-router";
 
 export function ConnectionErrorPage(): JSX.Element {

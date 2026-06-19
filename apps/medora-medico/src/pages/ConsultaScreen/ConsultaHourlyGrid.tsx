@@ -107,6 +107,9 @@ interface ConsultaCardProps {
 }
 
 function ConsultaCard({ consulta: c, top, left, width, height, onClick }: ConsultaCardProps) {
+
+  const navigate = useNavigate();
+
   const cfg      = STATUS_BLOCK_CFG[c.status];
   const chipCfg  = STATUS_CHIP_CFG[c.status];
   const entrar   = canEnter(c);
@@ -118,7 +121,6 @@ function ConsultaCard({ consulta: c, top, left, width, height, onClick }: Consul
   const isXTall = height >= 76;
 
   const dateDay = new Date(c.startDateTime).getDay();
-  const navigate = useNavigate();
 
   return (
     <div
