@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { DocsList } from "./DocsList";
-import { Spinner } from "@heroui/react";
+import { Modal, Spinner } from "@heroui/react";
 import { ModalConfirmacao } from "@medora_web/shared";
 
 const PDFViewer = lazy(() => import('./PDFViewer'));
@@ -18,7 +18,14 @@ const MOCK_DOCS = [
 
 export function SignaturePage() {
 
-  const [documentoSelecionado, setDocumentoSelecionado] = useState<string | null>(null); 
+  const [isLoading, setIsLoading] = useState(false);
+  const [documentoSelecionado, setDocumentoSelecionado] = useState<string | null>(null);
+
+  const assinarDocumento = async () => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsLoading(false);
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -48,12 +55,30 @@ export function SignaturePage() {
 
           <div className="shrink-0 flex justify-end px-8 py-4 border-t border-divider">
             <ModalConfirmacao
-              onConfirm={() => {}}
+              onConfirm={assinarDocumento}
               disabled={false}
               texto="Deseja assinar o documento?"
               textoBotao="Assinar"
             />
           </div>
+
+          <Modal>
+            <Modal.Backdrop
+              isOpen={isLoading}
+              isDismissable={false}
+              isKeyboardDismissDisabled
+              variant="blur"
+            >
+              <Modal.Container>
+                <Modal.Dialog aria-label="Carregando">
+                  <Modal.Body className="flex flex-col items-center justify-center gap-3 py-8">
+                    <Spinner />
+                    <span>Assinando documento</span>
+                  </Modal.Body>
+                </Modal.Dialog>
+              </Modal.Container>
+            </Modal.Backdrop>
+          </Modal>
         </div>
       </div>
     </div>
