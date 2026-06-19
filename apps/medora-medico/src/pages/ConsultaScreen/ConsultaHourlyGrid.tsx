@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, Button, Chip, useOverlayState } from "@heroui/react";
 import { Video } from "lucide-react";
 import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
-import ConsultaModal from "./ConsultaModal";
 import { canEnter, enterConsulta, PatientInitials } from "./ConsultaHelpers";
 import { useNavigate } from "react-router";
+import ConsultaModal from "../../components/Consulta/ConsultaModal";
 
 // ─── Configurações de status ──────────────────────────────────────────────────
 
@@ -64,14 +64,14 @@ function detectOverlaps(
   durationMin: number,
 ): Record<string, { col: number; totalCols: number }> {
   const sorted = [...consultas].sort(
-    (a, b) => toMin(a.dataHorario) - toMin(b.dataHorario),
+    (a, b) => toMin(a.startDateTime) - toMin(b.startDateTime),
   );
 
   const colEnds: number[] = [];
   const result: Record<string, { col: number; totalCols: number }> = {};
 
   for (const c of sorted) {
-    const startM = toMin(c.dataHorario);
+    const startM = toMin(c.startDateTime);
     const endM   = startM + ((c as any).duracao ?? durationMin);
     let placed   = false;
 
@@ -120,13 +120,13 @@ function ConsultaCard({ consulta: c, top, left, width, height, onClick }: Consul
   /** Mostrar badge de status e botão */
   const isXTall = height >= 76;
 
-  const dateDay = new Date(c.dataHorario).getDay();
+  const dateDay = new Date(c.startDateTime).getDay();
 
   return (
     <div
       role="button"
       tabIndex={0}
-      aria-label={`Consulta de ${c.pacienteNome}`}
+      aria-label={`Consulta de ${c.patientNome}`}
       className={[
         "absolute rounded-md border overflow-hidden select-none",
         "transition-all duration-150 hover:opacity-90 hover:shadow-md cursor-pointer",
@@ -144,11 +144,11 @@ function ConsultaCard({ consulta: c, top, left, width, height, onClick }: Consul
         <div className="flex items-center gap-1 min-w-0">
           <Avatar color="accent" className="size-4 shrink-0">
             <Avatar.Fallback className="text-[8px]">
-              {PatientInitials(c.pacienteNome)}
+              {PatientInitials(c.patientNome)}
             </Avatar.Fallback>
           </Avatar>
           <span className={`text-[10px] font-medium truncate leading-tight ${cfg.text}`}>
-            {c.pacienteNome}
+            {c.patientNome}
             {" "}
             <span className="font-normal opacity-60">{WEEK_DAYS[dateDay]}</span>
           </span>
@@ -157,7 +157,7 @@ function ConsultaCard({ consulta: c, top, left, width, height, onClick }: Consul
         {/* Horário e duração */}
         {isTall && (
           <span className={`text-[9px] leading-tight ${cfg.muted}`}>
-            {new Date(c.dataHorario).toLocaleTimeString("pt-BR", {
+            {new Date(c.startDateTime).toLocaleTimeString("pt-BR", {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -269,7 +269,7 @@ export function ConsultaHourlyGrid({
   const visible = useMemo(
     () =>
       consultas.filter((c) => {
-        const h = new Date(c.dataHorario).getHours();
+        const h = new Date(c.startDateTime).getHours();
         return h >= startHour && h <= endHour;
       }),
     [consultas, startHour, endHour],
@@ -377,14 +377,14 @@ export function ConsultaHourlyGrid({
 
               {/* Cards de consulta */}
               {visible.map((c) => {
-                const startM   = toMin(c.dataHorario);
+                const startM   = toMin(c.startDateTime);
                 const duration = (c as any).duracao ?? defaultDuration;
                 const endM     = startM + duration;
                 const top      = toPx(startM, startHour);
                 const height   = Math.max(toPx(endM, startHour) - top, 44);
                 const { col, totalCols } = layout[c.id];
                 const cardColW = colW / Math.max(totalCols, 1);
-                const dateDay  = new Date(c.dataHorario).getDay();
+                const dateDay  = new Date(c.startDateTime).getDay();
                 const left     = (dateDay - startDay) * colW + col * cardColW + 2;
 
                 return (

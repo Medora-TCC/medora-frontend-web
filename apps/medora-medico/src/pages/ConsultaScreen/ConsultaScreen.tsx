@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Avatar,
   Button,
   Card,
   Chip,
@@ -12,25 +11,17 @@ import {
   useOverlayState,
 } from "@heroui/react";
 
-import type { IConsultaDetailed, ITeleConsultaDetailed, StatusConsulta } from "@medora_web/shared";
+import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
 
 import { fetchConsultas } from "./Consulta";
-import { Calendar, CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
-import  ConsultaModal from "./ConsultaModal";
-import { formatConsultaHorario, isHoje, PatientInitials } from "./ConsultaHelpers";
+import { CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
-import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
+import ConsultaModal from "../../components/Consulta/ConsultaModal";
+import { ConsultaCard } from "./ConsultaCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
 type FiltroData = "hoje" | "amanha" | "semana" | "nenhum";
-
-function canEnter(c: ITeleConsultaDetailed): boolean {
-  if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
-  const horario = new Date(c.dataHorario).getTime();
-  const agora = Date.now();
-  return agora >= horario - 15 * 60 * 1000 && agora <= horario + 10 * 60 * 1000;
-}
 
 // ─── Status config → Chip color + label ───────────────────────────────────────
 const statusCfg: Record<
@@ -59,79 +50,8 @@ function SkeletonCard() {
   );
 }
 
-interface ConsultaCardProps {
-  consulta: IConsultaDetailed;
-  onCardClick: (id: string) => void;
-}
 
-// ─── Consulta card ────────────────────────────────────────────────────────────
-function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
-  const cfg = statusCfg[consulta.status];
-  const hoje = isHoje(consulta.dataHorario);
-  const [isJoinable, setIsJoinable] = useState<boolean>(false);
-
-  useEffect(() => {
-    setIsJoinable(canEnter(consulta))
-  }, [])
-
-  return (
-    <Card
-      onClick={() => onCardClick(consulta.id)}
-      className={`
-        transition-all duration-300 shadow-md h-60
-        ${
-          isJoinable
-            ? "border border-success/30 bg-success/5 hover:bg-success/10"
-            : "hover:bg-surface-secondary"
-        }
-      `}
-    >
-      <Card.Content className="flex items-center justify-center flex-col gap-4 p-4">
-        {/* Avatar com iniciais */}
-        <Avatar size="md" color="accent">
-          <Avatar.Fallback>{PatientInitials(consulta.pacienteNome)}</Avatar.Fallback>
-        </Avatar>
-
-        {/* Info */}
-        <div className="flex flex-1 items-center min-w-0 flex-col gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium truncate">
-              {consulta.pacienteNome}
-            </span>
-
-            {hoje && consulta.status === "agendado" && (
-              <Chip size="sm" color="warning" variant="soft">
-                hoje
-              </Chip>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 text-xs text-fg-muted flex-wrap">
-            <span className="flex items-center gap-1">
-              <Calendar />
-              {formatConsultaHorario(consulta.dataHorario)}
-            </span>
-          </div>
-        </div>
-
-        {/* Badge status */}
-        <Chip
-          size="sm"
-          color={cfg.color}
-          variant="soft"
-          className="hidden sm:flex shrink-0"
-        >
-          {cfg.label}
-        </Chip>
-
-        <EnterConsultaButton
-        isJoinable={isJoinable}
-        id={consulta.id}
-        />
-      </Card.Content>
-    </Card>
-  );
-}
+// ─── Consulta card componentizar ────────────────────────────────────────────────────────────
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ filtro }: { filtro: Filtro }) {
@@ -151,7 +71,7 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function ConsultaScreen() {
-  const [consultas, setConsultas] = useState<ITeleConsultaDetailed[]>([]);
+  const [consultas, setConsultas] = useState<IConsultaDetailed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todas");
@@ -195,12 +115,12 @@ export function ConsultaScreen() {
         .filter(
           (c) =>
             busca.trim() === "" ||
-            c.pacienteNome.toLowerCase().includes(busca.toLowerCase()),
+            c.patientNome.toLowerCase().includes(busca.toLowerCase()),
         )
         .filter((c) => {
           if (filtroData === "nenhum") return true;
 
-          const data = new Date(c.dataHorario);
+          const data = new Date(c.startDateTime);
           const hoje = new Date();
 
           if (filtroData === "hoje") {
@@ -224,8 +144,8 @@ export function ConsultaScreen() {
         })
         .sort(
           (a, b) =>
-            new Date(a.dataHorario).getTime() -
-            new Date(b.dataHorario).getTime(),
+            new Date(a.startDateTime).getTime() -
+            new Date(b.startDateTime).getTime(),
         ),
     [consultas, filtro, busca, filtroData],
   );
@@ -368,7 +288,7 @@ export function ConsultaScreen() {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             {loading ? (
               <>
                 <SkeletonCard />
