@@ -15,8 +15,7 @@ interface MedicalRecordComponentProps {
 export function MedicalRecordComponent({
   setError,
 }: MedicalRecordComponentProps): JSX.Element {
-
-  var prontuario: MedicalRecordDTO | null = null
+  var prontuario: MedicalRecordDTO | null = null;
 
   const location = useLocation();
   prontuario = location.state?.prontuario;
@@ -77,7 +76,11 @@ export function MedicalRecordComponent({
           ref={editorRef}
           setText={setText}
           setIsEmpty={setIsEmpty}
-          content={prontuario === null || prontuario === undefined ? null : prontuario.medicalRecord}
+          content={
+            prontuario === null || prontuario === undefined
+              ? null
+              : prontuario.medicalRecord
+          }
         />
       </div>
       <div className="mt-4 p-4 w-full flex justify-end ">
@@ -85,6 +88,7 @@ export function MedicalRecordComponent({
           onConfirm={SalvarProntuario}
           disabled={isEmpty}
           texto="Deseja mesmo salvar? ATENÇÃO: Após salvo o prontuário não pode mais ser alterado"
+          textoBotao={"Sim"}
         />
       </div>
     </section>
