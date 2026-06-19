@@ -1,18 +1,14 @@
-import { Button, Modal, Spinner } from "@heroui/react";
+import {  Modal, Spinner } from "@heroui/react";
 import type { IConsultaDetailed } from "@medora_web/shared";
 import { useEffect, useState } from "react";
 import {
   Video,
   User,
-  Calendar,
   Clock,
   MapPin,
   CreditCard,
   AlertCircle,
-  FileText,
   Stethoscope,
-  ClipboardList,
-  ChevronRight,
   CheckCircle2,
   X,
 } from "lucide-react";

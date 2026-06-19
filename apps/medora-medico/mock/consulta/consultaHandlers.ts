@@ -4,8 +4,6 @@ import type {
 } from "@medora_web/shared";
 import { http, HttpResponse } from "msw";
 
-const mockConsultaListEmpty: IConsultaDetailed[] = [];
-
 export const mockConsultaList: Array<
   IConsultaDetailed | ITeleConsultaDetailed
 > = [
