@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { Activity, Stethoscope } from "lucide-react";
+import { Activity } from "lucide-react";
 import { useMemo, useState } from "react";
 import type React from "react";
 import { useNavigate } from "react-router";

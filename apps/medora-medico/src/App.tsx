@@ -15,7 +15,6 @@ import ProfessionalProfilePage from "./pages/ProfessionalProfilePage/Professiona
 import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
 import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
 import ConfigPage from './pages/ConfigPage/ConfigPage';
-import { TeleconsultaGuardProvider } from './pages/TeleconsultaScreen/guard/TeleconsultaGuardContext';
 import { TeleconsultaLayout } from './pages/TeleconsultaScreen/TeleconsultaLayout';
 import ResetPassword from '../../../packages/shared/src/pages/ResetPassword/ResetPassword';
 

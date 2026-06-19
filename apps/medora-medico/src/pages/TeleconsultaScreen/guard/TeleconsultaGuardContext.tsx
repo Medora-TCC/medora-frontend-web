@@ -5,7 +5,6 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import { useNavigate } from "react-router"
 import { teleconsultaGuard, type GuardState } from "./teleconsultaGuard"
 import TermoUsoModal from "../TermoUsoModal"
 

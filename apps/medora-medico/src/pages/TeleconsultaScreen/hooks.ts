@@ -1,8 +1,7 @@
 // hooks/useTermosConsulta.ts
 import { useState } from "react"
-import { enterConsulta } from "../ConsultaScreen/ConsultaHelpers"
 
-export function useTermosConsulta(consultaId: string) {
+export function useTermosConsulta() {
   const [termosAbertos, setTermosAbertos] = useState(false)
   const [loading, setLoading] = useState(false)
 
