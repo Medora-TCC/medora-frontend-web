@@ -4,3 +4,4 @@ export * from "./Maintenance/Maintenance";
 export * from "./NotFound/NotFound";
 export * from "./ServerErrorPage/ServerErrorPage";
 export * from "./VerifyEmail/VerifyEmail";
+export * from "./ResetPassword/ResetPassword";

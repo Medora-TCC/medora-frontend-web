@@ -65,7 +65,7 @@ export function MedicalRecordComponent({
   };
 
   return (
-    <section className="flex-1 flex flex-col bg-surface-alt py-4 pb-4">
+    <section className="flex-1 flex flex-col h-full bg-surface-alt py-4 pb-4">
       <div className="flex justify-between px-4 pt-2 pb-4">
         <h2 className="text-2xl font-bold text-text-primary">
           Novo prontuário
