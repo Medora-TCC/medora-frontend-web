@@ -75,9 +75,10 @@ const MODE_CONFIG: Record<SlotMode, {
   telemedicine: {
     label: 'Telemedicina',
     icon: <Monitor size={13} />,
-    colorClass: 'text-warning-text',
-    bgClass: 'bg-warning-subtle',
-    borderClass: 'border-warning/30',
+    colorClass: 'text-violet-700',
+    bgClass: 'bg-violet-100',
+    borderClass: 'border-violet-300',
+
   },
   hybrid: {
     label: 'Ambos',
@@ -142,7 +143,7 @@ function ModeSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as SlotMode)}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        className="absolute inset-0 w-full h-full opacity-0 text-text-primary cursor-pointer bg-surface"
       >
         {(Object.keys(MODE_CONFIG) as SlotMode[]).map((k) => (
           <option key={k} value={k}>{MODE_CONFIG[k].label}</option>
