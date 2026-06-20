@@ -9,14 +9,15 @@ function App() {
       <ThemeProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/medico" element={<MainLayout />}>
-              <Route path="/manage-users" element={<UserManagementPage />} />
+            <Route path="/admin" element={<MainLayout />}>
+              <Route path="manage-users" element={<UserManagementPage />} />
             </Route>
-          </Routes>
-
-          <Route element={<Layout />}></Route>
+          
+          <Route element={<Layout />}>
             <Route path="/" />
             <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
         </BrowserRouter>
       </ThemeProvider>
     </>

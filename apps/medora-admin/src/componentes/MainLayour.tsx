@@ -39,16 +39,16 @@ export default function MainLayout() {
             <div className="flex-1 py-4">
               <Sidebar.Section title="Geral" />
               <Sidebar.Item
-                icon={UserRoundCog }
+                icon={Activity}
                 label="Dashboard"
-                isActive={location.pathname === '/medico'}
+                isActive={location.pathname === '/admin'}
                 href="/home"/>
                
               <Sidebar.Item 
-              icon={UserRoundCog} 
-              label="Gerenciar Usuarios"
-              isActive={location.pathname.startsWith('/manage-users')}
-              href="/manage-users"/>
+                icon={UserRoundCog} 
+                label="Gerenciar Usuarios"
+                isActive={location.pathname.startsWith('/admin/manage-users')}
+                href="/admin/manage-users"/>
             </div>
 
           </Sidebar.Root>
