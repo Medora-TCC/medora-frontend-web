@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
-  Settings, FileText, ChevronLeft, ChevronRight,
+  Settings, ChevronLeft, ChevronRight,
   Video, User, Clock, Trash2, Pencil, CheckCircle2,
   Loader2, Building2, Monitor, RefreshCw, CalendarDays,
 } from 'lucide-react';
@@ -208,11 +208,11 @@ export function AvailabilityHistorical() {
                   onClick={() => setSelectedDate(date)}
                   className={`flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 min-w-12 transition-all
                     ${isActive
-                      ? 'bg-primary text-white shadow-sm'
+                      ? 'bg-primary text-primary-text shadow-sm'
                       : 'hover:bg-surface-raised text-text-secondary'}`}
                 >
-                  <span className={`text-[10px] font-semibold uppercase tracking-wide ${isActive ? 'text-white/80' : 'text-text-muted'}`}>{top}</span>
-                  <span className={`text-base font-bold leading-tight ${isActive ? 'text-white' : 'text-text-primary'}`}>{sub}</span>
+                  <span className={`text-[10px] font-semibold uppercase tracking-wide ${isActive ? 'text-primary-text' : 'text-text-muted'}`}>{top}</span>
+                  <span className={`text-base font-bold leading-tight ${isActive ? 'text-primary-text' : 'text-text-primary'}`}>{sub}</span>
                 </button>
               );
             })}
@@ -394,13 +394,6 @@ export function AvailabilityHistorical() {
                           <StatusBadge status={activeSlot.status as SlotStatus} isPast={isPast} />
                         </div>
                       </div>
-
-                      {!isPast && (
-                        <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary-hover transition-colors">
-                          <FileText size={13} />
-                          Ver prontuário
-                        </button>
-                      )}
                     </div>
 
                     {!isPast && activeSlot.status === 'scheduled' && (

@@ -13,7 +13,7 @@ import {
   ChevronDown,
   AlertCircle,
 } from 'lucide-react';
-import AvailabilityService from '../../api/services/Availability';
+// import AvailabilityService from '../../api/services/Availability';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
 
@@ -75,9 +75,9 @@ const MODE_CONFIG: Record<SlotMode, {
   telemedicine: {
     label: 'Telemedicina',
     icon: <Monitor size={13} />,
-    colorClass: 'text-warning-text',
-    bgClass: 'bg-warning-subtle',
-    borderClass: 'border-warning/30',
+    colorClass: 'text-violet-700',
+    bgClass: 'bg-violet-100',
+    borderClass: 'border-violet-300',
   },
   hybrid: {
     label: 'Ambos',
@@ -142,7 +142,7 @@ function ModeSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as SlotMode)}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        className="absolute inset-0 w-full h-full opacity-0 text-text-primary cursor-pointer bg-surface"
       >
         {(Object.keys(MODE_CONFIG) as SlotMode[]).map((k) => (
           <option key={k} value={k}>{MODE_CONFIG[k].label}</option>
@@ -192,18 +192,22 @@ export default function AvailabilityPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDayData, setEditingDayData] = useState<any>(null);
 
-  const doctorId = '1';
-  const token = '';
+  // const doctorId = '1';
+  // const token = '';
 
 
   const fetchAvailabilityHistory = async () => {
     try {
       setIsLoadingHistory(true);
-      const start = new Date().toISOString().split('T')[0];
-      const end = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const response = await AvailabilityService.GetAllAvailabilityByRangeDateAndDoctorId(
-        doctorId, start, end, token,
-      );
+      // const start = new Date().toISOString().split('T')[0];
+      // const end = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      // const response = await AvailabilityService.GetAllAvailabilityByRangeDateAndDoctorId(
+      //   doctorId, start, end, token,
+      // );
+      const response = [
+        { id: '1', startDateTime: '2024-06-20T08:00:00Z', time: '08:00' },
+        { id: '2', startDateTime: '2024-06-20T08:15:00Z', time: '08:15' },
+      ]
 console.log(response);
 
       if (Array.isArray(response)) {
@@ -303,14 +307,14 @@ console.log(response);
     }
     try {
       setLoading(true);
-      const weekDayEntries = Object.entries(shifts).map(([day, dayShifts]) => ({
-        weekDay: Number(day),
-        shifts: dayShifts.map((s) => ({ start: s.start, end: s.end, mode: s.mode })),
-      }));
-      await AvailabilityService.CreateDailyAvailability(
-        { doctorId, duration: parseInt(duration), repeatWeeks: parseInt(repeatWeeks), weekDays: weekDayEntries },
-        token,
-      );
+      // const weekDayEntries = Object.entries(shifts).map(([day, dayShifts]) => ({
+      //   weekDay: Number(day),
+      //   shifts: dayShifts.map((s) => ({ start: s.start, end: s.end, mode: s.mode })),
+      // }));
+      // await AvailabilityService.CreateDailyAvailability(
+      //   { doctorId, duration: parseInt(duration), repeatWeeks: parseInt(repeatWeeks), weekDays: weekDayEntries },
+      //   token,
+      // );
       toast.success('Grade de horários salva com sucesso!');
       setShifts({});
       fetchAvailabilityHistory();
@@ -517,7 +521,7 @@ console.log(response);
                       aria-label="Excluir agenda"
                       onClick={async () => {
                         try {
-                          await AvailabilityService.DeleteAvailabilityById(item.id, token);
+                          // await AvailabilityService.DeleteAvailabilityById(item.id, token);
                           toast.success('Agenda excluída com sucesso!');
                           fetchAvailabilityHistory();
                         } catch {
