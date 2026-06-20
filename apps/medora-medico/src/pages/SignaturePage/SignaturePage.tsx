@@ -73,8 +73,8 @@ export function SignaturePage() {
             />
           </div>
 
-          <ModalCarregamento isLoading={isLoading} />
-          
+          <ModalCarregamento isLoading={isLoading} texto="Assinando documento"/>
+
           <Modal>
             <Modal.Backdrop
               isOpen={isSucesso != null}

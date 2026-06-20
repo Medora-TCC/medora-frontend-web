@@ -2,9 +2,10 @@ import { Modal, Spinner } from "@heroui/react";
 
 interface ModalCarregamentoProps {
   isLoading: boolean;
+  texto: string
 }
 
-export function ModalCarregamento({isLoading} : ModalCarregamentoProps) {
+export function ModalCarregamento({isLoading, texto} : ModalCarregamentoProps) {
   return (
   <Modal>
     <Modal.Backdrop
@@ -17,7 +18,7 @@ export function ModalCarregamento({isLoading} : ModalCarregamentoProps) {
         <Modal.Dialog aria-label="Carregando">
           <Modal.Body className="flex flex-col items-center justify-center gap-3 py-8">
             <Spinner />
-            <span>Assinando documento</span>
+            <span>{texto}</span>
           </Modal.Body>
         </Modal.Dialog>
       </Modal.Container>

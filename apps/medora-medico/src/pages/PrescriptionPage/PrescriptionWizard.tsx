@@ -6,6 +6,9 @@ import { StepDosage } from "./Steps/StepDosage";
 import { StepRevision } from "./Steps/StepRevision";
 import { PrescriptionSidebar } from "./PrescriptionSidebar";
 import { usePrescriptionWizard } from "../../hooks/usePrescriptionWizard";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { ModalCarregamento } from "@medora_web/shared";
 
 
 const MEDICO_MOCK = {
@@ -35,6 +38,9 @@ interface Props {
 export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
   const wizard = usePrescriptionWizard();
   const { state } = wizard;
+  const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Injeta o paciente mock — em produção vem de props ou contexto
   const rascunhoComPaciente = {
@@ -42,9 +48,12 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
     paciente: state.rascunho.paciente ?? PACIENTE_MOCK,
   };
 
-  function handleEmitir() {
+  async function handleEmitir() {
+    setIsLoading(true);
     onConcluir?.(rascunhoComPaciente);
-    alert("Receituário emitido com sucesso! (mock)");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setIsLoading(false);
+    navigate("/medico/assinatura");
   }
 
   const ETAPA_IDX = ["medicamentos", "posologia", "revisao"].indexOf(state.etapaAtual) + 1;
@@ -149,6 +158,7 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
           </button>
         </footer>
       )}
+      <ModalCarregamento isLoading={isLoading} texto="Gerando prescrição"/>
     </div>
   );
 }
