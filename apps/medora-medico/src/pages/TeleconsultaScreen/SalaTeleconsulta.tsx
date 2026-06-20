@@ -9,7 +9,6 @@ import {
   PhoneOff,
   MessageSquare,
   Users,
-  MoreVertical,
   Maximize2,
   Minimize2,
   MonitorUp,
@@ -18,8 +17,10 @@ import {
   Send,
   Clock,
   ClipboardClock,
+  FileUser,
 } from "lucide-react";
 import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
+import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
@@ -265,7 +266,7 @@ export default function SalaTeleConsulta() {
   const [fullscreen, setFullscreen] = useState(false);
 
   // UI
-  const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | null>(null);
+  const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | "receita" | null>(null);
   // const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
@@ -396,6 +397,11 @@ export default function SalaTeleConsulta() {
     setUnread(0);
   }
 
+  function openReceita() {
+    setSidePanel((p) => (p === "receita" ? null : "receita"));
+    setUnread(0);
+  }
+
 
   function sendMessage(text: string) {
     const msg: ChatMessage = {
@@ -421,6 +427,8 @@ export default function SalaTeleConsulta() {
     positionClass = "left-[calc(50%-160px)] -translate-x-1/2"; // Ajuste o valor do chat aqui
   } else if (sidePanel === "prontuario") {
     positionClass = "left-[calc(50%-480px)] -translate-x-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+  } else if (sidePanel === "receita") {
+    positionClass = "left-[calc(50%-480px)] -translate-x-1/2"; // Ajuste o valor do receita aqui (ex: se for maior)
   }
 
   let sidePanelWidth = "w-0 overflow-hidden"
@@ -429,6 +437,8 @@ export default function SalaTeleConsulta() {
     sidePanelWidth = "w-80"; // Ajuste o valor do chat aqui
   } else if (sidePanel === "prontuario") {
     sidePanelWidth = "w-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+  } else if (sidePanel === "receita") {
+    sidePanelWidth = "w-1/2"; // Ajuste o valor do receita aqui (ex: se for maior)
   }
 
   return (
@@ -481,7 +491,7 @@ export default function SalaTeleConsulta() {
         </div>
 
         {/* ── Vídeos ──────────────────────────────────── */}
-        <div className="relative flex-1 p-3 pt-14 pb-24">
+        <div className="relative flex-1 p-3 pb-24">
           {/* Participante remoto (tela cheia) */}
           <div className="w-full h-full">
             {remoteConnected ? (
@@ -493,7 +503,7 @@ export default function SalaTeleConsulta() {
                 large
               />
             ) : (
-              <div className="w-full h-full rounded-2xl bg-[#1a1f2e] flex flex-col items-center justify-center gap-4">
+              <div className="w-full h-full rounded-2xl bg-surface flex flex-col items-center justify-center gap-4">
                 <div className="flex items-center justify-center size-20 rounded-full bg-white/5">
                   <Users size={32} className="text-white/30" />
                 </div>
@@ -570,6 +580,14 @@ export default function SalaTeleConsulta() {
               <ClipboardClock  size={20} />
             </ControlBtn>
 
+            <ControlBtn
+              onClick={openReceita}
+              active={sidePanel === "receita"}
+              label="Prescrição"
+            >
+              <FileUser   size={20} />
+            </ControlBtn>
+
             <div className="relative">
               <ControlBtn
                 onClick={openChat}
@@ -585,9 +603,6 @@ export default function SalaTeleConsulta() {
               )}
             </div>
 
-            <ControlBtn onClick={() => { }} active label="Mais">
-              <MoreVertical size={20} />
-            </ControlBtn>
           </div>
         </div>
       </div>
@@ -609,6 +624,14 @@ export default function SalaTeleConsulta() {
         {sidePanel === "prontuario" && (
           <div className="h-full">
             <MedicalRecordComponent setError={setError}/>
+          </div>
+        )}
+        {sidePanel === "receita" && (
+          <div className="h-full border-r-2 border-ring flex justify-center items-center bg-surface-overlay">
+            <PrescricaoWizard
+              onConcluir={(rascunho) => console.log(rascunho)}
+              onCancelar={() => { }}
+            />
           </div>
         )}
       </div>

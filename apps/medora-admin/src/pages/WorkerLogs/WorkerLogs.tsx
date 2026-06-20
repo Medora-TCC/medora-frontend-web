@@ -66,7 +66,7 @@ export default function WorkerLogs() {
           <div className="flex gap-2 w-full sm:w-auto">
             <Button variant="outline" className="flex-1 sm:flex-none flex items-center gap-2 h-10 border-divider">
               <Filter size={16} />
-              Filtrar Status
+              Filtros
             </Button>
           </div>
         </div>

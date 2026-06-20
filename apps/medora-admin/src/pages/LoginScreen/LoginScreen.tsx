@@ -1,6 +1,5 @@
 import { Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
-import { Activity, ShieldCheck } from "lucide-react";
-import { Carousel } from "@medora_web/shared";
+import { Activity } from "lucide-react";
 import type React from "react";
 import { useNavigate } from "react-router";
 
@@ -48,47 +47,9 @@ export default function AdminLoginScreen() {
                             >
                                 Entrar no Painel
                             </Button>
-                            <a href="#" className="w-full text-[14px] text-center text-accent pr-1">Esqueci a senha administrativa</a>
+                            <a href="#" className="w-full text-[14px] text-center text-accent pr-1">Esqueci a senha</a>
                         </div>
                     </Form>
-                </div>
-            </div>
-
-            <div className="bg-slate-900 w-1/2 rounded-xl h-full p-15 flex-col items-center gap-5 hidden md:flex relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                
-                <div id="login-panel-title" className="flex gap-3 h-full items-center justify-center z-10">
-                    <ShieldCheck size={80} color="#3b82f6" strokeWidth={1.5} />
-                    <h1 className="font-bold text-4xl text-center text-white">Central de Controle</h1>
-                </div>
-                
-                <div id="login-panel-content" className="h-full flex flex-col gap-5 justify-evenly z-10">
-                    <p className="text-slate-300 text-center text-xl">Monitore a saúde do sistema, gerencie usuários e acompanhe as métricas de negócio. <span className="font-bold text-white">Seguro, centralizado e em tempo real.</span></p>
-                    
-                    <div>
-                        <Carousel
-                            autoplayMs={15000}
-                            bordered={false}
-                            showControls
-                            showProgress
-                            showNav
-                        >
-                            <div className="p-8 text-center text-white">
-                                <h2 className="text-xl font-bold mb-2">Visão Geral do Sistema</h2>
-                                <p className="text-slate-400 text-sm">Acompanhe clientes, médicos e teleconsultas simultâneas.</p>
-                            </div>
-
-                            <div className="p-8 text-center text-white">
-                                <h2 className="text-xl font-bold mb-2">Monitoramento do Worker</h2>
-                                <p className="text-slate-400 text-sm">Acompanhe os logs de processos em segundo plano em tempo real.</p>
-                            </div>
-
-                            <div className="p-8 text-center text-white">
-                                <h2 className="text-xl font-bold mb-2">Gerenciamento de Contas</h2>
-                                <p className="text-slate-400 text-sm">Audite, ative e suspenda cadastros na plataforma.</p>
-                            </div>
-                        </Carousel>
-                    </div>
                 </div>
             </div>
         </div>

@@ -15,6 +15,8 @@ import {
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { FindConsultaDetailedById } from "../../pages/ConsultaScreen/Consulta";
 import { canEnter } from "../../pages/ConsultaScreen/ConsultaHelpers";
+import EnterReceitaButton from "../Receita/EnterReceitaButton";
+import EnterProntuarioButton from "../Prontuario/EnterProntuarioButton";
 
 interface ConsultaModalProps {
   id: string | null;
@@ -211,6 +213,8 @@ export default function ConsultaModal({
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <EnterReceitaButton/>
+                  <EnterProntuarioButton/>
                   {currentConsulta?.type === "teleconsulta" && (
                     <EnterConsultaButton
                       isJoinable={isJoinable}

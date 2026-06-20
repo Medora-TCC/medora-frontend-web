@@ -243,7 +243,7 @@ export default function UserManagementPage() {
   const CONFIRM_CONFIG = {
     logout:     { title: 'Deslogar usuários',      description: 'Você está prestes a encerrar a sessão de', confirmLabel: 'Deslogar',         confirmVariant: 'warning' as const },
     inactivate: { title: 'Inativar usuários',      description: 'Esta ação irá desativar o acesso de',       confirmLabel: 'Inativar',         confirmVariant: 'danger'  as const },
-    reset:      { title: 'Resetar senha',          description: 'Um e-mail de redefinição será enviado para', confirmLabel: 'Enviar e-mail',   confirmVariant: 'primary' as const },
+    reset:      { title: 'Redefinir senha',          description: 'Um e-mail de redefinição será enviado para', confirmLabel: 'Enviar e-mail',   confirmVariant: 'primary' as const },
     reactivate: { title: 'Reativar usuários',      description: 'Esta ação irá reativar o acesso de',       confirmLabel: 'Reativar',         confirmVariant: 'success' as const },
   };
 
@@ -350,9 +350,9 @@ export default function UserManagementPage() {
                 {selectedUsers.every((u) => u.status === 'active') ? 'Inativar' : 'Reativar'}
               </Button>
               <Button onClick={() => openConfirm('reset')} 
-              className="bg-primary-subtle text-primary hover:bg-primary-subtle hover:text-primary-text border-primary/20" >
+              className="bg-primary-subtle text-text-primary hover:bg-primary-subtle hover:text-primary-text border-primary/20" >
                 <KeyRound size={14} />
-                Resetar senha
+                Definir senha
               </Button>
             </div>
             <button
