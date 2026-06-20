@@ -1,6 +1,6 @@
 import { Layout, NotFound, ThemeProvider } from '@medora_web/shared'
 import { BrowserRouter, Route, Routes } from 'react-router'
-import MainLayout from './componentes/MainLayour'
+import MainLayout from './components/MainLayout/MainLayout'
 import AdminLoginScreen from './pages/LoginScreen/LoginScreen' 
 import Dashboard from './pages/Dashboard/Dashboard'
 import WorkerLogs from './pages/WorkerLogs/WorkerLogs' 
