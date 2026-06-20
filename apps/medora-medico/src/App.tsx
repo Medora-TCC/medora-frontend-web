@@ -27,7 +27,7 @@ function App() {
       <ThemeProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/medico" element={<MainLayout />}>
+                <Route path="/medico" element={<MainLayout />}>
                 <Route path="disponibilidade" element={< AvailabilityPage />} />
                 <Route path="agenda" element={< AvailabilityHistorical />} />
                 
