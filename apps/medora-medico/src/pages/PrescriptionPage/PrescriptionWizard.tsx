@@ -7,7 +7,6 @@ import { StepRevision } from "./Steps/StepRevision";
 import { PrescriptionSidebar } from "./PrescriptionSidebar";
 import { usePrescriptionWizard } from "../../hooks/usePrescriptionWizard";
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { ModalCarregamento } from "@medora_web/shared";
 
 
@@ -38,9 +37,11 @@ interface Props {
 export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
   const wizard = usePrescriptionWizard();
   const { state } = wizard;
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const[isFeito, setIsFeito] = useState<boolean>(false);
 
   // Injeta o paciente mock — em produção vem de props ou contexto
   const rascunhoComPaciente = {
@@ -53,14 +54,17 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
     onConcluir?.(rascunhoComPaciente);
     await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsLoading(false);
-    navigate("/medico/assinatura");
+    setIsFeito(true);
+    // navigate("/medico/assinatura");
   }
 
   const ETAPA_IDX = ["medicamentos", "posologia", "revisao"].indexOf(state.etapaAtual) + 1;
 
   return (
     <div
-      className="bg-surface my-auto flex flex-col w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-border"
+      className={`bg-surface my-auto flex flex-col w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-border ${
+        isFeito ? "pointer-events-none opacity-50" : ""
+      }`}
     >
       <header
         className="flex items-center justify-between px-6 py-3 border-b border-border"

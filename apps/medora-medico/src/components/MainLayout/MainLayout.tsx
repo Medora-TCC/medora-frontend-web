@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router";
 import Navbar from "../Header/Header";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
-import { Activity, Calendar, ClipboardList, LayoutDashboard, Settings, Users } from "lucide-react";
+import { Activity, Calendar, ClipboardList, ClipboardPlus, FilePenLine, LayoutDashboard, Settings, Users } from "lucide-react";
 import { useState } from "react";
 
 export default function MainLayout() {
@@ -47,40 +47,56 @@ export default function MainLayout() {
             <div className="flex-1 py-4">
               <Sidebar.Section title="Geral" />
               <Sidebar.Item
-              icon={LayoutDashboard}
-               label="Dashboard"
-               isActive={location.pathname === '/medico'}
-               href="/medico"/>
-               
-              <Sidebar.Item 
-              icon={Users} 
-              label="Configurar Horários"
-              isActive={location.pathname.startsWith('/medico/disponibilidade')}
-              href="/medico/disponibilidade"/>
-              <Sidebar.Item 
-              icon={Calendar}
-              label="Agenda"
-              isActive={location.pathname.startsWith('/medico/agenda')}
-              href="/medico/agenda"/>
-                
+                icon={LayoutDashboard}
+                label="Dashboard"
+                isActive={location.pathname === '/medico'}
+                href="/medico" />
+
+              <Sidebar.Item
+                icon={ClipboardList}
+                label="Consultas"
+                isActive={location.pathname.startsWith('/medico/consulta')}
+                href="/medico/consulta" />
+
+              <Sidebar.Item
+                icon={Calendar}
+                label="Agenda"
+                isActive={location.pathname.startsWith('/medico/agenda')}
+                href="/medico/agenda" />
+
+
+              <Sidebar.Item
+                icon={ClipboardPlus }
+                label="Meus Prontuários"
+                isActive={location.pathname.startsWith('/medico/prontuario')}
+                href="/medico/prontuario" />
+
+              <Sidebar.Item
+                icon={FilePenLine}
+                label="Assinar Documentos"
+                isActive={location.pathname.startsWith('/medico/assinatura')}
+                href="/medico/assinatura" />
+
+
+              <Sidebar.Item
+                icon={Users}
+                label="Configurar Horários"
+                isActive={location.pathname.startsWith('/medico/disponibilidade')}
+                href="/medico/disponibilidade" />
               {/* <Sidebar.Item icon={Users} label="Pacientes">
                 <Sidebar.SubItem label="Listagem Geral" href="/pacientes" />
                 <Sidebar.SubItem label="Prontuários" href="/prontuarios" />
                 <Sidebar.SubItem label="Novo Cadastro" href="/pacientes/novo" />
               </Sidebar.Item> */}
 
-              <Sidebar.Item 
-              icon={ClipboardList} 
-              label="Consultas"
-              isActive={location.pathname.startsWith('/medico/consulta')}
-              href="/medico/consulta"/>
-               
+
+
               {/* <Sidebar.Item icon={MessageSquare} label="Mensagens" /> */}
-              <Sidebar.Item 
-              icon={Settings} 
-              label="Ajustes"
-              isActive={location.pathname.startsWith('/medico/configuracoes')}
-              href="/medico/configuracoes"/>
+              <Sidebar.Item
+                icon={Settings}
+                label="Ajustes"
+                isActive={location.pathname.startsWith('/medico/configuracoes')}
+                href="/medico/configuracoes" />
             </div>
 
           </Sidebar.Root>

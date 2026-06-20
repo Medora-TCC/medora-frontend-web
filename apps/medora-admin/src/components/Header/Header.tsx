@@ -57,14 +57,14 @@ export default function AdminHeader() {
 
                     {notifOpen && (
                         <div className="absolute right-0 mt-2 w-72 bg-surface border border-divider rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                            <div className="px-4 py-2 hover:bg-muted/50 cursor-pointer border-b border-divider/50">
-                                <p className="text-sm font-medium text-text-primary">Novo médico aguardando validação</p>
-                                <p className="text-xs text-text-muted mt-0.5">CRM-SP 112034 enviado para análise.</p>
+                            <div className="px-4 py-2 hover:bg-muted/15 cursor-pointer border-b border-divider/50">
+                                <p className="text-sm font-medium text-text-primary">Timeout na verificação InfoSimples</p>
+                                <p className="text-xs text-text-muted mt-0.5">CRM-SP 112034 não foi verificado corretamente.</p>
                                 <p className="text-[10px] text-text-muted/80 mt-1">Há 10 min</p>
                             </div>
-                            <div className="px-4 py-2 hover:bg-muted/50 cursor-pointer">
-                                <p className="text-sm font-medium text-text-primary">Worker: Sincronização concluída</p>
-                                <p className="text-xs text-text-muted mt-0.5">Lote de lembretes SMS disparado.</p>
+                            <div className="px-4 py-2 hover:bg-muted/15 cursor-pointer">
+                                <p className="text-sm font-medium text-text-primary">Worker: Sincronização Incompleta</p>
+                                <p className="text-xs text-text-muted mt-0.5">244 de 245 Verificações do dia feitas</p>
                                 <p className="text-[10px] text-text-muted/80 mt-1">Há 1 hora</p>
                             </div>
                             <button className="w-full text-center text-primary-600 font-semibold text-xs pt-2 pb-1 border-t border-divider/50 hover:underline mt-1">
@@ -78,7 +78,7 @@ export default function AdminHeader() {
                     <ThemeToggle />
                 </Button>
 
-                <div className="h-5 w-[1px] bg-divider mx-1" />
+                <div className="h-5 w-px bg-divider mx-1" />
 
                 <div className="relative" ref={profileRef}>
                     <button

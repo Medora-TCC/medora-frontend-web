@@ -88,7 +88,7 @@ export function MedicalRecordComponent({
           onConfirm={SalvarProntuario}
           disabled={isEmpty}
           texto="Deseja mesmo salvar? ATENÇÃO: Após salvo o prontuário não pode mais ser alterado"
-          textoBotao={"Sim"}
+          textoBotao={"Salvar"}
         />
       </div>
     </section>

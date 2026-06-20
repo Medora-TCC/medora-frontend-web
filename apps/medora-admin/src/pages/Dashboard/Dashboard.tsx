@@ -74,7 +74,7 @@ export default function AdminDashboard() {
                   time="Há 15 min"
                 />
                 <WorkerLogItem
-                  task="Timeout na requisição externa"
+                  task="Lentidão na requisição externa"
                   status="Aviso"
                   time="Há 1 hora"
                 />
