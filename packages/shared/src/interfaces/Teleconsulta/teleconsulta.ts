@@ -1,0 +1,12 @@
+
+export const PreSalaStatus = {
+  OK : "OK",
+  TERMOS_PENDENTES : "TERMOS_PENDENTES",
+  CAMERA_NEGADA : "CAMERA_NEGADA",
+  MICROFONE_NEGADO : "MICROFONE_NEGADO",
+  SEM_DISPOSITIVO : "SEM_DISPOSITIVO",
+  CONSULTA_INVALIDA : "CONSULTA_INVALIDA",
+  ACESSO_NAO_AUTORIZADO : "ACESSO_NAO_AUTORIZADO",
+} as const;
+
+export type PreSalaStatus = typeof PreSalaStatus[keyof typeof PreSalaStatus];
