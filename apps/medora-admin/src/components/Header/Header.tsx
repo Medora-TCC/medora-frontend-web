@@ -1,17 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { Activity, Bell, LogOut, Settings, User } from 'lucide-react';
+import { Bell, LogOut, Settings, ShieldCheck, User } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { useNavigate } from 'react-router';
 import { ThemeToggle } from '@medora_web/shared';
 
-export default function Header() {
+export default function AdminHeader() {
     const navigate = useNavigate();
     
     const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
 
     const notifRef = useRef<HTMLDivElement>(null);
-    const profileRef = useRef<HTMLDivElement>(null);
+    const profileRef = useRef<HTMLDivElement>(null); 
 
     const handleLogout = () => {
         navigate("/");
@@ -34,54 +34,52 @@ export default function Header() {
         <nav className="flex justify-between items-center py-2 px-6 bg-surface backdrop-blur-md shadow-sm sticky top-0 z-50 border-b h-14">
             {/* Logo */}
             <div className="flex items-center gap-2 select-none">
-                <Activity className="w-6 h-6 text-primary-600" />
-                <h1 className="text-lg font-bold text-primary-900">Medora</h1>
+                <ShieldCheck className="w-6 h-6 text-primary-600" />
+                <h1 className="text-lg font-bold text-primary-900">Medora Admin</h1>
             </div>
 
-            {/* Ações da Direita */}
             <div className="flex items-center gap-3">
                 
-                {/* Dropdown de Notificações */}
                 <div className="relative" ref={notifRef}>
                     <Button 
                         isIconOnly 
                         variant="ghost" 
-                        className="text-text-muted"
+                        className="text-text-muted relative"
                         onPress={() => {
                             setNotifOpen(!notifOpen);
                             setProfileOpen(false);
                         }}
                     >
                         <Bell size={18} />
+                        {/* Bolinha vermelha para indicar notificação nova */}
+                        <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border border-surface"></span>
                     </Button>
 
-                    {/* Menu Flutuante de Notificações */}
                     {notifOpen && (
-                        <div className="absolute right-0 mt-2 w-64 bg-surface border border-divider rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                        <div className="absolute right-0 mt-2 w-72 bg-surface border border-divider rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                             <div className="px-4 py-2 hover:bg-muted/50 cursor-pointer border-b border-divider/50">
-                                <p className="text-sm text-text-primary">Prontuário atualizado</p>
-                                <p className="text-xs text-text-muted mt-0.5">Há 1 hora</p>
+                                <p className="text-sm font-medium text-text-primary">Novo médico aguardando validação</p>
+                                <p className="text-xs text-text-muted mt-0.5">CRM-SP 112034 enviado para análise.</p>
+                                <p className="text-[10px] text-text-muted/80 mt-1">Há 10 min</p>
                             </div>
                             <div className="px-4 py-2 hover:bg-muted/50 cursor-pointer">
-                                <p className="text-sm text-text-primary">Nova consulta agendada</p>
-                                <p className="text-xs text-text-muted mt-0.5">Há 2 horas</p>
+                                <p className="text-sm font-medium text-text-primary">Worker: Sincronização concluída</p>
+                                <p className="text-xs text-text-muted mt-0.5">Lote de lembretes SMS disparado.</p>
+                                <p className="text-[10px] text-text-muted/80 mt-1">Há 1 hora</p>
                             </div>
-                            <button className="w-full text-center text-primary-600 font-semibold text-xs pt-2 pb-1 border-t border-divider/50 hover:underline">
-                                Ver todas as notificações
+                            <button className="w-full text-center text-primary-600 font-semibold text-xs pt-2 pb-1 border-t border-divider/50 hover:underline mt-1">
+                                Ver todas as notificações do sistema
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Alternador de Tema */}
                 <Button isIconOnly variant="ghost" className="text-text-muted">
                     <ThemeToggle />
                 </Button>
 
-                {/* Divisor Visual */}
                 <div className="h-5 w-[1px] bg-divider mx-1" />
 
-                {/* Dropdown do Perfil do Médico */}
                 <div className="relative" ref={profileRef}>
                     <button
                         type="button"
@@ -92,31 +90,30 @@ export default function Header() {
                         className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none select-none"
                     >
                         <div className="hidden md:block text-right">
-                            <p className="text-xs font-bold text-text-primary leading-none">Dr. Pedro Silva</p>
-                            <p className="text-[9px] text-text-muted uppercase tracking-wider mt-0.5">Cardiologia</p>
+                            <p className="text-xs font-bold text-text-primary leading-none">Administrador</p>
+                            <p className="text-[9px] text-text-muted uppercase tracking-wider mt-0.5">TI & Sistemas</p>
                         </div>
-                        <div className="h-8 w-8 rounded-full bg-primary-color flex items-center justify-center text-white text-xs font-bold shadow-sm border border-surface">
-                            DR
+                        <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center text-white text-xs font-bold shadow-sm border border-surface">
+                            AD
                         </div>
                     </button>
 
-                    {/* Menu Flutuante do Perfil */}
                     {profileOpen && (
                         <div className="absolute right-0 mt-2 w-48 bg-surface border border-divider rounded-xl shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                             <button 
-                                onClick={() => { navigate("/medico/perfil"); setProfileOpen(false); }}
+                                onClick={() => { navigate("/admin/profile"); setProfileOpen(false); }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-muted/50 text-left"
                             >
                                 <User size={16} className="text-text-muted" />
-                                <span>Meu Perfil</span>
+                                <span>Minha Conta</span>
                             </button>
                             
                             <button 
-                                onClick={() => { navigate("/medico/configuracoes"); setProfileOpen(false); }}
+                                onClick={() => { navigate("/admin/config"); setProfileOpen(false); }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-muted/50 text-left"
                             >
                                 <Settings size={16} className="text-text-muted" />
-                                <span>Configurações</span>
+                                <span>Configurações Globais</span>
                             </button>
                             
                             <div className="border-t border-divider my-1" />
@@ -126,7 +123,7 @@ export default function Header() {
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 text-left font-medium"
                             >
                                 <LogOut size={16} />
-                                <span>Sair do sistema</span>
+                                <span>Encerrar Sessão</span>
                             </button>
                         </div>
                     )}
