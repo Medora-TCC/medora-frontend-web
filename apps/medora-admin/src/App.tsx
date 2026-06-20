@@ -1,6 +1,7 @@
 import { Layout, NotFound, ThemeProvider } from '@medora_web/shared'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import MainLayout from './componentes/MainLayour'
+import UserManagementPage from './pages/ManageUsers/ManageUsers'
 
 function App() {
   return (
@@ -9,7 +10,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/medico" element={<MainLayout />}>
-              {/* Aqui você pode adicionar as rotas específicas para o layout principal */}
+              <Route path="/manage-users" element={<UserManagementPage />} />
             </Route>
           </Routes>
 
