@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { DocsList } from "./DocsList";
 import { Modal, Spinner } from "@heroui/react";
-import { ModalConfirmacao } from "@medora_web/shared";
+import { ModalCarregamento, ModalConfirmacao } from "@medora_web/shared";
 import { CircleCheck, CircleX } from "lucide-react";
 
 const PDFViewer = lazy(() => import("./PDFViewer"));
@@ -73,23 +73,8 @@ export function SignaturePage() {
             />
           </div>
 
-          <Modal>
-            <Modal.Backdrop
-              isOpen={isLoading}
-              isDismissable={false}
-              isKeyboardDismissDisabled
-              variant="blur"
-            >
-              <Modal.Container>
-                <Modal.Dialog aria-label="Carregando">
-                  <Modal.Body className="flex flex-col items-center justify-center gap-3 py-8">
-                    <Spinner />
-                    <span>Assinando documento</span>
-                  </Modal.Body>
-                </Modal.Dialog>
-              </Modal.Container>
-            </Modal.Backdrop>
-          </Modal>
+          <ModalCarregamento isLoading={isLoading} />
+          
           <Modal>
             <Modal.Backdrop
               isOpen={isSucesso != null}
