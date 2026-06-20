@@ -16,16 +16,16 @@ function App() {
         <Routes>
           <Route path="/" element={<AdminLoginScreen />} />
           <Route path="/admin" element={<MainLayout />}>
-              <Route path="manage-users" element={<UserManagementPage />} />
-            </Route>
-          <Route element={<Layout />}>
             <Route path="/admin" element={<Dashboard />} />
-            <Route path="/admin/logs" element={<WorkerLogs />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/config" element={<ConfigPage />} />
             <Route path="/admin/manage-users" element={<UserManagementPage />} />
+            </Route>
+          <Route element={<Layout />}>
+
           </Route>
           <Route path="*" element={<NotFound />} />
+          <Route path="/admin/logs" element={<WorkerLogs />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

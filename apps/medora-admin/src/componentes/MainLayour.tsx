@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router";
-import { Activity, UserRoundCog } from "lucide-react";
+import { Activity, Settings, UserPen, UserRoundCog } from "lucide-react";
 import { useState } from "react";
 import { Sidebar, SidebarToggle } from "@medora_web/shared";
 
@@ -42,13 +42,23 @@ export default function MainLayout() {
                 icon={Activity}
                 label="Dashboard"
                 isActive={location.pathname === '/admin'}
-                href="/home"/>
+                href="/admin"/>
                
               <Sidebar.Item 
                 icon={UserRoundCog} 
                 label="Gerenciar Usuarios"
                 isActive={location.pathname.startsWith('/admin/manage-users')}
                 href="/admin/manage-users"/>
+              <Sidebar.Item 
+                icon={UserPen} 
+                label="Perfil"
+                isActive={location.pathname.startsWith('/admin/profile')}
+                href="/admin/profile"/>
+              <Sidebar.Item 
+                icon={Settings} 
+                label="Confugurações"
+                isActive={location.pathname.startsWith('/admin/config')}
+                href="/admin/config"/>
             </div>
 
           </Sidebar.Root>
