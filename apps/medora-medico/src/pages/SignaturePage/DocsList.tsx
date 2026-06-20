@@ -41,7 +41,7 @@ function DocCard({ doc, setDocumentoSelecionado }: DocCardProps) {
   const DocIcon = docTypeIcon[doc.type] ?? FileText;
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-divider bg-surface p-4 transition-colors hover:border-default-300 cursor-pointer" onClick={() => {setDocumentoSelecionado(doc.path)}}>
+    <article className="flex flex-col gap-3 rounded-xl border border-divider bg-surface p-4 transition-colors hover:border-default-300 cursor-pointer" onClick={() => { setDocumentoSelecionado(doc.path) }}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50">
@@ -82,7 +82,7 @@ export function DocsList({ docs, setDocumentoSelecionado }: DocsListProps) {
   return (
     <section aria-label="Documentos pendentes">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-medium text-foreground">Documentos pendentes</h2>
+        <h2 className="font-medium text-foreground mx-auto">Documentos pendentes</h2>
         {pendingCount > 0 && (
           <span className="rounded-full bg-surface-secondary px-2.5 py-0.5 text-xs text-foreground-secondary">
             {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
@@ -91,9 +91,11 @@ export function DocsList({ docs, setDocumentoSelecionado }: DocsListProps) {
       </div>
 
       <div className="flex flex-col gap-2.5">
-        {docs.map(doc => (
-          <DocCard key={doc.id} doc={doc} setDocumentoSelecionado={setDocumentoSelecionado}/>
-        ))}
+        {docs.length > 0 ? <>
+          {docs.map(doc => (
+            <DocCard key={doc.id} doc={doc} setDocumentoSelecionado={setDocumentoSelecionado} />
+          ))}
+        </> : <div className="text-center w-full text-muted mt-20 text-lg">Nenhuma pendência encontrada</div>}
       </div>
     </section>
   );

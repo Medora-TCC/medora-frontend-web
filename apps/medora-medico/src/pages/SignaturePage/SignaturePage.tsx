@@ -6,7 +6,7 @@ import { CircleCheck, CircleX } from "lucide-react";
 
 const PDFViewer = lazy(() => import("./PDFViewer"));
 
-const MOCK_DOCS = [
+var MOCK_DOCS = [
   {
     id: "1",
     type: "Prescrição médica",
@@ -29,6 +29,10 @@ export function SignaturePage() {
     await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsLoading(false);
     setIsSucesso(true);
+
+    MOCK_DOCS.pop();
+    setDocumentoSelecionado(null)
+
   };
 
   return (
