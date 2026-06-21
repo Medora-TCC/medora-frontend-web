@@ -1,267 +1,241 @@
-import { useState } from "react";
-import { Button, Input } from "@heroui/react";
+import { useOverlayState } from "@heroui/react";
 import {
   Wallet,
   TrendingUp,
   Receipt,
   Users,
-  CreditCard,
   Building2,
   CheckCircle2,
   Clock,
   ArrowDownRight,
-  ArrowUpRight,
 } from "lucide-react";
+import { BankAccountModal } from "./BankModal";
 
-// ─── Tipos ──────────────────────────────────────────────────────────────────
 
-interface Transaction {
-  id: string;
-  patient: string;
-  date: string;
-  value: number;
-  status: "Confirmado" | "Pendente";
-}
-
-// ─── Mock data ──────────────────────────────────────────────────────────────
-// REMINDER: substituir por chamada real à API (ex: GET /financeiro/resumo, /financeiro/transacoes)
-
-const transactions: Transaction[] = [
-  { id: "1", patient: "Carlos Mendes", date: "18/06/2026", value: 280, status: "Confirmado" },
-  { id: "2", patient: "Mariana Costa", date: "17/06/2026", value: 350, status: "Confirmado" },
-  { id: "3", patient: "Arnaldo Vieira", date: "17/06/2026", value: 280, status: "Pendente" },
-  { id: "4", patient: "Julia Mattos", date: "16/06/2026", value: 420, status: "Confirmado" },
-  { id: "5", patient: "Ricardo Souza", date: "15/06/2026", value: 280, status: "Pendente" },
+const transactions = [
+  { id: "1", patient: "Carlos Mendes",  date: "18/06/2026", value: 280, status: "Confirmado" },
+  { id: "2", patient: "Mariana Costa",  date: "17/06/2026", value: 350, status: "Confirmado" },
+  { id: "3", patient: "Arnaldo Vieira", date: "17/06/2026", value: 280, status: "Pendente"   },
+  { id: "4", patient: "Julia Mattos",   date: "16/06/2026", value: 420, status: "Confirmado" },
+  { id: "5", patient: "Ricardo Souza",  date: "15/06/2026", value: 280, status: "Pendente"   },
 ];
 
-// ─── Página ─────────────────────────────────────────────────────────────────
 
 export default function FinancialManagement() {
-  const [bankData, setBankData] = useState({
-    banco: "",
-    agencia: "",
-    conta: "",
-    tipoConta: "corrente",
-    titular: "",
-    cpfCnpj: "",
-  });
-  const [saving, setSaving] = useState(false);
-
-  function handleSave() {
-    setSaving(true);
-    // REMINDER: substituir por chamada real — await api.post('/financeiro/dados-bancarios', bankData)
-    setTimeout(() => setSaving(false), 900);
-  }
+  const modal = useOverlayState({ defaultOpen: false });
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
-      <main className="py-3 px-6 space-y-3 max-w-7xl mx-auto w-full">
+    <div className="min-h-screen bg-[#F9FAFB] font-[Inter,system-ui,sans-serif]">
+      <main className="max-w-7xl mx-auto px-6 py-6">
 
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <header className="flex justify-between items-start flex-wrap gap-3 mb-6">
           <div>
-            <h1 className="text-xl font-bold text-text-primary">Gestão Financeira</h1>
-            <p className="text-xs text-text-muted">
-              Saldo disponível para saque: <span className="font-bold text-primary-color">R$ 4.230,00</span>
+            <h1 className="m-0 text-[22px] font-bold text-[#111827]">
+              Gestão Financeira
+            </h1>
+            <p className="mt-1 mb-0 text-[13px] text-[#6B7280]">
+              Saldo disponível para saque:{" "}
+              <span className="font-bold text-[#6D28D9]">R$ 4.230,00</span>
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              className="bg-primary-color text-white font-semibold h-8.5 text-xs"
+
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={modal.open}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg cursor-pointer text-[13px] font-semibold text-[#6D28D9] bg-transparent border-[1.5px] border-[#6D28D9] hover:bg-[#EDE9FE] transition-colors"
+            >
+              <Building2 size={15} />
+              Vincular Conta Bancária
+            </button>
+
+            <button
+              disabled
+              className="px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#4C1D95] border-none opacity-45 cursor-not-allowed"
             >
               Solicitar Saque
-            </Button>
+            </button>
           </div>
         </header>
 
-        {/* Cards de métricas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid gap-3 mb-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
           <StatBox
-            icon={<Wallet size={20} className="text-green-500" />}
+            icon={<Wallet size={20} color="#10B981" />}
             label="Saldo Disponível"
             value="R$ 4.230,00"
             subtext="Pronto para saque"
+            iconBg="#ECFDF5"
+            iconBorder="#D1FAE5"
           />
           <StatBox
-            icon={<TrendingUp size={20} className="text-blue-500" />}
+            icon={<TrendingUp size={20} color="#3B82F6" />}
             label="Total a Receber"
             value="R$ 1.610,00"
             subtext="Próximos 30 dias"
+            iconBg="#EFF6FF"
+            iconBorder="#BFDBFE"
           />
           <StatBox
-            icon={<Users size={20} className="text-purple-500" />}
+            icon={<Users size={20} color="#8B5CF6" />}
             label="Consultas Realizadas"
             value="42"
             subtext="Neste mês"
+            iconBg="#F5F3FF"
+            iconBorder="#DDD6FE"
           />
           <StatBox
-            icon={<Receipt size={20} className="text-orange-500" />}
+            icon={<Receipt size={20} color="#F97316" />}
             label="Taxas Pagas"
             value="R$ 312,80"
             subtext="Taxa administrativa (4%)"
+            iconBg="#FFF7ED"
+            iconBorder="#FED7AA"
           />
         </div>
 
-        {/* Bloco principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+        <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "2fr 1fr" }}>
 
-          {/* Coluna esquerda — Histórico de transações */}
-          <div className="lg:col-span-2 space-y-3">
-            <div className="bg-surface-alt rounded-xl shadow-sm border border-divider overflow-hidden">
-              <div className="p-3 border-b border-divider flex justify-between items-center">
-                <div>
-                  <h2 className="font-bold text-base">Histórico de Transações</h2>
-                  <p className="text-xs text-text-muted">Últimos recebimentos de consultas</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-primary-color font-semibold border-none hover:bg-primary/10 h-7 text-xs"
-                >
-                  Ver todas
-                </Button>
+          <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm">
+            <div className="px-4 py-3.5 border-b border-[#F3F4F6] flex justify-between items-center">
+              <div>
+                <p className="m-0 text-[15px] font-bold text-[#111827]">
+                  Histórico de Transações
+                </p>
+                <p className="mt-0.5 mb-0 text-xs text-[#9CA3AF]">
+                  Últimos recebimentos de consultas
+                </p>
               </div>
-              <div className="divide-y divide-divider">
-                {transactions.map((t) => (
-                  <TransactionItem key={t.id} transaction={t} />
-                ))}
-              </div>
+              <button className="bg-transparent border-none text-[#6D28D9] text-xs font-semibold cursor-pointer px-2 py-1 rounded-md hover:bg-[#EDE9FE] transition-colors">
+                Ver todas
+              </button>
             </div>
+
+            {transactions.map((t, i) => (
+              <TransactionItem
+                key={t.id}
+                transaction={t}
+                isLast={i === transactions.length - 1}
+              />
+            ))}
           </div>
 
-          {/* Coluna direita — Configuração bancária */}
-          <div className="space-y-3">
-            <div className="bg-surface-alt p-3 rounded-xl border border-divider shadow-sm">
-              <div className="flex items-center gap-1.5 mb-3">
-                <Building2 size={16} className="text-primary-color" />
-                <h3 className="font-bold text-sm">Dados Bancários</h3>
-              </div>
-
-              <div className="space-y-2.5">
-                <Input
-                  placeholder="Ex: Banco do Brasil"
-                  value={bankData.banco}
-                  onChange={(e) => setBankData((s) => ({ ...s, banco: e.target.value }))}
-                />
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    placeholder="0001"
-                    value={bankData.agencia}
-                    onChange={(e) => setBankData((s) => ({ ...s, agencia: e.target.value }))}
-                  />
-                  <Input
-                    placeholder="00000-0"
-                    value={bankData.conta}
-                    onChange={(e) => setBankData((s) => ({ ...s, conta: e.target.value }))}
-                  />
-                </div>
-
-                <Input
-                  placeholder="Nome completo"
-                  value={bankData.titular}
-                  onChange={(e) => setBankData((s) => ({ ...s, titular: e.target.value }))}
-                />
-
-                <Input
-                  placeholder="000.000.000-00"
-                  value={bankData.cpfCnpj}
-                  onChange={(e) => setBankData((s) => ({ ...s, cpfCnpj: e.target.value }))}
-                />
-
-                <Button
-                  size="sm"
-                  isDisabled={saving}
-                  onPress={handleSave}
-                  className="bg-primary-color text-white font-semibold w-full h-8.5 text-xs mt-1"
-                >
-                  <CreditCard size={14} />
-                  {saving ? "Salvando…" : "Salvar Alterações"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Resumo de taxas */}
-            <div className="bg-surface-alt p-3 rounded-xl border border-divider shadow-sm">
-              <h3 className="font-bold text-sm mb-2">Resumo de Taxas</h3>
-              <ul className="text-xs space-y-1.5">
-                <li className="flex justify-between items-center text-text-muted">
-                  <span>Taxa administrativa</span>
-                  <span className="font-semibold text-text-primary">4%</span>
-                </li>
-                <li className="flex justify-between items-center text-text-muted">
-                  <span>Taxa de transferência</span>
-                  <span className="font-semibold text-text-primary">R$ 2,50</span>
-                </li>
-                <li className="flex justify-between items-center text-text-muted pt-1.5 border-t border-divider mt-1.5">
-                  <span>Total descontado (mês)</span>
-                  <span className="font-bold text-orange-500">R$ 312,80</span>
-                </li>
-              </ul>
-            </div>
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-sm">
+            <p className="m-0 mb-3 text-[14px] font-bold text-[#111827]">
+              Resumo de Taxas
+            </p>
+            <ul className="m-0 p-0 list-none flex flex-col gap-2">
+              <FeeRow label="Taxa administrativa"   value="4%"       />
+              <FeeRow label="Taxa de transferência" value="R$ 2,50" />
+              <li className="border-t border-[#F3F4F6] pt-2.5 flex justify-between">
+                <span className="text-xs text-[#6B7280]">Total descontado (mês)</span>
+                <span className="text-[13px] font-bold text-[#F97316]">R$ 312,80</span>
+              </li>
+            </ul>
           </div>
-
         </div>
       </main>
+
+      <BankAccountModal isOpen={modal.isOpen} onOpenChange={modal.setOpen} />
     </div>
   );
 }
 
-// ─── Componentes auxiliares ──────────────────────────────────────────────────
 
-function StatBox({ icon, label, value, subtext }: any) {
+function StatBox({
+  icon,
+  label,
+  value,
+  subtext,
+  iconBg,
+  iconBorder,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  subtext: string;
+  iconBg: string;
+  iconBorder: string;
+}) {
   return (
-    <div className="bg-surface-alt p-3 rounded-xl border border-divider flex items-center gap-3 shadow-sm hover:border-gray-300 transition-all">
-      <div className="p-2 bg-surface rounded-lg border border-divider shadow-sm shrink-0">{icon}</div>
+    <div className="bg-white rounded-xl border border-[#E5E7EB] px-4 py-3.5 flex items-center gap-3.5 shadow-sm">
+      <div
+        className="w-10 h-10 rounded-[10px] shrink-0 flex items-center justify-center"
+        style={{ background: iconBg, border: `1px solid ${iconBorder}` }}
+      >
+        {icon}
+      </div>
       <div>
-        <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider leading-none">{label}</p>
-        <p className="text-xl font-bold text-text-primary my-0.5">{value}</p>
-        {subtext && <p className="text-[10px] text-text-muted/80 leading-none">{subtext}</p>}
+        <p className="m-0 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-[0.07em]">
+          {label}
+        </p>
+        <p className="my-0.5 text-[20px] font-extrabold text-[#111827] leading-none">
+          {value}
+        </p>
+        <p className="m-0 text-[11px] text-[#9CA3AF]">{subtext}</p>
       </div>
     </div>
   );
 }
 
-function TransactionItem({ transaction }: { transaction: Transaction }) {
+function TransactionItem({
+  transaction,
+  isLast,
+}: {
+  transaction: { patient: string; date: string; value: number; status: string };
+  isLast: boolean;
+}) {
   const { patient, date, value, status } = transaction;
-  const isConfirmed = status === "Confirmado";
+  const ok = status === "Confirmado";
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 hover:bg-surface/50 transition-colors">
+    <div
+      className={[
+        "flex items-center justify-between px-4 py-3",
+        isLast ? "" : "border-b border-[#F9FAFB]",
+      ].join(" ")}
+    >
       <div className="flex items-center gap-3">
         <div
-          className={`flex items-center justify-center rounded-lg h-9 w-9 shrink-0 border ${
-            isConfirmed
-              ? "bg-green-50 border-green-100"
-              : "bg-orange-50 border-orange-100"
-          }`}
+          className="w-9 h-9 rounded-[9px] shrink-0 flex items-center justify-center"
+          style={{
+            background: ok ? "#ECFDF5" : "#FFF7ED",
+            border: `1px solid ${ok ? "#D1FAE5" : "#FED7AA"}`,
+          }}
         >
-          {isConfirmed ? (
-            <ArrowDownRight size={16} className="text-green-600" />
-          ) : (
-            <Clock size={16} className="text-orange-500" />
-          )}
+          {ok
+            ? <ArrowDownRight size={16} color="#10B981" />
+            : <Clock size={16} color="#F97316" />
+          }
         </div>
         <div>
-          <p className="font-semibold text-sm text-text-primary leading-tight">{patient}</p>
-          <span className="text-[10px] text-text-muted mt-0.5 block">{date}</span>
+          <p className="m-0 text-[13px] font-semibold text-[#111827]">{patient}</p>
+          <p className="mt-0.5 mb-0 text-[11px] text-[#9CA3AF]">{date}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <span
-          className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide hidden sm:inline-block ${
-            isConfirmed ? "bg-green-100 text-green-600" : "bg-orange-100 text-orange-600"
-          }`}
+          className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em] flex items-center gap-0.5"
+          style={{
+            background: ok ? "#ECFDF5" : "#FFF7ED",
+            color: ok ? "#059669" : "#F97316",
+          }}
         >
-          {status === "Confirmado" && <CheckCircle2 size={10} className="inline mr-0.5 -mt-0.5" />}
+          {ok && <CheckCircle2 size={10} />}
           {status}
         </span>
-        <span className="font-bold text-sm text-text-primary w-20 text-right">
+        <span className="text-[13px] font-bold text-[#111827] min-w-19 text-right">
           R$ {value.toFixed(2).replace(".", ",")}
         </span>
       </div>
     </div>
+  );
+}
+
+function FeeRow({ label, value }: { label: string; value: string }) {
+  return (
+    <li className="flex justify-between items-center">
+      <span className="text-xs text-[#6B7280]">{label}</span>
+      <span className="text-[13px] font-semibold text-[#374151]">{value}</span>
+    </li>
   );
 }
