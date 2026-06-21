@@ -19,6 +19,7 @@ import { PrescriptionPage } from './pages/PrescriptionPage/PrescriptionPage';
 import { SignaturePage } from './pages/SignaturePage/SignaturePage';
 import { TeleconsultaLayout } from './pages/TeleconsultaScreen/TeleconsultaLayout';
 import ResetPassword from '../../../packages/shared/src/pages/ResetPassword/ResetPassword';
+import FinancialManagement from './pages/FinancialManagementPage/FinancialManagement';
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
                 <Route path="prescricao" element={<PrescriptionPage />} />
                 <Route path="assinatura" element={<SignaturePage />} />
                 <Route path="perfil" element={<ProfessionalProfilePage />} />
+                <Route path="financeiro" element={<FinancialManagement/>} />
                 <Route path="teleconsulta" element={<TeleconsultaLayout />}>
                   <Route path=":id/pre-sala" element={<TeleConsultaConfig />} />
                   <Route path=":id/sala"     element={<SalaTeleConsulta />} />
