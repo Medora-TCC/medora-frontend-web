@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router";
 import Navbar from "../Header/Header";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
-import { Activity, Calendar, ClipboardList, ClipboardPlus, FilePenLine, LayoutDashboard, Settings, Users } from "lucide-react";
+import { Activity, Calendar, CircleDollarSign, ClipboardList, ClipboardPlus, FilePenLine, LayoutDashboard, Settings, Users } from "lucide-react";
 import { useState } from "react";
 
 export default function MainLayout() {
@@ -77,6 +77,11 @@ export default function MainLayout() {
                 isActive={location.pathname.startsWith('/medico/assinatura')}
                 href="/medico/assinatura" />
 
+                <Sidebar.Item
+                icon={CircleDollarSign }
+                label="Financeiro"
+                isActive={location.pathname.startsWith('/medico/financeiro')}
+                href="/medico/financeiro" />
 
               <Sidebar.Item
                 icon={Users}

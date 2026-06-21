@@ -65,19 +65,19 @@ export function BankAccountModal({ isOpen, onOpenChange }: BankAccountModalProps
         <Modal.Container placement="center" size="md">
           <Modal.Dialog
             aria-label="Dados de Recebimento"
-            className="bg-[#1C1C1E] border border-[#3A3A3C] rounded-2xl shadow-2xl"
+            className="bg-surface border border-ring rounded-2xl shadow-2xl"
           >
-            <Modal.CloseTrigger className="rounded-lg border border-[#3A3A3C] bg-[#2C2C2E] text-[#9CA3AF] hover:bg-[#3A3A3C] transition-colors" />
+            <Modal.CloseTrigger className="rounded-lg border border-ring bg-surface-overlay text-text-muted hover:bg-text-primary transition-colors" />
 
-            <Modal.Header className="border-b border-[#2C2C2E] px-5 py-4">
-              <Modal.Heading className="text-base font-bold text-[#F5F5F7]">
+            <Modal.Header className="border-b border-ring px-5 py-4">
+              <Modal.Heading className="text-base font-bold text-text-primary">
                 Dados de Recebimento
               </Modal.Heading>
             </Modal.Header>
 
             <Modal.Body className="px-5 py-4 flex flex-col gap-4">
 
-              <div className="flex bg-[#2C2C2E] rounded-xl p-1 gap-1">
+              <div className="flex bg-surface-overlay rounded-xl p-1 gap-1">
                 <TabButton
                   active={isCorrente}
                   onClick={() => setTipoConta("corrente")}
@@ -99,7 +99,7 @@ export function BankAccountModal({ isOpen, onOpenChange }: BankAccountModalProps
                   <select
                     value={bankData.banco}
                     onChange={handleField("banco")}
-                    className="w-full px-3 py-2 rounded-lg text-[13px] bg-[#2C2C2E] border border-[#3A3A3C] text-[#F5F5F7] outline-none cursor-pointer appearance-none"
+                    className="w-full px-3 py-2 rounded-lg text-[13px] bg-surface-alt border border-ring text-text-primary outline-none cursor-pointer appearance-none"
                   >
                     <option value="">Selecione…</option>
                     {banks.map((b) => (
@@ -149,11 +149,11 @@ export function BankAccountModal({ isOpen, onOpenChange }: BankAccountModalProps
               </div>
             </Modal.Body>
 
-            <Modal.Footer className="border-t border-[#2C2C2E] px-5 py-3 flex justify-between items-center">
+            <Modal.Footer className="border-t border-ring px-5 py-3 flex justify-between items-center">
               <button
                 slot="close"
                 disabled={saving}
-                className="bg-transparent border-none text-[#9CA3AF] text-[13px] font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-transparent border-none text-text-primary text-[13px] font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
@@ -161,7 +161,7 @@ export function BankAccountModal({ isOpen, onOpenChange }: BankAccountModalProps
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-[9px] text-[13px] font-semibold text-[#F5F5F7] bg-[#2C2C2E] border border-[#3A3A3C] cursor-pointer hover:bg-[#3A3A3C] transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-5 py-2 rounded-[9px] text-[13px] font-semibold text-[#F5F5F7] bg-accent border border-ring cursor-pointer hover:bg-accent/50 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>
@@ -217,7 +217,7 @@ function FieldWrapper({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="block text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
+      <label className="block text-[11px] font-semibold text-text-primary uppercase tracking-wide">
         {label}
       </label>
       {children}
@@ -229,7 +229,7 @@ function DarkInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className="w-full px-3 py-2 rounded-lg text-[13px] bg-[#2C2C2E] border border-[#3A3A3C] text-[#F5F5F7] outline-none placeholder-[#6B7280] box-border"
+      className="w-full px-3 py-2 rounded-lg text-[13px] bg-surface-alt border border-ring text-text-secondary outline-none placeholder-text-muted box-border"
     />
   );
 }
