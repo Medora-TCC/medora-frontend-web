@@ -2,14 +2,13 @@ import { useOverlayState } from "@heroui/react";
 import {
   Wallet,
   TrendingUp,
-  Receipt,
   Users,
   Building2,
   CheckCircle2,
   Clock,
   ArrowDownRight,
 } from "lucide-react";
-import { BankAccountModal } from "./BankModal";
+import { BankAccountModal } from "./BankModal"; 
 
 
 const transactions = [
