@@ -1,5 +1,5 @@
 import { Modal, Spinner } from "@heroui/react";
-import type { IConsultaDetailed } from "@medora_web/shared";
+import { ModalConfirmacao, type IConsultaDetailed } from "@medora_web/shared";
 import { useEffect, useState } from "react";
 import {
   Video,
@@ -78,12 +78,12 @@ export default function ConsultaModal({
   }, [id, isOpen]);
 
   const formatDate = (isoString: any) => {
-    return new Date(isoString).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(isoString).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -167,7 +167,11 @@ export default function ConsultaModal({
                       <InfoCard>
                         <SectionLabel>Modalidade</SectionLabel>
                         <div className="flex items-center gap-1.5 mt-1">
-                          {currentConsulta?.type === "teleconsulta" ? <Video className="w-3.5 h-3.5 text-accent" /> : <House  className="w-3.5 h-3.5 text-accent" /> }
+                          {currentConsulta?.type === "teleconsulta" ? (
+                            <Video className="w-3.5 h-3.5 text-accent" />
+                          ) : (
+                            <House className="w-3.5 h-3.5 text-accent" />
+                          )}
                           <p className="text-sm font-semibold  text-text-primary">
                             {currentConsulta.type ?? "teleconsulta"}
                           </p>
@@ -197,7 +201,6 @@ export default function ConsultaModal({
                           </div>
                         </InfoCard>
                       )}
-
                     </div>
                   </>
                 )}
@@ -208,14 +211,15 @@ export default function ConsultaModal({
                 <div className="flex items-center gap-2">
                   {currentConsulta && (
                     <span
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${currentConsulta.status === "finalizado"
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+                        currentConsulta.status === "finalizado"
                           ? "bg-success-soft border-success-soft text-success"
                           : currentConsulta.status === "em_atendimento"
                             ? "bg-blue-500/10 border-blue-500/20 text-blue-400"
                             : currentConsulta.status === "cancelado"
                               ? "bg-danger/10 border-danger-soft text-danger"
                               : "bg-text/20 border-text text-text-secondary"
-                        }`}
+                      }`}
                     >
                       {currentConsulta.status === "finalizado" && (
                         <CheckCircle2 className="w-3 h-3" />
@@ -226,6 +230,13 @@ export default function ConsultaModal({
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <ModalConfirmacao
+                    onConfirm={() => {currentConsulta!.status = "cancelado"}}
+                    disabled={currentConsulta?.status == "finalizado" || currentConsulta?.status == "cancelado"}
+                    texto={"Deseja realmente cancelar esta consulta?"}
+                    textoBotao={"Cancelar consulta"}
+                    variant="danger"
+                  />
                   <EnterReceitaButton />
                   <EnterProntuarioButton />
                   {currentConsulta?.type === "teleconsulta" && (

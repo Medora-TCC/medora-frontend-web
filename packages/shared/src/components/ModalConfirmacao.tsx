@@ -1,16 +1,21 @@
 import { Button, Modal } from "@heroui/react";
 
+const ButtonVariant = ["primary", "danger"] as const;
+
+type ButtonVariant = typeof ButtonVariant[number];
+
 interface ModalConfirmacaoProps {
     onConfirm: () => void;
     disabled: boolean;
     texto: string;
     textoBotao: string;
+    variant?: ButtonVariant;
 }
 
-export function ModalConfirmacao({ onConfirm, disabled, texto, textoBotao }: ModalConfirmacaoProps) {
+export function ModalConfirmacao({ onConfirm, disabled, texto, textoBotao, variant = "primary" }: ModalConfirmacaoProps) {
     return (
         <Modal>
-            <Button isDisabled={disabled} className="bg-primary disabled:bg-primary-disabled hover:bg-primary-hover text-inverse cursor-pointer px-5 py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">{textoBotao}</Button>
+            <Button variant={variant} isDisabled={disabled}>{textoBotao}</Button>
             <Modal.Backdrop>
                 <Modal.Container>
                     <Modal.Dialog className="bg-surface">
@@ -21,11 +26,11 @@ export function ModalConfirmacao({ onConfirm, disabled, texto, textoBotao }: Mod
                         <Modal.Body>
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button className="w-full text-text-inverse" onClick={(e) => { e.preventDefault; onConfirm() }} slot="close">
-                                Continuar
+                            <Button size="sm" className="w-full text-text-inverse" onClick={(e) => { e.preventDefault; onConfirm() }} slot="close">
+                                Sim
                             </Button>
                             <Button variant="danger-soft" className="w-full" slot="close">
-                                Cancelar
+                                Não
                             </Button>
                         </Modal.Footer>
                     </Modal.Dialog>
