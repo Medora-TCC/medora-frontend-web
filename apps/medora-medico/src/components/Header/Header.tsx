@@ -92,7 +92,7 @@ export default function Header() {
                         className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none select-none"
                     >
                         <div className="hidden md:block text-right">
-                            <p className="text-xs font-bold text-text-primary leading-none">Dr. Pedro Silva</p>
+                            <p className="text-xs font-bold text-text-primary leading-none">Dr. João Silva</p>
                             <p className="text-[9px] text-text-muted uppercase tracking-wider mt-0.5">Cardiologia</p>
                         </div>
                         <div className="h-8 w-8 rounded-full bg-primary-color flex items-center justify-center text-white text-xs font-bold shadow-sm border border-surface">

@@ -49,7 +49,7 @@ export function HomePage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-blue-50/60 via-transparent to-transparent -z-10" />
           
           <Chip color="accent" variant="soft" className="uppercase text-xs font-semibold tracking-widest bg-blue-50 text-blue-700 border-blue-200">
-            A Nova Era da Gestão Médica Legalizada
+            Tecnologia e Cuidado: A Nova Forma de Encontrar Saúde.
           </Chip>
 
           {/* Nome da Aplicação com tamanho maior e espaçamento perfeitamente simétrico */}
@@ -57,11 +57,16 @@ export function HomePage() {
             Medora
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-950 mb-6 tracking-tight leading-tight">
-            Prontuário inteligente e <br className="hidden sm:inline" />
+          <h1 className="text-2xl sm:text-5xl md:text-5xl font-black text-slate-950 mb-6 tracking-tight leading-tight">
+            Um{" "}
             <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-              gestão clínica sem burocracia.
-            </span>
+              ambiente integrado
+            </span>{" "}
+            para seus atendimentos e uma{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              gestão simplificada
+            </span>{" "}
+            das consultas.
           </h1>
           
           <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed px-2">

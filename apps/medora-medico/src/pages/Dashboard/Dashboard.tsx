@@ -30,7 +30,7 @@ export default function Dashboard() {
         {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h1 className="text-xl font-bold text-text-primary">Bom dia, Dr. Pedro Silva</h1>
+            <h1 className="text-xl font-bold text-text-primary">Bom dia, Dr. João Silva</h1>
             <p className="text-xs text-text-muted">Você tem <span className="font-bold text-primary-color">8</span> consultas agendadas para hoje.</p>
           </div>
           <div className="flex gap-2">
@@ -50,7 +50,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <StatBox icon={<Users size={20} className="text-blue-500" />} label="Consultas Hoje" value="12" subtext="+2 em relação a ontem" />
           <StatBox icon={<Clock size={20} className="text-orange-500" />} label="Pendências" value="03" subtext="Requerem atenção" />
-          <StatBox icon={<DollarSign size={20} className="text-green-500" />} label="Receita do Mês" value="R$ 14.200" subtext="Meta de 85% batida" />
+          <StatBox icon={<DollarSign size={20} className="text-green-500" />} label="Receita do Mês" value="R$ 14.200" subtext="" />
           <StatBox icon={<Star size={20} className="text-yellow-500" />} label="Avaliação Média" value="4.9" subtext="Baseado em 120 avaliações" />
         </div>
 
@@ -71,7 +71,7 @@ export default function Dashboard() {
                   size="sm"
                   variant="ghost"
                   className="text-primary-color font-semibold border-none hover:bg-primary/10 h-7 text-xs"
-                  onPress={() => navigate("/consultas")}
+                  onPress={() => navigate("consulta")}
                 >
                   Ver todas
                 </Button>
@@ -94,7 +94,7 @@ export default function Dashboard() {
                 <CompactPatientItem
                   name="Ricardo Souza"
                   time="10:30"
-                  type="Retorno"
+                  type="Presencial"
                   status="Confirmado"
                   onAction={() => navigate("/prontuario/ricardo-souza")}
                 />
@@ -175,10 +175,6 @@ export default function Dashboard() {
                 <li className="flex gap-2 items-start text-text-muted">
                   <div className="h-1.5 w-1.5 rounded-full bg-orange-500 mt-1 shrink-0" />
                   <p>Confirme com Julia Mattos às 16h30 <span className="text-orange-500 font-medium">(5h rest.)</span></p>
-                </li>
-                <li className="flex gap-2 items-start text-text-muted">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-500 mt-1 shrink-0" />
-                  <p>Reunião clínica com equipe de cardio às 18h30</p>
                 </li>
               </ul>
             </div>

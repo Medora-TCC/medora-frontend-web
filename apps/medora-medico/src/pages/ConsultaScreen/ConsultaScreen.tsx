@@ -199,7 +199,7 @@ export function ConsultaScreen() {
             Atualizar
           </Button>
 
-          <ToggleButtonGroup
+          {/* <ToggleButtonGroup
             selectionMode="single"
             selectedKeys={new Set([view])}
             onSelectionChange={(k) => setView([...k][0] as "lista" | "grid")}
@@ -210,7 +210,7 @@ export function ConsultaScreen() {
             <ToggleButton id="grid" size="sm">
               Grid
             </ToggleButton>
-          </ToggleButtonGroup>
+          </ToggleButtonGroup> */}
         </div>
 
         {/* ── Busca ─────────────────────────────────────── */}

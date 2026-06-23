@@ -17,8 +17,6 @@ const allLogs = [
   { id: 'WRK-9040', task: 'Timeout na requisição externa', status: 'Aviso', date: 'Hoje, 20:15', duration: '15.0s' },
   { id: 'WRK-9039', task: 'Verificação de médico 123456789', status: 'Sucesso', date: 'Hoje, 19:30', duration: '4.5s' },
   { id: 'WRK-9038', task: 'Retorno errado na API', status: 'Falha', date: 'Hoje, 18:45', duration: '30.1s' },
-  { id: 'WRK-9037', task: 'Limpeza de arquivos temporários', status: 'Sucesso', date: 'Hoje, 12:00', duration: '0.3s' },
-  { id: 'WRK-9036', task: 'Geração de relatório diário automático', status: 'Sucesso', date: 'Hoje, 02:00', duration: '12.4s' },
   { id: 'WRK-9035', task: 'Verificação de médico 988273611', status: 'Aviso', date: 'Ontem, 23:10', duration: '8.2s' },
 ];
 

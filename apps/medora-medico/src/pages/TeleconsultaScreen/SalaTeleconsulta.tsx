@@ -111,7 +111,7 @@ function ParticipantTile({
 
       {/* Overlay inferior */}
       <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between">
-        <span className="text-text-primary text-xs font-medium truncate">{name}</span>
+        <span className={`text-xs font-medium truncate ${name == "Você" ? "text-white" : "text-text-primary"}`}>{name}</span>
         {muted && (
           <div className="flex items-center justify-center size-5 rounded-full bg-danger/80">
             <MicOff size={11} className="text-text-primary" />
@@ -226,12 +226,12 @@ function ControlBtn({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex flex-col items-center gap-1.5 ">
       <button
         onClick={onClick}
         title={label}
         className={`
-          flex items-center justify-center size-12 rounded-full transition-all duration-200
+          flex items-center cursor-pointer justify-center size-12 rounded-full transition-all duration-200
           ${danger
             ? "bg-danger hover:bg-danger/80 text-text-secondary"
             : active
@@ -565,7 +565,7 @@ export default function SalaTeleConsulta() {
             <div className="flex flex-col items-center gap-1.5 mx-2">
               <button
                 onClick={encerrar}
-                className="flex items-center justify-center size-14 rounded-full bg-danger hover:bg-danger/80 text-white transition-all duration-200 shadow-lg shadow-danger/30 scale-105"
+                className="flex cursor-pointer items-center justify-center size-14 rounded-full bg-danger hover:bg-danger/80 text-white transition-all duration-200 shadow-lg shadow-danger/30 scale-105"
               >
                 <PhoneOff size={22} />
               </button>

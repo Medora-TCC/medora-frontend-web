@@ -1,4 +1,4 @@
-import {  Modal, Spinner } from "@heroui/react";
+import { Modal, Spinner } from "@heroui/react";
 import type { IConsultaDetailed } from "@medora_web/shared";
 import { useEffect, useState } from "react";
 import {
@@ -11,6 +11,7 @@ import {
   Stethoscope,
   CheckCircle2,
   X,
+  House,
 } from "lucide-react";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { FindConsultaDetailedById } from "../../pages/ConsultaScreen/Consulta";
@@ -75,6 +76,16 @@ export default function ConsultaModal({
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id, isOpen]);
+
+  const formatDate = (isoString: any) => {
+    return new Date(isoString).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -148,7 +159,7 @@ export default function ConsultaModal({
                         <div className="flex items-center gap-1.5 mt-1">
                           <Clock className="w-3.5 h-3.5 text-accent" />
                           <p className="text-sm font-semibold text-text-primary">
-                            {currentConsulta.startDateTime}
+                            {formatDate(currentConsulta.startDateTime)}
                           </p>
                         </div>
                       </InfoCard>
@@ -156,7 +167,7 @@ export default function ConsultaModal({
                       <InfoCard>
                         <SectionLabel>Modalidade</SectionLabel>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <Video className="w-3.5 h-3.5 text-accent" />
+                          {currentConsulta?.type === "teleconsulta" ? <Video className="w-3.5 h-3.5 text-accent" /> : <House  className="w-3.5 h-3.5 text-accent" /> }
                           <p className="text-sm font-semibold  text-text-primary">
                             {currentConsulta.type ?? "teleconsulta"}
                           </p>
@@ -175,15 +186,18 @@ export default function ConsultaModal({
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      <InfoCard>
-                        <SectionLabel>Convênio</SectionLabel>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <CreditCard className="w-3.5 h-3.5  text-accent" />
-                          <p className="text-sm text-text-primary">
-                            {currentConsulta.healthInsurance ?? "Particular"}
-                          </p>
-                        </div>
-                      </InfoCard>
+                      {currentConsulta?.type != "teleconsulta" && (
+                        <InfoCard>
+                          <SectionLabel>Convênio</SectionLabel>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <CreditCard className="w-3.5 h-3.5  text-accent" />
+                            <p className="text-sm text-text-primary">
+                              {currentConsulta.healthInsurance ?? "Particular"}
+                            </p>
+                          </div>
+                        </InfoCard>
+                      )}
+
                     </div>
                   </>
                 )}
@@ -194,15 +208,14 @@ export default function ConsultaModal({
                 <div className="flex items-center gap-2">
                   {currentConsulta && (
                     <span
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-                        currentConsulta.status === "finalizado"
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${currentConsulta.status === "finalizado"
                           ? "bg-success-soft border-success-soft text-success"
                           : currentConsulta.status === "em_atendimento"
                             ? "bg-blue-500/10 border-blue-500/20 text-blue-400"
                             : currentConsulta.status === "cancelado"
                               ? "bg-danger/10 border-danger-soft text-danger"
                               : "bg-text/20 border-text text-text-secondary"
-                      }`}
+                        }`}
                     >
                       {currentConsulta.status === "finalizado" && (
                         <CheckCircle2 className="w-3 h-3" />
@@ -213,8 +226,8 @@ export default function ConsultaModal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <EnterReceitaButton/>
-                  <EnterProntuarioButton/>
+                  <EnterReceitaButton />
+                  <EnterProntuarioButton />
                   {currentConsulta?.type === "teleconsulta" && (
                     <EnterConsultaButton
                       isJoinable={isJoinable}

@@ -352,7 +352,7 @@ export default function UserManagementPage() {
               <Button onClick={() => openConfirm('reset')} 
               className="bg-primary-subtle text-text-primary hover:bg-primary-subtle hover:text-primary-text border-primary/20" >
                 <KeyRound size={14} />
-                Definir senha
+                Redefinir senha
               </Button>
             </div>
             <button

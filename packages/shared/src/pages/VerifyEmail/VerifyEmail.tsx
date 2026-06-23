@@ -58,14 +58,14 @@ export function VerifyEmailScreen() {
                     </div>
                     <h2 className="text-2xl font-bold text-text-primary mb-2">E-mail verificado</h2>
                     <p className="text-text-secondary text-sm">
-                        Seu e-email <span className="font-semibold text-text-primary">user@teste.com</span> foi verificado com sucesso
+                        Seu e-email <span className="font-semibold text-text-primary">joaosilva@email.com</span> foi verificado com sucesso
                     </p>
                 </div>
                 <Button
                     type="button"
                     className="w-full bg-primary-color hover:bg-primary-hover text-text-inverse font-semibold py-3 px-4 rounded-lg transition-colors cursor-pointer flex justify-center items-center"
                     onPress={() => {
-                        navigate("../trocar-senha")
+                        navigate("../medico/")
                     }}
                 >
                     Continuar
