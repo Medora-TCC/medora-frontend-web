@@ -23,9 +23,9 @@ async function GetDailyAvailabilityByDoctorId(doctorId: string, token: string): 
     }
 }
 
-async function DeleteAvailabilityById(availabilityId: string, token: string) {
+async function DeleteAvailabilityById(id: number, token: string) {
     try {
-        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${availabilityId}`, {
+        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -44,9 +44,9 @@ async function DeleteAvailabilityById(availabilityId: string, token: string) {
     }
 }
 
-async function ApproveAvailabilityById(availabilityId: string, token: string) {
+async function ApproveAvailabilityById(id: number, token: string) {
     try {
-        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${availabilityId}/approve`, {
+        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${id}/approve`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -104,7 +104,7 @@ async function CreateDailyAvailability(body: any, token: string) {
     }
 }
 
-async function UpdateDailyAvailabilityType(id: string, type: 'inPerson' | 'online' | 'any', token: string) {  
+async function UpdateDailyAvailabilityType(id: number, type: 'inPerson' | 'online' | 'any', token: string) {  
   try {
     const response = await fetch(`${Endpoints.UPDATE_DAILY_AVAILABILITY_TYPE}/${id}/type`, {
     method: "PATCH",

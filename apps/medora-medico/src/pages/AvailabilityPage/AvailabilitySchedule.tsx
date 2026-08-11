@@ -74,7 +74,7 @@ const dayLabel = (d: Date): { top: string; sub: string } => {
 };
 
 
-function StatusBadge({ status, isPast }: { status: SlotStatus; isPast: boolean }) {
+function StatusBadge({ status, isPast }: Readonly<{ status: SlotStatus; isPast: boolean }>) {
   if (!isPast) {
     if (status === 'confirmed')
       return (
@@ -102,8 +102,8 @@ export function AvailabilityHistorical() {
   const [selectedDate, setSelectedDate]     = useState<Date>(new Date());
   const [slots, setSlots]                   = useState<DailyAvailabilitySlotDTO[]>([]);
   const [isLoading, setIsLoading]           = useState(false);
-  const [editingSlotId, setEditingSlotId]   = useState<string | null>(null);
-  const [activeSlotId, setActiveSlotId]     = useState<string | null>(null);
+  const [editingSlotId, setEditingSlotId]   = useState<number | null>(null);
+  const [activeSlotId, setActiveSlotId]     = useState<number | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const timelineDays = useMemo(() => {
@@ -141,7 +141,7 @@ export function AvailabilityHistorical() {
     return () => { active = false; };
   }, [selectedDate]);
 
-  const handleConfirm = async (id: string) => {
+  const handleConfirm = async (id: number) => {
     try {
       const token = localStorage.getItem('medora_token') || '';
       const res = await AvailabilityService.ApproveAvailabilityById(id, token);
@@ -149,7 +149,7 @@ export function AvailabilityHistorical() {
     } catch (err) { console.error(err); }
   };
 
-  const handleCancel = async (id: string) => {
+  const handleCancel = async (id: number) => {
     try {
       const token = localStorage.getItem('medora_token') || '';
       await AvailabilityService.DeleteAvailabilityById(id, token);

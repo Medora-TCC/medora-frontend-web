@@ -2,7 +2,7 @@ export type AvailabilitySlotStatus = 'available' | 'scheduled' | 'confirmed' | '
 export type AvailabilitySlotType = 'inPerson' | 'online' | 'any';
 
 export interface DailyAvailabilitySlotDTO {
-  id: string; 
+  id: number; 
   startDateTime: string;
   endDateTime: string;
   time: string; 
