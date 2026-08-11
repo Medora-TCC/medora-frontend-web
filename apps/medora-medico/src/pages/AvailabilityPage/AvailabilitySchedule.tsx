@@ -10,7 +10,7 @@ import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService from '../../api/services/Availability';
 
 
-type SlotType   = 'inPerson' | 'telemedicine' | 'hybrid';
+type SlotType   = 'inPerson' | 'online' | 'hybrid';
 type SlotStatus = 'available' | 'scheduled' | 'confirmed' | 'canceled' | 'completed';
 
 const TYPE_CFG: Record<SlotType, {
@@ -29,7 +29,7 @@ const TYPE_CFG: Record<SlotType, {
     iconBg:  'bg-primary/10 text-primary-text',
     stripe:  'bg-primary',
   },
-  telemedicine: {
+  online: {
     label: 'Telemedicina',
     shortLabel: 'Telemed.',
     icon: <Monitor size={15} />,

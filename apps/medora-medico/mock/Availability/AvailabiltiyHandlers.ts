@@ -23,7 +23,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     endDateTime: getIsoDateWithOffset(0, "09:30"),
     time: "09:00",
     status: "scheduled",
-    type: "telemedicine",
+    type: "online",
     patientId: "pat-123",
     patientName: "João Silva",
     appointmentId: "app-123",
@@ -45,7 +45,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     endDateTime: getIsoDateWithOffset(1, "10:00"),
     time: "09:00",
     status: "available",
-    type: "telemedicine",
+    type: "online",
   },
   {
     id: "slot-005",
@@ -127,7 +127,7 @@ export const availabilityHandlers = [
                endDateTime,
                time: s.time,
                status: 'available',
-               type: s.status === 'telemedicine' ? 'telemedicine' : (s.status === 'hybrid' ? 'hybrid' : 'inPerson'),
+               type: s.status === 'online' ? 'online' : (s.status === 'hybrid' ? 'hybrid' : 'inPerson'),
                doctorId: doctorId || '1'
             } as DailyAvailabilitySlotDTO;
             

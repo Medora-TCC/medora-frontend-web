@@ -17,7 +17,7 @@ import AvailabilityService from '../../api/services/Availability';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
 
-export type SlotMode = 'inPerson' | 'telemedicine' | 'hybrid';
+export type SlotMode = 'inPerson' | 'online' | 'hybrid';
 
 interface DayShift {
   id: string;
@@ -72,7 +72,7 @@ const MODE_CONFIG: Record<SlotMode, {
     bgClass: 'bg-primary-subtle',
     borderClass: 'border-primary/30',
   },
-  telemedicine: {
+  online: {
     label: 'Telemedicina',
     icon: <Monitor size={13} />,
     colorClass: 'text-warning-text',
