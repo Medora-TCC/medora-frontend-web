@@ -10,7 +10,7 @@ function getIsoDateWithOffset(daysOffset: number, time: string) {
 
 const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
   {
-    id: "slot-001",
+    id: 1,
     startDateTime: getIsoDateWithOffset(0, "08:00"),
     endDateTime: getIsoDateWithOffset(0, "08:30"),
     time: "08:00",
@@ -18,7 +18,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     type: "inPerson",
   },
   {
-    id: "slot-002",
+    id: 2,
     startDateTime: getIsoDateWithOffset(0, "09:00"),
     endDateTime: getIsoDateWithOffset(0, "09:30"),
     time: "09:00",
@@ -29,7 +29,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     appointmentId: 123,
   },
   {
-    id: "slot-003",
+    id: 3,
     startDateTime: getIsoDateWithOffset(0, "10:30"),
     endDateTime: getIsoDateWithOffset(0, "11:00"),
     time: "10:30",
@@ -40,7 +40,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     appointmentId: 456,
   },
   {
-    id: "slot-004",
+    id: 4,
     startDateTime: getIsoDateWithOffset(1, "09:00"),
     endDateTime: getIsoDateWithOffset(1, "10:00"),
     time: "09:00",
@@ -48,7 +48,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     type: "online",
   },
   {
-    id: "slot-005",
+    id: 5,
     startDateTime: getIsoDateWithOffset(-1, "15:00"),
     endDateTime: getIsoDateWithOffset(-1, "15:30"),
     time: "15:00",
@@ -88,7 +88,7 @@ export const availabilityHandlers = [
   }),
 
   http.get('/doctors/availability/daily/:id', ({ params }) => {
-    const slot = mockAvailabilityList.find(s => s.id === params.id);
+    const slot = mockAvailabilityList.find(s => s.id === Number(params.id));
 
     if (!slot) {
       return HttpResponse.json({ message: "Disponibilidade não encontrada" }, { status: 404 });
@@ -122,7 +122,7 @@ export const availabilityHandlers = [
             const endDateTime = `${dateString}T${endHours}:${endMins}:00.000Z`;
             
             const nova: DailyAvailabilitySlotDTO = {
-               id: `slot-${Date.now()}-${i}-${index}`,
+               id: index,
                startDateTime,
                endDateTime,
                time: s.time,
@@ -142,7 +142,7 @@ export const availabilityHandlers = [
   
   http.post('/doctors/availability/daily/:id/approve', async ({ params }) => {
     await delay(500);
-    const slotIndex = mockAvailabilityList.findIndex(s => s.id === params.id);
+    const slotIndex = mockAvailabilityList.findIndex(s => s.id === Number(params.id));
     
     if (slotIndex === -1) {
       return HttpResponse.json({ message: "Disponibilidade não encontrada" }, { status: 404 });
@@ -155,7 +155,7 @@ export const availabilityHandlers = [
   
   http.delete('/doctors/availability/daily/:id', async ({ params }) => {
     await delay(300);
-    const slotIndex = mockAvailabilityList.findIndex(s => s.id === params.id);
+    const slotIndex = mockAvailabilityList.findIndex(s => s.id === Number(params.id));
     
     if (slotIndex === -1) {
       return HttpResponse.json({ message: "Disponibilidade não encontrada" }, { status: 404 });
@@ -169,7 +169,7 @@ export const availabilityHandlers = [
   http.patch('/doctors/availability/daily/:id/type', async ({ params, request }) => {
     await delay(300);
     const { type } = await request.json() as any;
-    const index = mockAvailabilityList.findIndex(s => s.id === params.id);
+    const index = mockAvailabilityList.findIndex(s => s.id === Number(params.id));
     if (index !== -1) {
       mockAvailabilityList[index].type = type;
       return HttpResponse.json(mockAvailabilityList[index]);
