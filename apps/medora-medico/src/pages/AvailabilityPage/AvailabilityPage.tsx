@@ -98,13 +98,13 @@ function SelectField({
   value,
   onChange,
   options,
-}: {
+}: Readonly<{
   label: string;
   icon?: React.ReactNode;
   value: string;
   onChange: (v: string) => void;
   options: { label: string; value: string }[];
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
@@ -132,10 +132,10 @@ function SelectField({
 function ModeSelect({
   value,
   onChange,
-}: {
+}: Readonly<{
   value: SlotMode;
   onChange: (v: SlotMode) => void;
-}) {
+}>) {
   const cfg = MODE_CONFIG[value];
   return (
     <div className={`relative flex items-center border rounded-lg h-9 px-2.5 pr-7 text-xs font-medium cursor-pointer transition-colors ${cfg.bgClass} ${cfg.borderClass} ${cfg.colorClass}`}>
@@ -161,11 +161,11 @@ function TimeInput({
   value,
   onChange,
   hasError,
-}: {
+}: Readonly<{
   value: string;
   onChange: (v: string) => void;
   hasError?: boolean;
-}) {
+}>) {
   return (
     <input
       type="time"
@@ -308,7 +308,7 @@ console.log(response);
         shifts: dayShifts.map((s) => ({ start: s.start, end: s.end, mode: s.mode })),
       }));
       await AvailabilityService.CreateDailyAvailability(
-        { doctorId, duration: parseInt(duration), repeatWeeks: parseInt(repeatWeeks), weekDays: weekDayEntries },
+        { doctorId, duration: Number.parseInt(duration), repeatWeeks: Number.parseInt(repeatWeeks), weekDays: weekDayEntries },
         token,
       );
       toast.success('Grade de horários salva com sucesso!');
