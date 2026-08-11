@@ -127,7 +127,7 @@ export const availabilityHandlers = [
                endDateTime,
                time: s.time,
                status: 'available',
-               type: s.status === 'online' ? 'online' : (s.status === 'hybrid' ? 'hybrid' : 'inPerson'),
+               type: s.status === 'online' ? 'online' : (s.status === 'any' ? 'any' : 'inPerson'),
                doctorId: doctorId || '1'
             } as DailyAvailabilitySlotDTO;
             

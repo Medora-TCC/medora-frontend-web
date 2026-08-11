@@ -17,7 +17,7 @@ import AvailabilityService from '../../api/services/Availability';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
 
-export type SlotMode = 'inPerson' | 'online' | 'hybrid';
+export type SlotMode = 'inPerson' | 'online' | 'any';
 
 interface DayShift {
   id: string;
@@ -79,7 +79,7 @@ const MODE_CONFIG: Record<SlotMode, {
     bgClass: 'bg-warning-subtle',
     borderClass: 'border-warning/30',
   },
-  hybrid: {
+  any: {
     label: 'Ambos',
     icon: <RefreshCw size={13} />,
     colorClass: 'text-success-text',

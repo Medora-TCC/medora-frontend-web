@@ -104,7 +104,7 @@ async function CreateDailyAvailability(body: any, token: string) {
     }
 }
 
-async function UpdateDailyAvailabilityType(id: string, type: 'inPerson' | 'online' | 'hybrid', token: string) {  
+async function UpdateDailyAvailabilityType(id: string, type: 'inPerson' | 'online' | 'any', token: string) {  
   try {
     const response = await fetch(`${Endpoints.UPDATE_DAILY_AVAILABILITY_TYPE}/${id}/type`, {
     method: "PATCH",

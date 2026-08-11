@@ -10,7 +10,7 @@ import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService from '../../api/services/Availability';
 
 
-type SlotType   = 'inPerson' | 'online' | 'hybrid';
+type SlotType   = 'inPerson' | 'online' | 'any';
 type SlotStatus = 'available' | 'scheduled' | 'confirmed' | 'canceled' | 'completed';
 
 const TYPE_CFG: Record<SlotType, {
@@ -37,7 +37,7 @@ const TYPE_CFG: Record<SlotType, {
     iconBg:  'bg-violet-100 text-violet-600',
     stripe:  'bg-violet-500',
   },
-  hybrid: {
+  any: {
     label: 'Ambos',
     shortLabel: 'Ambos',
     icon: <RefreshCw size={15} />,
