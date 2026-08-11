@@ -10,5 +10,5 @@ export interface DailyAvailabilitySlotDTO {
   type: AvailabilitySlotType;
   patientId?: string; 
   patientName?: string;
-  appointmentId?: string;
+  appointmentId?: number;
 }

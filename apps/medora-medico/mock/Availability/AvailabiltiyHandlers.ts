@@ -26,7 +26,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     type: "online",
     patientId: "pat-123",
     patientName: "João Silva",
-    appointmentId: "app-123",
+    appointmentId: 123,
   },
   {
     id: "slot-003",
@@ -37,7 +37,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     type: "inPerson",
     patientId: "pat-456",
     patientName: "Maria Souza",
-    appointmentId: "app-456",
+    appointmentId: 456,
   },
   {
     id: "slot-004",
@@ -56,7 +56,7 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
     type: "inPerson",
     patientId: "pat-789",
     patientName: "Carlos Mendes",
-    appointmentId: "app-789",
+    appointmentId: 789,
   }
 ];
 
