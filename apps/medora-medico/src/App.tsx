@@ -18,8 +18,7 @@ import ConfigPage from './pages/ConfigPage/ConfigPage';
 
 function App() {
   return (
-    <>
-      <ThemeProvider>
+    <ThemeProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/medico" element={<MainLayout />}>
@@ -51,7 +50,6 @@ function App() {
              </Routes>
           </BrowserRouter>
       </ThemeProvider>
-    </>
   );
 }
 
