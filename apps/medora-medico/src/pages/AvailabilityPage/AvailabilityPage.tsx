@@ -17,7 +17,7 @@ import AvailabilityService from '../../api/services/Availability';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
 
-export type SlotMode = 'presential' | 'telemedicine' | 'hybrid';
+export type SlotMode = 'inPerson' | 'telemedicine' | 'hybrid';
 
 interface DayShift {
   id: string;
@@ -65,7 +65,7 @@ const MODE_CONFIG: Record<SlotMode, {
   bgClass: string;
   borderClass: string;
 }> = {
-  presential:   {
+  inPerson:   {
     label: 'Presencial',
     icon: <Building2 size={13} />,
     colorClass: 'text-primary-text',
@@ -241,7 +241,7 @@ console.log(response);
       ...prev,
       [dayValue]: [
         ...(prev[dayValue] ?? []),
-        { id: uid(), start: '08:00', end: '12:00', mode: 'presential' as SlotMode },
+        { id: uid(), start: '08:00', end: '12:00', mode: 'inPerson' as SlotMode },
       ],
     }));
   }, []);

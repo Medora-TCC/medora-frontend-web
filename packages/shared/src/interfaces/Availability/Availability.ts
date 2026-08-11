@@ -1,5 +1,5 @@
 export type AvailabilitySlotStatus = 'available' | 'scheduled' | 'confirmed' | 'completed' | 'canceled' | 'absent';
-export type AvailabilitySlotType = 'presential' | 'telemedicine' | 'hybrid';
+export type AvailabilitySlotType = 'inPerson' | 'telemedicine' | 'hybrid';
 
 export interface DailyAvailabilitySlotDTO {
   id: string; 

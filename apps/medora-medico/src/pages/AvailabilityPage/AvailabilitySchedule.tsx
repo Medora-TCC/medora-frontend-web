@@ -10,7 +10,7 @@ import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService from '../../api/services/Availability';
 
 
-type SlotType   = 'presential' | 'telemedicine' | 'hybrid';
+type SlotType   = 'inPerson' | 'telemedicine' | 'hybrid';
 type SlotStatus = 'available' | 'scheduled' | 'confirmed' | 'canceled' | 'completed';
 
 const TYPE_CFG: Record<SlotType, {
@@ -21,7 +21,7 @@ const TYPE_CFG: Record<SlotType, {
   iconBg: string;       
   stripe: string;       
 }> = {
-  presential: {
+  inPerson: {
     label: 'Presencial',
     shortLabel: 'Presencial',
     icon: <Building2 size={15} />,
@@ -179,7 +179,7 @@ export function AvailabilityHistorical() {
   const isPast         = toDateStr(selectedDate) < todayStr();
   const activeSlot     = slots.find(s => s.id === activeSlotId) ?? null;
   const activeIsBooked = activeSlot ? activeSlot.status !== 'available' : false;
-  const activeType     = (activeSlot?.type ?? 'presential') as SlotType;
+  const activeType     = (activeSlot?.type ?? 'inPerson') as SlotType;
   const activeCfg      = TYPE_CFG[activeType];
 
   return (
@@ -267,7 +267,7 @@ export function AvailabilityHistorical() {
                   {slots.map((slot) => {
                     const isActive  = slot.id === activeSlotId;
                     const isBooked  = slot.status !== 'available';
-                    const cfg       = TYPE_CFG[(slot.type ?? 'presential') as SlotType];
+                    const cfg       = TYPE_CFG[(slot.type ?? 'inPerson') as SlotType];
 
                     return (
                       <li key={slot.id}>
@@ -381,7 +381,7 @@ export function AvailabilityHistorical() {
                     <div className="p-5 space-y-4">
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${activeCfg.iconBg}`}>
-                          {activeType === 'presential' ? <User size={22} /> : <Video size={22} />}
+                          {activeType === 'inPerson' ? <User size={22} /> : <Video size={22} />}
                         </div>
                         <div>
                           <p className="font-semibold text-text-primary">{activeSlot.patientName ?? 'Paciente'}</p>

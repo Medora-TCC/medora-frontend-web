@@ -104,7 +104,7 @@ async function CreateDailyAvailability(body: any, token: string) {
     }
 }
 
-async function UpdateDailyAvailabilityType(id: string, type: 'presential' | 'telemedicine' | 'hybrid', token: string) {  
+async function UpdateDailyAvailabilityType(id: string, type: 'inPerson' | 'telemedicine' | 'hybrid', token: string) {  
   try {
     const response = await fetch(`${Endpoints.UPDATE_DAILY_AVAILABILITY_TYPE}/${id}/type`, {
     method: "PATCH",
