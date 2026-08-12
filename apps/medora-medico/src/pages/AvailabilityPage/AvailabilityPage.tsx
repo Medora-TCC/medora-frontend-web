@@ -13,6 +13,7 @@ import {
   ChevronDown,
   AlertCircle,
 } from 'lucide-react';
+import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService from '../../api/services/Availability';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
@@ -90,6 +91,44 @@ const MODE_CONFIG: Record<SlotMode, {
 
 
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+const HISTORY_DAYS = 5;
+
+interface HistoryDay {
+  id: string;
+  date: string;
+  slotIds: number[];
+  start: string;
+  end: string;
+  duration: number;
+  slots: number;
+  isSeries: boolean;
+}
+
+const minutesOf = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+function toHistoryDay(date: string, slots: DailyAvailabilitySlotDTO[]): HistoryDay[] {
+  if (!Array.isArray(slots) || slots.length === 0) return [];
+
+  const ordered = [...slots].sort((a, b) => a.startDateTime.localeCompare(b.startDateTime));
+  const first = ordered[0];
+  const last = ordered[ordered.length - 1];
+  const end = last.endDateTime.slice(11, 16);
+
+  return [{
+    id: date,
+    date,
+    slotIds: ordered.map((s) => s.id),
+    start: first.time,
+    end,
+    duration: minutesOf(first.endDateTime.slice(11, 16)) - minutesOf(first.time),
+    slots: ordered.length,
+    isSeries: false,
+  }];
+}
 
 
 function SelectField({
@@ -187,7 +226,7 @@ export default function AvailabilityPage() {
 
   const [loading, setLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [visibleHistory, setVisibleHistory] = useState<any[]>([]);
+  const [visibleHistory, setVisibleHistory] = useState<HistoryDay[]>([]);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDayData, setEditingDayData] = useState<any>(null);
@@ -195,37 +234,23 @@ export default function AvailabilityPage() {
   const doctorId = '1';
   const token = '';
 
-
   const fetchAvailabilityHistory = async () => {
     try {
       setIsLoadingHistory(true);
-      const start = new Date().toISOString().split('T')[0];
-      const end = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const response = await AvailabilityService.GetAllAvailabilityByRangeDateAndDoctorId(
-        doctorId, start, end, token,
-      );
-console.log(response);
 
-      if (Array.isArray(response)) {
-        const grouped: Record<string, any> = {};
-        response.forEach((slot: any) => {
-          if (!slot.startDateTime) return;
-          const key = slot.startDateTime.split('T')[0];
-          if (!grouped[key]) {
-            grouped[key] = { id: slot.id, date: key, start: slot.time, end: slot.time, duration: 15, slots: 0, isSeries: false };
-          }
-          grouped[key].slots += 1;
-          if (slot.time < grouped[key].start) grouped[key].start = slot.time;
-          const timeEnd = "23:59"
-          if (timeEnd > grouped[key].end) grouped[key].end = timeEnd;
-        });
-        console.log("teste" , Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date)));
-        setVisibleHistory(
-          Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date)),
-        );
-      } else {
-        setVisibleHistory([]);
-      }
+      const dates = Array.from({ length: HISTORY_DAYS }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        return d.toISOString().split('T')[0];
+      });
+
+      const days = await Promise.all(
+        dates.map((date) => AvailabilityService.GetDailyAvailabilityByDate(doctorId, date, token)),
+      );
+
+      setVisibleHistory(
+        days.flatMap((slots, i) => toHistoryDay(dates[i], slots)),
+      );
     } catch {
       toast.danger('Erro ao carregar os horários cadastrados.');
     } finally {
@@ -517,7 +542,11 @@ console.log(response);
                       aria-label="Excluir agenda"
                       onClick={async () => {
                         try {
-                          await AvailabilityService.DeleteAvailabilityById(item.id, token);
+                          await Promise.all(
+                            item.slotIds.map((slotId) =>
+                              AvailabilityService.DeleteAvailabilityById(slotId, token),
+                            ),
+                          );
                           toast.success('Agenda excluída com sucesso!');
                           fetchAvailabilityHistory();
                         } catch {

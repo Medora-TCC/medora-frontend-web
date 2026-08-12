@@ -2,27 +2,6 @@ import { type DailyAvailabilitySlotDTO } from "@medora_web/shared";
 import { Endpoints } from "../enums/endpoints";
 
 
-async function GetDailyAvailabilityByDoctorId(doctorId: string, token: string): Promise<DailyAvailabilitySlotDTO> {
-    try {
-        const response = await fetch(`${Endpoints.GET_DAILY_AVAILABILITY}?doctorId=${doctorId}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data as DailyAvailabilitySlotDTO;
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
-}
-
 async function DeleteAvailabilityById(id: number, token: string) {
     try {
         const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${id}`, {
@@ -65,9 +44,9 @@ async function ApproveAvailabilityById(id: number, token: string) {
     }
 }
 
-async function GetAllAvailabilityByRangeDateAndDoctorId(doctorId: string, startDate: string, endDate: string, token: string) {
+async function GetDailyAvailabilityByDate(doctorId: string, date: string, token: string) {
     try {
-        const response = await fetch(`${Endpoints.GET_DAILY_AVAILABILITY}?doctorId=${doctorId}&startDate=${startDate}&endDate=${endDate}`, {
+        const response = await fetch(`${Endpoints.GET_DAILY_AVAILABILITY}?doctorId=${doctorId}&date=${date}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -123,19 +102,17 @@ async function UpdateDailyAvailabilityType(id: number, type: 'inPerson' | 'onlin
 }
 
 export type AvailabilityService = {
-    GetDailyAvailabilityByDoctorId: typeof GetDailyAvailabilityByDoctorId;
     DeleteAvailabilityById: typeof DeleteAvailabilityById;
     ApproveAvailabilityById: typeof ApproveAvailabilityById;
-    GetAllAvailabilityByRangeDateAndDoctorId: typeof GetAllAvailabilityByRangeDateAndDoctorId;
+    GetDailyAvailabilityByDate: typeof GetDailyAvailabilityByDate;
     CreateDailyAvailability: typeof CreateDailyAvailability;
     UpdateDailyAvailabilityType: typeof UpdateDailyAvailabilityType;
 }
 
 const AvailabilityService: AvailabilityService = {
-    GetDailyAvailabilityByDoctorId,
     DeleteAvailabilityById,
     ApproveAvailabilityById,
-    GetAllAvailabilityByRangeDateAndDoctorId,
+    GetDailyAvailabilityByDate,
     CreateDailyAvailability,
     UpdateDailyAvailabilityType
 }

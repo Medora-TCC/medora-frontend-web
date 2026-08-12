@@ -63,25 +63,20 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
 export const availabilityHandlers = [
   http.get('/doctors/availability/daily', async ({ request }) => {
     const url = new URL(request.url);
-    const startDate = url.searchParams.get('startDate');
-    const endDate = url.searchParams.get('endDate');
-    
-    await delay(800);
+    const date = url.searchParams.get('date');
     
     let result = [...mockAvailabilityList];
 
-    if (startDate && endDate) {
-      const start = startDate.split('T')[0];
-      const end = endDate.split('T')[0];
-      
+    if (date) {
+      const prefix = date.split('T')[0];
+
       result = result.filter(slot => {
         if (!slot.startDateTime) return false;
-        const slotDate = slot.startDateTime.split('T')[0];
-        return slotDate >= start && slotDate <= end;
+
+        return slot.startDateTime.startsWith(prefix);
       });
-    } else if (startDate) {
-      const startPrefix = startDate.split('T')[0];
-      result = result.filter(slot => slot.startDateTime?.startsWith(startPrefix));
+    } else {
+      return HttpResponse.json({ message: "O dia precisa ser informado." }, { status: 400 });
     }
     
     return HttpResponse.json(result);

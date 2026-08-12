@@ -124,9 +124,7 @@ export function AvailabilityHistorical() {
       setIsLoading(true);
       try {
         const dateStr = toDateStr(selectedDate);
-        const res = await AvailabilityService.GetAllAvailabilityByRangeDateAndDoctorId(
-          'doctorId', dateStr, dateStr, 'token',
-        );
+        const res = await AvailabilityService.GetDailyAvailabilityByDate('doctorId', dateStr, 'token');
         if (active) {
           setSlots(res);
           if (res.length > 0) setActiveSlotId(res[0].id);
