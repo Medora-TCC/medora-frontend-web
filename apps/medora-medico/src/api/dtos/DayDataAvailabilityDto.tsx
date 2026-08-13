@@ -5,5 +5,4 @@ export interface DayDataAvailabilityDto {
     end: string;
     duration: number;
     slots: number;
-    isSeries: boolean;
 }

@@ -102,7 +102,6 @@ interface HistoryDay {
   end: string;
   duration: number;
   slots: number;
-  isSeries: boolean;
 }
 
 const minutesOf = (time: string) => {
@@ -125,8 +124,7 @@ function toHistoryDay(date: string, slots: DailyAvailabilitySlotDTO[]): HistoryD
     start: first.time,
     end,
     duration: minutesOf(first.endDateTime.slice(11, 16)) - minutesOf(first.time),
-    slots: ordered.length,
-    isSeries: false,
+    slots: ordered.length
   }];
 }
 
@@ -510,11 +508,6 @@ export default function AvailabilityPage() {
                           day: '2-digit',
                           month: 'short',
                         })}
-                        {item.isSeries && (
-                          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
-                            Série
-                          </span>
-                        )}
                       </p>
                       <div className="flex items-center gap-1 mt-1 text-xs text-text-secondary">
                         <Clock size={12} />
