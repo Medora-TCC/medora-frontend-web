@@ -1,5 +1,5 @@
 import { http, HttpResponse, delay } from 'msw';
-import { type DailyAvailabilitySlotDTO } from "@medora_web/shared";
+import { type AvailabilitySlotType, type DailyAvailabilitySlotDTO } from "@medora_web/shared";
 
 function getIsoDateWithOffset(daysOffset: number, time: string) {
   const date = new Date();
@@ -7,6 +7,27 @@ function getIsoDateWithOffset(daysOffset: number, time: string) {
   const dateString = date.toISOString().split('T')[0];
   return `${dateString}T${time}:00.000Z`;
 }
+
+interface CreateAvailabilityShift {
+  start: string;
+  end: string;
+  mode: AvailabilitySlotType;
+}
+
+interface CreateAvailabilityBody {
+  doctorId: string;
+  duration: number;
+  repeatWeeks: number;
+  weekDays: { weekDay: number; shifts: CreateAvailabilityShift[] }[];
+}
+
+const toMinutes = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const toTime = (totalMinutes: number) =>
+  `${Math.floor(totalMinutes / 60).toString().padStart(2, '0')}:${(totalMinutes % 60).toString().padStart(2, '0')}`;
 
 const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
   {
@@ -60,6 +81,8 @@ const mockAvailabilityList: DailyAvailabilitySlotDTO[] = [
   }
 ];
 
+let nextSlotId = mockAvailabilityList.length + 1;
+
 export const availabilityHandlers = [
   http.get('/doctors/availability/daily', async ({ request }) => {
     const url = new URL(request.url);
@@ -93,45 +116,47 @@ export const availabilityHandlers = [
   }),
 
   http.post('/doctors/availability/daily', async ({ request }) => {
-    const body = await request.json() as any;
-    
-    const { doctorId, repeatWeeks, weekDays, duration, slots } = body;
-    const createdSlots: DailyAvailabilitySlotDTO[] = [];
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    for (let i = 0; i < (repeatWeeks * 7); i++) {
-       const currentDate = new Date(today);
-       currentDate.setDate(today.getDate() + i);
-       
-       if (weekDays.includes(currentDate.getDay())) {
-         const dateString = currentDate.toISOString().split('T')[0];
-         
-         slots.forEach((s: any, index: number) => {
-            const startDateTime = `${dateString}T${s.time}:00.000Z`;
-            const [hours, minutes] = s.time.split(':').map(Number);
-            const endTotalMinutes = hours * 60 + minutes + (duration || 15);
-            const endHours = Math.floor(endTotalMinutes / 60).toString().padStart(2, '0');
-            const endMins = (endTotalMinutes % 60).toString().padStart(2, '0');
-            const endDateTime = `${dateString}T${endHours}:${endMins}:00.000Z`;
-            
-            const nova: DailyAvailabilitySlotDTO = {
-               id: index,
-               startDateTime,
-               endDateTime,
-               time: s.time,
-               status: 'available',
-               type: s.status === 'online' ? 'online' : (s.status === 'any' ? 'any' : 'inPerson'),
-               doctorId: doctorId || '1'
-            } as DailyAvailabilitySlotDTO;
-            
-            mockAvailabilityList.push(nova);
-            createdSlots.push(nova);
-         });
-       }
+    const { repeatWeeks, weekDays, duration } = await request.json() as CreateAvailabilityBody;
+
+    if (!Array.isArray(weekDays) || weekDays.length === 0) {
+      return HttpResponse.json({ message: "Informe ao menos um dia da semana." }, { status: 400 });
     }
-    
+
+    const slotDuration = duration || 15;
+    const createdSlots: DailyAvailabilitySlotDTO[] = [];
+
+    // Tudo em UTC porque os slots são gravados com sufixo Z e o GET filtra pelo prefixo da data.
+    const today = new Date();
+    const firstDay = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+
+    for (let i = 0; i < repeatWeeks * 7; i++) {
+      const currentDate = new Date(firstDay + i * 24 * 60 * 60 * 1000);
+      const dayEntry = weekDays.find(d => d.weekDay === currentDate.getUTCDay());
+
+      if (!dayEntry) continue;
+
+      const dateString = currentDate.toISOString().split('T')[0];
+
+      dayEntry.shifts.forEach(shift => {
+        const shiftEnd = toMinutes(shift.end);
+
+        for (let start = toMinutes(shift.start); start + slotDuration <= shiftEnd; start += slotDuration) {
+          const time = toTime(start);
+          const created: DailyAvailabilitySlotDTO = {
+            id: nextSlotId++,
+            startDateTime: `${dateString}T${time}:00.000Z`,
+            endDateTime: `${dateString}T${toTime(start + slotDuration)}:00.000Z`,
+            time,
+            status: 'available',
+            type: shift.mode,
+          };
+
+          mockAvailabilityList.push(created);
+          createdSlots.push(created);
+        }
+      });
+    }
+
     return HttpResponse.json({ message: "Horários cadastrados", slots: createdSlots }, { status: 201 });
   }),
   
@@ -163,7 +188,7 @@ export const availabilityHandlers = [
 
   http.patch('/doctors/availability/daily/:id/type', async ({ params, request }) => {
     await delay(300);
-    const { type } = await request.json() as any;
+    const { type } = await request.json() as { type: AvailabilitySlotType };
     const index = mockAvailabilityList.findIndex(s => s.id === Number(params.id));
     if (index !== -1) {
       mockAvailabilityList[index].type = type;
