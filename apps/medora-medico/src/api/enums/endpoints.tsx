@@ -1,4 +1,7 @@
 export const Endpoints = {
+    LOGIN: '/auth/login',
+    REFRESH: '/auth/refresh',
+
     REGISTER_DOCTOR: '/doctors/register',
 
     GET_DOCTOR_PROFILE: '/doctors/profile',
