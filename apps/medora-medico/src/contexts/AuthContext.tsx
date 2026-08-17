@@ -56,10 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { accessToken: newAccessToken } = response.data;
 
         setAccessToken(newAccessToken);
+        tokenRef.current = newAccessToken;
+
         processQueue(null, newAccessToken);
+
       } catch (error) {
         setAccessToken(null);
+        tokenRef.current = null;
         processQueue(error, null);
+
       } finally {
         isRefreshing = false;
         setIsLoading(false);
@@ -111,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { accessToken: newAccessToken } = response.data;
 
             setAccessToken(newAccessToken);
+            tokenRef.current = newAccessToken;
 
             processQueue(null, newAccessToken);
 
