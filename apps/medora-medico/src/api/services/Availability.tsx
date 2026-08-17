@@ -1,122 +1,90 @@
-import { type DailyAvailabilitySlotDTO } from "@medora_web/shared";
-import { Endpoints } from "../enums/endpoints";
+import { type AvailabilitySlotType, type DailyAvailabilitySlotDTO } from '@medora_web/shared';
+import { Endpoints } from '../enums/endpoints';
+import { request } from '../http';
+import { type ApiDailyScheduleSlot, toDailySlotDTO } from '../mappers/availability';
 
+export const DEFAULT_TIME_ZONE = 'America/Sao_Paulo';
 
-async function DeleteAvailabilityById(id: number, token: string) {
-    try {
-        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data;
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
+export interface WeeklyShift {
+  weekDay: number;
+  startTime: string;
+  endTime: string;
+  type: AvailabilitySlotType;
 }
 
-async function ApproveAvailabilityById(id: number, token: string) {
-    try {
-        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${id}/approve`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data;
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
+export interface CreateRecurringScheduleBody {
+  slotDurationMinutes: number;
+  recurrenceStartDate: string;
+  recurrenceEndDate?: string;
+  timeZoneId: string;
+  shifts: WeeklyShift[];
 }
 
-async function GetDailyAvailabilityByDate(doctorId: string, date: string, token: string) {
-    try {
-        const response = await fetch(`${Endpoints.GET_DAILY_AVAILABILITY}?doctorId=${doctorId}&date=${date}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data as DailyAvailabilitySlotDTO[];
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
+export interface UpdateRecurringScheduleBody {
+  effectiveFrom: string;
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  type: AvailabilitySlotType;
+  recurrenceEndDate?: string;
+  timeZoneId: string;
 }
 
-async function CreateDailyAvailability(body: any, token: string) {  
-  try {
-    const response = await fetch(Endpoints.CREATE_DAILY_AVAILABILITY, {
-    method: "POST",
-        headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-    body: JSON.stringify(body),
-    });
-    const data = await response.json();
-    return data;
-    }catch (error) {
-    console.error("Error fetching data:", error);
-    throw error;
-    }
+export interface CreateSpecificAvailabilityBody {
+  date: string;
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  type: AvailabilitySlotType;
+  timeZoneId: string;
 }
 
-async function UpdateDailyAvailabilityType(id: number, type: 'inPerson' | 'online' | 'any', token: string) {  
-  try {
-    const response = await fetch(`${Endpoints.UPDATE_DAILY_AVAILABILITY_TYPE}/${id}/type`, {
-    method: "PATCH",
-        headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-    body: JSON.stringify({ type }),
-    });
-    const data = await response.json();
-    return data;
-    }catch (error) {
-    console.error("Error fetching data:", error);
-    throw error;
-    }
+export interface CreateBlockBody {
+  date: string;
+  startTime: string;
+  endTime: string;
+  timeZoneId: string;
 }
 
-export type AvailabilityService = {
-    DeleteAvailabilityById: typeof DeleteAvailabilityById;
-    ApproveAvailabilityById: typeof ApproveAvailabilityById;
-    GetDailyAvailabilityByDate: typeof GetDailyAvailabilityByDate;
-    CreateDailyAvailability: typeof CreateDailyAvailability;
-    UpdateDailyAvailabilityType: typeof UpdateDailyAvailabilityType;
+async function getDailySchedule(date: string): Promise<DailyAvailabilitySlotDTO[]> {
+  const slots = await request<ApiDailyScheduleSlot[]>(Endpoints.DAILY_SCHEDULE, { query: { date } });
+
+  return slots.map((slot) => toDailySlotDTO(slot, date));
 }
 
-const AvailabilityService: AvailabilityService = {
-    DeleteAvailabilityById,
-    ApproveAvailabilityById,
-    GetDailyAvailabilityByDate,
-    CreateDailyAvailability,
-    UpdateDailyAvailabilityType
+async function createRecurringSchedule(body: CreateRecurringScheduleBody) {
+  return request<{ rulesCreated: number }>(Endpoints.RECURRING_SCHEDULE, { method: 'POST', body });
 }
+
+async function updateRecurringSchedule(scheduleId: number, body: UpdateRecurringScheduleBody) {
+  return request<{ newScheduleId: number; previousRuleLastDay: string | null }>(
+    `${Endpoints.RECURRING_SCHEDULE}/${scheduleId}`,
+    { method: 'PUT', body },
+  );
+}
+
+async function createSpecificAvailability(body: CreateSpecificAvailabilityBody) {
+  return request<{ scheduleId: number }>(Endpoints.SPECIFIC_AVAILABILITY, { method: 'POST', body });
+}
+
+async function createBlock(body: CreateBlockBody) {
+  return request<{ blockId: number; canceledAppointments: number }>(Endpoints.SCHEDULE_BLOCKS, {
+    method: 'POST',
+    body,
+  });
+}
+
+async function removeBlock(blockId: number) {
+  return request<void>(`${Endpoints.SCHEDULE_BLOCKS}/${blockId}`, { method: 'DELETE' });
+}
+
+const AvailabilityService = {
+  getDailySchedule,
+  createRecurringSchedule,
+  updateRecurringSchedule,
+  createSpecificAvailability,
+  createBlock,
+  removeBlock,
+};
 
 export default AvailabilityService;
-
- 

@@ -1,6 +1,7 @@
 export interface DayDataAvailabilityDto {
-     id: number;
+    id: string;
     date: string;
+    scheduleId: number;
     start: string;
     end: string;
     duration: number;

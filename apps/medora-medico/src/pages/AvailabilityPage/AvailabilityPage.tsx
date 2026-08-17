@@ -14,11 +14,11 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
-import AvailabilityService from '../../api/services/Availability';
+import AvailabilityService, { DEFAULT_TIME_ZONE } from '../../api/services/Availability';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
 
-export type SlotMode = 'inPerson' | 'online' | 'any';
+export type SlotMode = 'InPerson' | 'Online' | 'Any';
 
 interface DayShift {
   id: string;
@@ -66,21 +66,21 @@ const MODE_CONFIG: Record<SlotMode, {
   bgClass: string;
   borderClass: string;
 }> = {
-  inPerson:   {
+  InPerson:   {
     label: 'Presencial',
     icon: <Building2 size={13} />,
     colorClass: 'text-primary-text',
     bgClass: 'bg-primary-subtle',
     borderClass: 'border-primary/30',
   },
-  online: {
+  Online: {
     label: 'Telemedicina',
     icon: <Monitor size={13} />,
     colorClass: 'text-warning-text',
     bgClass: 'bg-warning-subtle',
     borderClass: 'border-warning/30',
   },
-  any: {
+  Any: {
     label: 'Ambos',
     icon: <RefreshCw size={13} />,
     colorClass: 'text-success-text',
@@ -97,12 +97,15 @@ const HISTORY_DAYS = 5;
 interface HistoryDay {
   id: string;
   date: string;
-  slotIds: number[];
+  scheduleId: number;
   start: string;
   end: string;
   duration: number;
   slots: number;
 }
+
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 const minutesOf = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -120,7 +123,7 @@ function toHistoryDay(date: string, slots: DailyAvailabilitySlotDTO[]): HistoryD
   return [{
     id: date,
     date,
-    slotIds: ordered.map((s) => s.id),
+    scheduleId: first.scheduleId,
     start: first.time,
     end,
     duration: minutesOf(first.endDateTime.slice(11, 16)) - minutesOf(first.time),
@@ -227,10 +230,7 @@ export default function AvailabilityPage() {
   const [visibleHistory, setVisibleHistory] = useState<HistoryDay[]>([]);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDayData, setEditingDayData] = useState<any>(null);
-
-  const doctorId = '1';
-  const token = '';
+  const [editingDayData, setEditingDayData] = useState<HistoryDay | null>(null);
 
   const fetchAvailabilityHistory = async () => {
     try {
@@ -239,11 +239,11 @@ export default function AvailabilityPage() {
       const dates = Array.from({ length: HISTORY_DAYS }, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() + i);
-        return d.toISOString().split('T')[0];
+        return toDateStr(d);
       });
 
       const days = await Promise.all(
-        dates.map((date) => AvailabilityService.GetDailyAvailabilityByDate(doctorId, date, token)),
+        dates.map((date) => AvailabilityService.getDailySchedule(date)),
       );
 
       setVisibleHistory(
@@ -264,7 +264,7 @@ export default function AvailabilityPage() {
       ...prev,
       [dayValue]: [
         ...(prev[dayValue] ?? []),
-        { id: uid(), start: '08:00', end: '12:00', mode: 'inPerson' as SlotMode },
+        { id: uid(), start: '08:00', end: '12:00', mode: 'InPerson' as SlotMode },
       ],
     }));
   }, []);
@@ -326,14 +326,28 @@ export default function AvailabilityPage() {
     }
     try {
       setLoading(true);
-      const weekDayEntries = Object.entries(shifts).map(([day, dayShifts]) => ({
-        weekDay: Number(day),
-        shifts: dayShifts.map((s) => ({ start: s.start, end: s.end, mode: s.mode })),
-      }));
-      await AvailabilityService.CreateDailyAvailability(
-        { doctorId, duration: Number.parseInt(duration), repeatWeeks: Number.parseInt(repeatWeeks), weekDays: weekDayEntries },
-        token,
+
+      const apiShifts = Object.entries(shifts).flatMap(([day, dayShifts]) =>
+        dayShifts.map((s) => ({
+          weekDay: Number(day),
+          startTime: s.start,
+          endTime: s.end,
+          type: s.mode,
+        })),
       );
+
+      const start = new Date();
+      const end = new Date(start);
+      end.setDate(end.getDate() + Number.parseInt(repeatWeeks) * 7 - 1);
+
+      await AvailabilityService.createRecurringSchedule({
+        slotDurationMinutes: Number.parseInt(duration),
+        recurrenceStartDate: toDateStr(start),
+        recurrenceEndDate: toDateStr(end),
+        timeZoneId: DEFAULT_TIME_ZONE,
+        shifts: apiShifts,
+      });
+
       toast.success('Grade de horários salva com sucesso!');
       setShifts({});
       fetchAvailabilityHistory();
@@ -532,18 +546,23 @@ export default function AvailabilityPage() {
                     </button>
                     <button
                       className="p-1.5 rounded-md text-danger hover:bg-danger-subtle transition-colors"
-                      aria-label="Excluir agenda"
+                      aria-label="Bloquear agenda do dia"
                       onClick={async () => {
                         try {
-                          await Promise.all(
-                            item.slotIds.map((slotId) =>
-                              AvailabilityService.DeleteAvailabilityById(slotId, token),
-                            ),
+                          const { canceledAppointments } = await AvailabilityService.createBlock({
+                            date: item.date,
+                            startTime: item.start,
+                            endTime: item.end,
+                            timeZoneId: DEFAULT_TIME_ZONE,
+                          });
+                          toast.success(
+                            canceledAppointments > 0
+                              ? `Agenda bloqueada. ${canceledAppointments} consulta(s) cancelada(s).`
+                              : 'Agenda bloqueada com sucesso!',
                           );
-                          toast.success('Agenda excluída com sucesso!');
                           fetchAvailabilityHistory();
                         } catch {
-                          toast.danger('Erro ao excluir agenda.');
+                          toast.danger('Erro ao bloquear a agenda.');
                         }
                       }}
                     >

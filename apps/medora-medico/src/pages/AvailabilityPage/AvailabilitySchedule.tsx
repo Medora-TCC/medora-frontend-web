@@ -1,17 +1,17 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
   Settings, FileText, ChevronLeft, ChevronRight,
-  Video, User, Clock, Trash2, Pencil, CheckCircle2,
+  Video, User, Clock, Trash2, CheckCircle2,
   Loader2, Building2, Monitor, RefreshCw, CalendarDays,
 } from 'lucide-react';
 import { Card, Button } from '@heroui/react';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
-import AvailabilityService from '../../api/services/Availability';
+import AvailabilityService, { DEFAULT_TIME_ZONE } from '../../api/services/Availability';
 
 
-type SlotType   = 'inPerson' | 'online' | 'any';
-type SlotStatus = 'available' | 'scheduled' | 'confirmed' | 'canceled' | 'completed';
+type SlotType   = 'InPerson' | 'Online' | 'Any';
+type SlotStatus = 'Available' | 'Scheduled' | 'Confirmed' | 'Canceled' | 'Completed';
 
 const TYPE_CFG: Record<SlotType, {
   label: string;
@@ -21,7 +21,7 @@ const TYPE_CFG: Record<SlotType, {
   iconBg: string;       
   stripe: string;       
 }> = {
-  inPerson: {
+  InPerson: {
     label: 'Presencial',
     shortLabel: 'Presencial',
     icon: <Building2 size={15} />,
@@ -29,7 +29,7 @@ const TYPE_CFG: Record<SlotType, {
     iconBg:  'bg-primary/10 text-primary-text',
     stripe:  'bg-primary',
   },
-  online: {
+  Online: {
     label: 'Telemedicina',
     shortLabel: 'Telemed.',
     icon: <Monitor size={15} />,
@@ -37,7 +37,7 @@ const TYPE_CFG: Record<SlotType, {
     iconBg:  'bg-violet-100 text-violet-600',
     stripe:  'bg-violet-500',
   },
-  any: {
+  Any: {
     label: 'Ambos',
     shortLabel: 'Ambos',
     icon: <RefreshCw size={15} />,
@@ -48,12 +48,19 @@ const TYPE_CFG: Record<SlotType, {
 };
 
 
-const todayStr = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-const toDateStr = (d: Date) => d.toISOString().split('T')[0];
+const todayStr = () => toDateStr(new Date());
+
+const slotDurationOf = (slot: DailyAvailabilitySlotDTO) =>
+  Math.round((Date.parse(slot.endDateTime) - Date.parse(slot.startDateTime)) / 60_000);
+
+const addMinutes = (time: string, minutes: number) => {
+  const [hours, mins] = time.split(':').map(Number);
+  const total = hours * 60 + mins + minutes;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+};
 
 const dayLabel = (d: Date): { top: string; sub: string } => {
   const today     = new Date(); today.setHours(0,0,0,0);
@@ -76,22 +83,22 @@ const dayLabel = (d: Date): { top: string; sub: string } => {
 
 function StatusBadge({ status, isPast }: Readonly<{ status: SlotStatus; isPast: boolean }>) {
   if (!isPast) {
-    if (status === 'confirmed')
+    if (status === 'Confirmed')
       return (
         <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded bg-success-subtle text-success-text">
           <CheckCircle2 size={11} /> Confirmada
         </span>
       );
-    if (status === 'canceled')
+    if (status === 'Canceled')
       return <span className="text-xs font-medium px-2 py-0.5 rounded bg-danger-subtle text-danger-text">Recusada</span>;
   } else {
-    if (status === 'completed')
+    if (status === 'Completed')
       return (
         <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded bg-success-subtle text-success-text">
           <CheckCircle2 size={11} /> Realizada
         </span>
       );
-    if (status !== 'available')
+    if (status !== 'Available')
       return <span className="text-xs font-medium px-2 py-0.5 rounded bg-danger-subtle text-danger-text">Cancelada</span>;
   }
   return null;
@@ -102,8 +109,7 @@ export function AvailabilityHistorical() {
   const [selectedDate, setSelectedDate]     = useState<Date>(new Date());
   const [slots, setSlots]                   = useState<DailyAvailabilitySlotDTO[]>([]);
   const [isLoading, setIsLoading]           = useState(false);
-  const [editingSlotId, setEditingSlotId]   = useState<number | null>(null);
-  const [activeSlotId, setActiveSlotId]     = useState<number | null>(null);
+  const [activeSlotKey, setActiveSlotKey]   = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const timelineDays = useMemo(() => {
@@ -117,17 +123,16 @@ export function AvailabilityHistorical() {
   useEffect(() => {
     let active = true;
     setSlots([]);
-    setActiveSlotId(null);
-    setEditingSlotId(null);
+    setActiveSlotKey(null);
 
     const fetch = async () => {
       setIsLoading(true);
       try {
         const dateStr = toDateStr(selectedDate);
-        const res = await AvailabilityService.GetDailyAvailabilityByDate('doctorId', dateStr, 'token');
+        const res = await AvailabilityService.getDailySchedule(dateStr);
         if (active) {
           setSlots(res);
-          if (res.length > 0) setActiveSlotId(res[0].id);
+          if (res.length > 0) setActiveSlotKey(res[0].slotKey);
         }
       } catch (err) {
         console.error(err);
@@ -139,32 +144,19 @@ export function AvailabilityHistorical() {
     return () => { active = false; };
   }, [selectedDate]);
 
-  const handleConfirm = async (id: number) => {
+  const handleBlockSlot = async (slot: DailyAvailabilitySlotDTO) => {
     try {
-      const token = localStorage.getItem('medora_token') || '';
-      const res = await AvailabilityService.ApproveAvailabilityById(id, token);
-      setSlots(prev => prev.map(s => s.id === id ? { ...s, status: res.status as SlotStatus } : s));
-    } catch (err) { console.error(err); }
-  };
-
-  const handleCancel = async (id: number) => {
-    try {
-      const token = localStorage.getItem('medora_token') || '';
-      await AvailabilityService.DeleteAvailabilityById(id, token);
+      await AvailabilityService.createBlock({
+        date: toDateStr(selectedDate),
+        startTime: slot.time,
+        endTime: addMinutes(slot.time, slotDurationOf(slot)),
+        timeZoneId: DEFAULT_TIME_ZONE,
+      });
       setSlots(prev => {
-        const next = prev.filter(s => s.id !== id);
-        if (activeSlotId === id) setActiveSlotId(next[0]?.id ?? null);
+        const next = prev.filter(s => s.slotKey !== slot.slotKey);
+        if (activeSlotKey === slot.slotKey) setActiveSlotKey(next[0]?.slotKey ?? null);
         return next;
       });
-    } catch (err) { console.error(err); }
-  };
-
-  const handleChangeType = async (slot: DailyAvailabilitySlotDTO, newType: SlotType) => {
-    try {
-      const token = localStorage.getItem('medora_token') || '';
-      await AvailabilityService.UpdateDailyAvailabilityType(slot.id, newType, token);
-      setSlots(prev => prev.map(s => s.id === slot.id ? { ...s, type: newType } : s));
-      setEditingSlotId(null);
     } catch (err) { console.error(err); }
   };
 
@@ -175,9 +167,9 @@ export function AvailabilityHistorical() {
   };
 
   const isPast         = toDateStr(selectedDate) < todayStr();
-  const activeSlot     = slots.find(s => s.id === activeSlotId) ?? null;
-  const activeIsBooked = activeSlot ? activeSlot.status !== 'available' : false;
-  const activeType     = (activeSlot?.type ?? 'inPerson') as SlotType;
+  const activeSlot     = slots.find(s => s.slotKey === activeSlotKey) ?? null;
+  const activeIsBooked = activeSlot ? activeSlot.status !== 'Available' : false;
+  const activeType     = (activeSlot?.type ?? 'InPerson') as SlotType;
   const activeCfg      = TYPE_CFG[activeType];
 
   return (
@@ -263,14 +255,14 @@ export function AvailabilityHistorical() {
               ) : (
                 <ul className="py-1">
                   {slots.map((slot) => {
-                    const isActive  = slot.id === activeSlotId;
-                    const isBooked  = slot.status !== 'available';
-                    const cfg       = TYPE_CFG[(slot.type ?? 'inPerson') as SlotType];
+                    const isActive  = slot.slotKey === activeSlotKey;
+                    const isBooked  = slot.status !== 'Available';
+                    const cfg       = TYPE_CFG[(slot.type ?? 'InPerson') as SlotType];
 
                     return (
-                      <li key={slot.id}>
+                      <li key={slot.slotKey}>
                         <button
-                          onClick={() => { setActiveSlotId(slot.id); setEditingSlotId(null); }}
+                          onClick={() => setActiveSlotKey(slot.slotKey)}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors border-l-2
                             ${isActive
                               ? 'bg-surface border-l-primary'
@@ -328,49 +320,16 @@ export function AvailabilityHistorical() {
                   </div>
 
                   {!isPast && !activeIsBooked && (
-                    <div className="flex gap-1">
-                      <Button
-                        isIconOnly variant="ghost" size="sm"
-                        className="text-text-secondary hover:text-primary hover:bg-primary/10"
-                        onPress={() => setEditingSlotId(editingSlotId === activeSlot.id ? null : activeSlot.id)}
-                      >
-                        <Pencil size={15} />
-                      </Button>
-                      <Button
-                        isIconOnly variant="ghost" size="sm"
-                        className="text-danger hover:bg-danger-subtle"
-                        onPress={() => handleCancel(activeSlot.id)}
-                      >
-                        <Trash2 size={15} />
-                      </Button>
-                    </div>
+                    <Button
+                      isIconOnly variant="ghost" size="sm"
+                      className="text-danger hover:bg-danger-subtle"
+                      aria-label="Bloquear horário"
+                      onPress={() => handleBlockSlot(activeSlot)}
+                    >
+                      <Trash2 size={15} />
+                    </Button>
                   )}
                 </div>
-
-                {editingSlotId === activeSlot.id && (
-                  <Card className="p-4 border border-border bg-surface shadow-none rounded-xl space-y-3">
-                    <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Alterar modalidade</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(Object.entries(TYPE_CFG) as [SlotType, typeof TYPE_CFG[SlotType]][]).map(([k, v]) => (
-                        <button
-                          key={k}
-                          onClick={() => handleChangeType(activeSlot, k)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors
-                            ${activeType === k ? v.pill : 'border-border text-text-secondary hover:bg-surface-raised'}`}
-                        >
-                          {v.icon}
-                          {v.label}
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setEditingSlotId(null)}
-                      className="text-xs text-text-muted hover:text-text-secondary transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </Card>
-                )}
 
                 {activeIsBooked ? (
                   <Card className="border border-border bg-surface shadow-none rounded-xl overflow-hidden">
@@ -379,7 +338,7 @@ export function AvailabilityHistorical() {
                     <div className="p-5 space-y-4">
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${activeCfg.iconBg}`}>
-                          {activeType === 'inPerson' ? <User size={22} /> : <Video size={22} />}
+                          {activeType === 'InPerson' ? <User size={22} /> : <Video size={22} />}
                         </div>
                         <div>
                           <p className="font-semibold text-text-primary">{activeSlot.patientName ?? 'Paciente'}</p>
@@ -401,22 +360,11 @@ export function AvailabilityHistorical() {
                       )}
                     </div>
 
-                    {!isPast && activeSlot.status === 'scheduled' && (
-                      <div className="px-5 py-3 border-t border-border flex justify-end gap-2">
-                        <Button
-                          size="sm" variant="ghost"
-                          className="font-medium bg-danger/10 text-danger hover:bg-danger-subtle rounded-md"
-                          onPress={() => handleCancel(activeSlot.id)}
-                        >
-                          Recusar
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="font-semibold bg-primary text-white hover:bg-primary-hover rounded-md"
-                          onPress={() => handleConfirm(activeSlot.id)}
-                        >
-                          Confirmar
-                        </Button>
+                    {!isPast && activeSlot.status === 'Scheduled' && (
+                      <div className="px-5 py-3 border-t border-border">
+                        <p className="text-xs text-text-muted">
+                          Confirmar ou recusar consultas ainda não está disponível.
+                        </p>
                       </div>
                     )}
                   </Card>
