@@ -10,7 +10,7 @@ import { Activity, Stethoscope } from "lucide-react";
 import type React from "react";
 import { useNavigate } from "react-router";
 import type { LoginInput } from "../../api/dtos/Auth/LoginInput";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { loginService } from "../../api/services/Auth";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -35,20 +35,18 @@ export default function LoginScreen() {
 
     try {
       const result = await loginService(props);
-
-      console.log(result)
+      console.log(result);
 
       if (result.mfaRequired) {
         navigate("/mfa");
         return;
       }
-      console.log(result.token)
       if (result.token) {
         signIn(result.token);
         navigate("/medico/");
       }
-
     } catch (error) {
+
       setErrorMessage(error instanceof Error ? error.message : "Erro desconhecido");
       console.error(error);
     } finally {

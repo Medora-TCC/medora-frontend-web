@@ -14,8 +14,6 @@ export async function loginService(props: LoginInput): Promise<LoginResponse> {
   try {
     const res = await api.post(Endpoints.LOGIN, props);
 
-    console.log(res.data)
-
     return { token: res.data.accessToken, mfaRequired: false };
 
   } catch (error) {
