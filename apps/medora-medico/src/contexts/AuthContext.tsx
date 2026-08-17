@@ -40,11 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         async function loadStorageData() {
+          isRefreshing = true;
             try {
                 const response = await api.post(Endpoints.REFRESH);
                 const { accessToken: newAccessToken } = response.data;
 
                 setAccessToken(newAccessToken);
+                processQueue(null, newAccessToken);
             } catch (error) {
                 setAccessToken(null);
             } finally {
@@ -91,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     isRefreshing = true;
 
                     try {
-                        const response = await api.post("/auth/refresh")
+                        const response = await api.post(Endpoints.REFRESH)
                         const { accessToken: newAccessToken } = response.data;
 
                         setAccessToken(newAccessToken);

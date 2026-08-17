@@ -9,13 +9,52 @@ import {
 import { Activity, Stethoscope } from "lucide-react";
 import type React from "react";
 import { useNavigate } from "react-router";
+import type { LoginInput } from "../../api/dtos/Auth/LoginInput";
+import { useRef, useState } from "react";
+import { loginService } from "../../api/services/Auth";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    navigate("/medico/");
+    setErrorMessage("");
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+
+    const props: LoginInput = {
+      email: formData.get("email") as string,
+      password: formData.get("senha") as string,
+    };
+
+    try {
+      const result = await loginService(props);
+
+      console.log(result)
+
+      if (result.mfaRequired) {
+        navigate("/mfa");
+        return;
+      }
+      console.log(result.token)
+      if (result.token) {
+        signIn(result.token);
+        navigate("/medico/");
+      }
+
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro desconhecido");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+
   };
 
   return (
@@ -58,29 +97,32 @@ export default function LoginScreen() {
             </p>
           </div>
           <Form className="w-full flex flex-col gap-5" onSubmit={onSubmit}>
+            {errorMessage && (
+              <div className="bg-red-100 text-red-600 p-2 rounded-lg text-sm text-center w-full">
+                {errorMessage}
+              </div>
+            )}
             <TextField
               className="flex flex-col gap-1 w-full"
               name="email"
               type="email"
               isRequired
-              defaultValue="email123@email.com"
             >
               <Label className="text-text-muted ">Email</Label>
               <Input className={"rounded-xl bg-surface-raised "} placeholder="" type="email" />
               <FieldError>
                 {({ validationDetails }) =>
-                validationDetails.valueMissing
+                  validationDetails.valueMissing
                     ? "Email é obrigatório"
                     : "Insira um email válido"
                 }
-            </FieldError>
+              </FieldError>
             </TextField>
             <TextField
               className="flex flex-col gap-1 w-full"
               name="senha"
               type="password"
               isRequired
-              defaultValue="senha123"
             >
               <Label className="text-text-muted ">Senha</Label>
               <Input
@@ -91,14 +133,14 @@ export default function LoginScreen() {
               />
               <FieldError>
                 {({ validationDetails }) =>
-                validationDetails.valueMissing
+                  validationDetails.valueMissing
                     ? "Senha é obrigatória"
                     : ""
                 }
-            </FieldError>
+              </FieldError>
             </TextField>
             <div className="flex flex-col items-center gap-5 mt-5">
-              <Button size="lg" className={"w-45 rounded-xl"} type="submit">
+              <Button size="lg" className={"w-45 rounded-xl"} type="submit" isDisabled={isLoading}>
                 Entrar
               </Button>
               <a
