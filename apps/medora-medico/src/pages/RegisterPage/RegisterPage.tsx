@@ -54,14 +54,14 @@ export function RegisterPage() {
     const handleNextStep = () => {
         const newErrors: Record<string, string> = {};
 
-        if (formData.name === '')
-            newErrors.name = 'Nome é obrigatório';
-        if (formData.email === '' || !/\S+@\S+\.\S+/.test(formData.email))
-            newErrors.email = 'E-mail válido é obrigatório';
-        if (formData.password === '' || formData.password.length < 6)
-            newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
-        if (confirmPassword === '' || confirmPassword !== formData.password)
-            newErrors.confirmPassword = 'As senhas devem coincidir';
+        // if (formData.name === '')
+        //     newErrors.name = 'Nome é obrigatório';
+        // if (formData.email === '' || !/\S+@\S+\.\S+/.test(formData.email))
+        //     newErrors.email = 'E-mail válido é obrigatório';
+        // if (formData.password === '' || formData.password.length < 6)
+        //     newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
+        // if (confirmPassword === '' || confirmPassword !== formData.password)
+        //     newErrors.confirmPassword = 'As senhas devem coincidir';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -77,14 +77,14 @@ export function RegisterPage() {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
 
-        if (formData.state === '')
-            newErrors.state = 'Estado é obrigatório';
-        if (formData.crm === '')
-            newErrors.crm = 'CRM é obrigatório';
-        if (formData.rqe === '')
-            newErrors.rqe = 'RQE é obrigatório';
-        if (formData.cpf === '')
-            newErrors.cpf = 'CPF é obrigatório';
+        // if (formData.state === '')
+        //     newErrors.state = 'Estado é obrigatório';
+        // if (formData.crm === '')
+        //     newErrors.crm = 'CRM é obrigatório';
+        // if (formData.rqe === '')
+        //     newErrors.rqe = 'RQE é obrigatório';
+        // if (formData.cpf === '')
+        //     newErrors.cpf = 'CPF é obrigatório';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -98,17 +98,17 @@ export function RegisterPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
-
-            if (response.ok) {
-                toast.success('Cadastro realizado com sucesso!');
-                navigate("/");
-            } else {
-                const data = await response
-                    .json()
-                    .catch(() => ({ reason: "Não foi possível validar seus dados." }));
-                setRejectionReason(data.reason);
-                setIsRejectedOpen(true);
-            }
+            navigate("/verificar-email/");
+            // if (response.ok) {
+            //     toast.success('Cadastro realizado com sucesso!');
+                
+            // } else {
+            //     const data = await response
+            //         .json()
+            //         .catch(() => ({ reason: "Não foi possível validar seus dados." }));
+            //     setRejectionReason(data.reason);
+            //     setIsRejectedOpen(true);
+            // }
         } catch (error) {
             console.error('Erro ao registrar médico:', error);
             toast.warning('Erro de conexão. Tente novamente.');
@@ -156,7 +156,7 @@ export function RegisterPage() {
                                         <Input
                                             id="name"
                                             placeholder="Seu nome"
-                                            value={formData.name}
+                                            defaultValue="João Silva"
                                             onChange={handleInputChange}
                                             autoComplete="off" 
                                             className={`w-full border rounded-lg p-2 transition-colors ${errors.name ? 'border-danger' : 'border-default-200'}`}
@@ -168,7 +168,7 @@ export function RegisterPage() {
                                             id="email"
                                             type="email"
                                             placeholder="seu@email.com"
-                                            value={formData.email}
+                                            defaultValue="joaosilva@gmail.com"
                                             autoComplete="off"
                                             onChange={handleInputChange}
                                             className={`w-full border rounded-lg p-2 transition-colors ${errors.email ? 'border-danger' : 'border-default-200'}`}
@@ -178,7 +178,7 @@ export function RegisterPage() {
                                     <PasswordInput
                                         id="password"
                                         label="Senha"
-                                        value={formData.password}
+                                        value="SenhaForte123!"
                                         onChange={handleInputChange}
                                         hasError={!!errors.password}
                                     />
@@ -189,7 +189,7 @@ export function RegisterPage() {
                                             type="password"
                                             autoComplete="off" 
                                             placeholder="Repita a senha"
-                                            value={confirmPassword}
+                                            value="SenhaForte123!"
                                             onChange={(e) => {
                                                 setConfirmPassword(e.target.value);
                                                 if (errors.confirmPassword) {
@@ -251,7 +251,7 @@ export function RegisterPage() {
                                                 id="crm"
                                                 placeholder="Número do CRM"
                                                 className={`w-full border rounded-lg p-2 transition-colors ${errors.crm ? 'border-danger' : 'border-default-200'}`}
-                                                value={formData.crm}
+                                                value="123456"
                                                 autoComplete="off"
                                                 onChange={handleInputChange}
                                             />
@@ -262,7 +262,7 @@ export function RegisterPage() {
                                         <Input
                                             id="rqe"
                                             placeholder="Número do RQE"
-                                            value={formData.rqe}
+                                            value="78910"
                                             autoComplete="off" 
                                             onChange={handleInputChange}
                                             className={`w-full border rounded-lg p-2 transition-colors ${errors.rqe ? 'border-danger' : 'border-default-200'}`}
@@ -273,7 +273,7 @@ export function RegisterPage() {
                                         <Input
                                             id="cpf"
                                             placeholder="000.000.000-00"
-                                            value={formData.cpf}
+                                            value="123.456.789-10"
                                             autoComplete="off" 
                                             onChange={handleInputChange}
                                             className={`w-full border rounded-lg p-2 transition-colors ${errors.cpf ? 'border-danger' : 'border-default-200'}`}

@@ -16,7 +16,7 @@ export function MedicalRecordPage() {
   console.log(error)
 
   return (
-    <section className="w-full max-h-[90vh] min-h-full bg-surface overflow-hidden flex flex-col">
+    <section className="w-full max-h-[90vh] h-full bg-surface overflow-hidden flex flex-col">
       <ToastProvider
         maxVisibleToasts={1}
         placement="bottom end"
@@ -33,7 +33,7 @@ export function MedicalRecordPage() {
         </section>
       </section>
 
-      <section className="flex flex-col md:flex-row flex-1 overflow-hidden">
+      <section className="flex h-full flex-col md:flex-row flex-1 overflow-hidden">
         <MedicalRecordHistory setError={setError} />
         <MedicalRecordComponent setError={setError} />
       </section>

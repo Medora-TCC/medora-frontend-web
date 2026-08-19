@@ -1,6 +1,7 @@
 import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS, ToastProvider, toast } from "@heroui/react";
 import { CircleCheckBig, MailQuestionMark } from "lucide-react";
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router";
 
 export function VerifyEmailScreen() {
 
@@ -8,6 +9,7 @@ export function VerifyEmailScreen() {
     const [timeLeft, setTimeLeft] = useState(60);
     const [isVerifying, setIsVerifying] = useState(false);
     const [isValid, setIsValid] = useState<boolean | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (timeLeft < 0) {
@@ -26,6 +28,7 @@ export function VerifyEmailScreen() {
         await new Promise((resolve) => setTimeout(resolve, 2000))
         // TODO: Logica para verificacao
         // Mockando dados
+        // Hard corded fluxo do médico por enquanto
         console.log(code);
         if (code !== "123456") {
             setIsVerifying(false)
@@ -45,7 +48,7 @@ export function VerifyEmailScreen() {
         // TODO: Lógica para envio de email
     }
 
-    return (<section className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-4">
+    return (<section className="min-h-screen flex flex-col items-center justify-center p-4">
         <ToastProvider maxVisibleToasts={1} placement="bottom" />
         {isValid === true ?
             (<div className="bg-surface w-full max-w-md rounded-2xl shadow-xs border border-border p-4">
@@ -55,12 +58,15 @@ export function VerifyEmailScreen() {
                     </div>
                     <h2 className="text-2xl font-bold text-text-primary mb-2">E-mail verificado</h2>
                     <p className="text-text-secondary text-sm">
-                        Seu e-email <span className="font-semibold text-text-primary">user@teste.com</span> foi verificado com sucesso
+                        Seu e-email <span className="font-semibold text-text-primary">joaosilva@email.com</span> foi verificado com sucesso
                     </p>
                 </div>
                 <Button
                     type="button"
                     className="w-full bg-primary-color hover:bg-primary-hover text-text-inverse font-semibold py-3 px-4 rounded-lg transition-colors cursor-pointer flex justify-center items-center"
+                    onPress={() => {
+                        navigate("../medico/")
+                    }}
                 >
                     Continuar
                 </Button>
