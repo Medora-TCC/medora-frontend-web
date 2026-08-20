@@ -7,11 +7,9 @@ import { ThemeToggle } from '@medora_web/shared';
 export default function Header() {
     const navigate = useNavigate();
     
-    // Estados para controlar o que está aberto
     const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
 
-    // Refs para fechar ao clicar fora
     const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
 
@@ -19,7 +17,6 @@ export default function Header() {
         navigate("/");
     };
 
-    // Fecha os menus se o usuário clicar fora deles
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
@@ -52,7 +49,7 @@ export default function Header() {
                         className="text-text-muted"
                         onPress={() => {
                             setNotifOpen(!notifOpen);
-                            setProfileOpen(false); // Fecha o outro se abrir este
+                            setProfileOpen(false);
                         }}
                     >
                         <Bell size={18} />
@@ -90,12 +87,12 @@ export default function Header() {
                         type="button"
                         onClick={() => {
                             setProfileOpen(!profileOpen);
-                            setNotifOpen(false); // Fecha o outro se abrir este
+                            setNotifOpen(false);
                         }}
                         className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none select-none"
                     >
                         <div className="hidden md:block text-right">
-                            <p className="text-xs font-bold text-text-primary leading-none">Dr. Pedro Silva</p>
+                            <p className="text-xs font-bold text-text-primary leading-none">Dr. João Silva</p>
                             <p className="text-[9px] text-text-muted uppercase tracking-wider mt-0.5">Cardiologia</p>
                         </div>
                         <div className="h-8 w-8 rounded-full bg-primary-color flex items-center justify-center text-white text-xs font-bold shadow-sm border border-surface">

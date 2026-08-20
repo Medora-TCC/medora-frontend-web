@@ -9,7 +9,6 @@ import {
   PhoneOff,
   MessageSquare,
   Users,
-  MoreVertical,
   Maximize2,
   Minimize2,
   MonitorUp,
@@ -18,7 +17,10 @@ import {
   Send,
   Clock,
   ClipboardClock,
+  FileUser,
 } from "lucide-react";
+import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
+import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
@@ -81,7 +83,7 @@ function ParticipantTile({
     .toUpperCase();
 
   return (
-    <div className="relative w-full h-full bg-[#1a1f2e] rounded-2xl overflow-hidden flex items-center justify-center group">
+    <div className="relative w-full h-full bg-surface-overlay rounded-2xl overflow-hidden flex items-center justify-center group">
       {/* Vídeo */}
       {!camOff && stream ? (
         <video
@@ -95,24 +97,24 @@ function ParticipantTile({
         <div className="flex flex-col items-center gap-3">
           <div
             className={`
-              flex items-center justify-center rounded-full bg-accent-soft-hover text-accent font-semibold select-none
+              flex items-center justify-center rounded-full bg-accent-soft text-accent font-semibold select-none
               ${large ? "size-24 text-3xl" : "size-14 text-xl"}
             `}
           >
             {initials}
           </div>
           {large && (
-            <span className="text-white/60 text-sm">Câmera desativada</span>
+            <span className="text-text-secondary text-sm">Câmera desativada</span>
           )}
         </div>
       )}
 
       {/* Overlay inferior */}
-      <div className="absolute bottom-0 left-0 right-0 px-3 py-2 bg-linear-to-t from-black/70 to-transparent flex items-center justify-between">
-        <span className="text-white text-xs font-medium truncate">{name}</span>
+      <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between">
+        <span className={`text-xs font-medium truncate ${name == "Você" ? "text-white" : "text-text-primary"}`}>{name}</span>
         {muted && (
           <div className="flex items-center justify-center size-5 rounded-full bg-danger/80">
-            <MicOff size={11} className="text-white" />
+            <MicOff size={11} className="text-text-primary" />
           </div>
         )}
       </div>
@@ -145,13 +147,13 @@ function ChatPanel({
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#1a1f2e] border-l border-white/10">
+    <div className="flex flex-col h-full bg-surface border-l border-ring">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <span className="text-white text-sm font-medium">Chat</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-ring">
+        <span className="text-text-primary text-sm font-medium">Chat</span>
         <button
           onClick={onClose}
-          className="text-white/50 hover:text-white transition-colors"
+          className="text-text-primary hover:text-text-muted transition-colors"
         >
           <X size={16} />
         </button>
@@ -160,7 +162,7 @@ function ChatPanel({
       {/* Mensagens */}
       <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
         {messages.length === 0 && (
-          <p className="text-white/30 text-xs text-center mt-8">
+          <p className="text-text-secondary text-xs text-center mt-8">
             Nenhuma mensagem ainda
           </p>
         )}
@@ -170,32 +172,32 @@ function ChatPanel({
             className={`flex flex-col gap-0.5 ${m.self ? "items-end" : "items-start"}`}
           >
             {!m.self && (
-              <span className="text-white/50 text-xs ml-1">{m.author}</span>
+              <span className="text-text-secondary text-xs ml-1">{m.author}</span>
             )}
             <div
               className={`
                 max-w-[85%] rounded-2xl px-3 py-2 text-sm
-                ${m.self ? "bg-accent text-white rounded-tr-sm" : "bg-white/10 text-white/90 rounded-tl-sm"}
+                ${m.self ? "bg-accent text-text-primary rounded-tr-sm" : "bg-surface-overlay text-text-primary rounded-tl-sm"}
               `}
             >
               {m.text}
             </div>
-            <span className="text-white/30 text-[10px] mx-1">{m.time}</span>
+            <span className="text-text-secondary text-[10px] mx-1">{m.time}</span>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
-      <div className="px-3 py-3 border-t border-white/10 flex gap-2">
+      <div className="px-3 py-3 border-t border-ring flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Enviar mensagem…"
           className="
-            flex-1 bg-white/10 text-white text-sm rounded-xl px-3 py-2
-            placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-accent/50
+            flex-1 bg-surface-overlay text-text-primary text-sm rounded-xl px-3 py-2
+            placeholder:text-text-primary focus:outline-none focus:ring-1 focus:ring-accent/50
           "
         />
         <button
@@ -224,23 +226,23 @@ function ControlBtn({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex flex-col items-center gap-1.5 ">
       <button
         onClick={onClick}
         title={label}
         className={`
-          flex items-center justify-center size-12 rounded-full transition-all duration-200
+          flex items-center cursor-pointer justify-center size-12 rounded-full transition-all duration-200
           ${danger
-            ? "bg-danger hover:bg-danger/80 text-white"
+            ? "bg-danger hover:bg-danger/80 text-text-secondary"
             : active
-              ? "bg-white/15 hover:bg-white/25 text-white"
-              : "bg-white/10 hover:bg-white/20 text-white/50"
+              ? "bg-surface-overlay hover:bg-text-muted/25 text-text-primary"
+              : "bg-surface-overlay hover:bg-text-muted/20 text-text-secondary/75"
           }
         `}
       >
         {children}
       </button>
-      <span className="text-white/50 text-[10px] whitespace-nowrap">{label}</span>
+      <span className="text-secondary text-[10px] whitespace-nowrap">{label}</span>
     </div>
   );
 }
@@ -264,10 +266,11 @@ export default function SalaTeleConsulta() {
   const [fullscreen, setFullscreen] = useState(false);
 
   // UI
-  const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | null>(null);
+  const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | "receita" | null>(null);
   // const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Chat
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -296,6 +299,8 @@ export default function SalaTeleConsulta() {
   // ── Inicializa stream local ──────────────────────────────────────────────
   useEffect(() => {
     let active = true;
+    console.log(error);
+    
     const constraints: MediaStreamConstraints = {
       video: state.selectedCam
         ? { deviceId: { exact: state.selectedCam } }
@@ -388,7 +393,12 @@ export default function SalaTeleConsulta() {
 
   // ── Prontuario ─────────────────────────────────────────────────────────────────
   function openProntuario() {
-    setSidePanel((p) => (p === "chat" ? null : "chat"));
+    setSidePanel((p) => (p === "prontuario" ? null : "prontuario"));
+    setUnread(0);
+  }
+
+  function openReceita() {
+    setSidePanel((p) => (p === "receita" ? null : "receita"));
     setUnread(0);
   }
 
@@ -407,12 +417,33 @@ export default function SalaTeleConsulta() {
   // ── Encerrar ─────────────────────────────────────────────────────────────
   function encerrar() {
     localStream?.getTracks().forEach((t) => t.stop());
-    navigate(`../consulta`);
+    navigate(`../../consulta`);
+  }
+
+  // Define a classe de posicionamento baseada no painel ativo
+  let positionClass = "left-1/2 -translate-x-1/2"; // Padrão fechado
+
+  if (sidePanel === "chat") {
+    positionClass = "left-[calc(50%-160px)] -translate-x-1/2"; // Ajuste o valor do chat aqui
+  } else if (sidePanel === "prontuario") {
+    positionClass = "left-[calc(50%-480px)] -translate-x-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+  } else if (sidePanel === "receita") {
+    positionClass = "left-[calc(50%-480px)] -translate-x-1/2"; // Ajuste o valor do receita aqui (ex: se for maior)
+  }
+
+  let sidePanelWidth = "w-0 overflow-hidden"
+
+  if (sidePanel === "chat") {
+    sidePanelWidth = "w-80"; // Ajuste o valor do chat aqui
+  } else if (sidePanel === "prontuario") {
+    sidePanelWidth = "w-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+  } else if (sidePanel === "receita") {
+    sidePanelWidth = "w-1/2"; // Ajuste o valor do receita aqui (ex: se for maior)
   }
 
   return (
     <div
-      className="relative flex h-full w-full bg-[#0f1117] overflow-hidden"
+      className="relative flex h-full w-full bg-surface overflow-hidden"
       onMouseMove={resetHide}
       onTouchStart={resetHide}
     >
@@ -422,25 +453,25 @@ export default function SalaTeleConsulta() {
         {/* ── Header ──────────────────────────────────── */}
         <div
           className={`
-            absolute top-0 left-0 right-0 z-20 flex items-center justify-between
-            px-5 py-3 bg-linear-to-b from-black/60 to-transparent
+            relative z-20 flex items-center justify-between
+            py-5 px-3
             transition-opacity duration-300
             ${controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"}
           `}
         >
           <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center size-7 rounded-lg bg-accent-soft-hover">
+            <div className="flex items-center justify-center size-7 rounded-lg bg-accent-soft">
               <Stethoscope size={14} className="text-accent" />
             </div>
-            <span className="text-white text-sm font-medium">Teleconsulta</span>
+            <span className="text-text-primary text-sm font-medium">Teleconsulta</span>
             {id && (
-              <Chip size="sm" variant="soft" color="default" className="text-white/50 text-[10px]">
+              <Chip size="sm" variant="soft" color="default" className="text-text-secondary text-[10px]">
                 #{id.slice(-6)}
               </Chip>
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-white/70 text-xs">
+          <div className="flex items-center gap-3 text-text-secondary text-xs">
             <div className="flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-success animate-pulse" />
               <span>Ao vivo</span>
@@ -453,14 +484,14 @@ export default function SalaTeleConsulta() {
 
           <button
             onClick={toggleFullscreen}
-            className="text-white/50 hover:text-white transition-colors"
+            className="text-text-primary hover:text-text-primary transition-colors"
           >
             {fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
         </div>
 
         {/* ── Vídeos ──────────────────────────────────── */}
-        <div className="relative flex-1 p-3 pt-14 pb-24">
+        <div className="relative flex-1 p-3 pb-24">
           {/* Participante remoto (tela cheia) */}
           <div className="w-full h-full">
             {remoteConnected ? (
@@ -472,7 +503,7 @@ export default function SalaTeleConsulta() {
                 large
               />
             ) : (
-              <div className="w-full h-full rounded-2xl bg-[#1a1f2e] flex flex-col items-center justify-center gap-4">
+              <div className="w-full h-full rounded-2xl bg-surface flex flex-col items-center justify-center gap-4">
                 <div className="flex items-center justify-center size-20 rounded-full bg-white/5">
                   <Users size={32} className="text-white/30" />
                 </div>
@@ -509,9 +540,11 @@ export default function SalaTeleConsulta() {
         {/* ── Barra de controles ───────────────────────── */}
         <div
           className={`
-            absolute bottom-0 left-0 right-0 z-20 flex items-end justify-center
-            pb-5 bg-linear-to-t from-black/70 to-transparent
+            absolute bottom-6 z-20 
+            flex items-center justify-center
+            bg-surface max-w-full shadow-2xl rounded-2xl p-3
             transition-opacity duration-300
+            ${positionClass}
             ${controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"}
           `}
         >
@@ -532,19 +565,27 @@ export default function SalaTeleConsulta() {
             <div className="flex flex-col items-center gap-1.5 mx-2">
               <button
                 onClick={encerrar}
-                className="flex items-center justify-center size-14 rounded-full bg-danger hover:bg-danger/80 text-white transition-all duration-200 shadow-lg shadow-danger/30 scale-105"
+                className="flex cursor-pointer items-center justify-center size-14 rounded-full bg-danger hover:bg-danger/80 text-white transition-all duration-200 shadow-lg shadow-danger/30 scale-105"
               >
                 <PhoneOff size={22} />
               </button>
-              <span className="text-white/50 text-[10px]">Encerrar</span>
+              <span className="text-text-primary text-[10px]">Encerrar</span>
             </div>
 
             <ControlBtn
               onClick={openProntuario}
-              active={sidePanel === "chat"}
+              active={sidePanel === "prontuario"}
               label="Prontuário"
             >
               <ClipboardClock  size={20} />
+            </ControlBtn>
+
+            <ControlBtn
+              onClick={openReceita}
+              active={sidePanel === "receita"}
+              label="Prescrição"
+            >
+              <FileUser   size={20} />
             </ControlBtn>
 
             <div className="relative">
@@ -562,9 +603,6 @@ export default function SalaTeleConsulta() {
               )}
             </div>
 
-            <ControlBtn onClick={() => { }} active label="Mais">
-              <MoreVertical size={20} />
-            </ControlBtn>
           </div>
         </div>
       </div>
@@ -573,7 +611,7 @@ export default function SalaTeleConsulta() {
       <div
         className={`
           shrink-0 transition-all duration-300 ease-in-out
-          ${sidePanel ? "w-80" : "w-0 overflow-hidden"}
+          ${sidePanelWidth}
         `}
       >
         {sidePanel === "chat" && (
@@ -582,6 +620,19 @@ export default function SalaTeleConsulta() {
             onSend={sendMessage}
             onClose={() => setSidePanel(null)}
           />
+        )}
+        {sidePanel === "prontuario" && (
+          <div className="h-full">
+            <MedicalRecordComponent setError={setError}/>
+          </div>
+        )}
+        {sidePanel === "receita" && (
+          <div className="h-full border-r-2 border-ring flex justify-center items-center bg-surface-overlay">
+            <PrescricaoWizard
+              onConcluir={(rascunho) => console.log(rascunho)}
+              onCancelar={() => { }}
+            />
+          </div>
         )}
       </div>
     </div>

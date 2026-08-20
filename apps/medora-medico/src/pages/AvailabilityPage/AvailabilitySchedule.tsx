@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
-  Settings, FileText, ChevronLeft, ChevronRight,
+  Settings, ChevronLeft, ChevronRight,
   Video, User, Clock, Trash2, Pencil, CheckCircle2,
   Loader2, Building2, Monitor, RefreshCw, CalendarDays,
 } from 'lucide-react';
@@ -396,13 +396,6 @@ export function AvailabilityHistorical() {
                           <StatusBadge status={activeSlot.status as SlotStatus} isPast={isPast} />
                         </div>
                       </div>
-
-                      {!isPast && (
-                        <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary-hover transition-colors">
-                          <FileText size={13} />
-                          Ver prontuário
-                        </button>
-                      )}
                     </div>
 
                     {!isPast && activeSlot.status === 'scheduled' && (
