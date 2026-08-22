@@ -1,8 +1,9 @@
-export type AvailabilitySlotStatus = 'available' | 'scheduled' | 'confirmed' | 'completed' | 'canceled' | 'absent';
-export type AvailabilitySlotType = 'presential' | 'telemedicine' | 'hybrid';
+export type AvailabilitySlotStatus = 'Available' | 'Scheduled' | 'Confirmed' | 'Completed' | 'Canceled' | 'Absent';
+export type AvailabilitySlotType = 'InPerson' | 'Online' | 'Any';
 
 export interface DailyAvailabilitySlotDTO {
-  id: string; 
+  scheduleId: number;
+  slotKey: string;
   startDateTime: string;
   endDateTime: string;
   time: string; 
@@ -10,5 +11,5 @@ export interface DailyAvailabilitySlotDTO {
   type: AvailabilitySlotType;
   patientId?: string; 
   patientName?: string;
-  appointmentId?: string;
+  appointmentId?: number;
 }

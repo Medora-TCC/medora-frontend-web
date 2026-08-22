@@ -10,8 +10,8 @@ export const Endpoints = {
     GET_DOCTOR_PROFILE: '/doctors/profile',
     UPDATE_DOCTOR_PROFILE: '/doctors/profile',
 
-    GET_DAILY_AVAILABILITY: '/doctors/availability/daily',
-    CREATE_DAILY_AVAILABILITY: '/doctors/availability/daily',
-    DELETE_DAILY_AVAILABILITY: '/doctors/availability/daily',
-    UPDATE_DAILY_AVAILABILITY_TYPE: '/doctors/availability/daily',
+    DAILY_SCHEDULE: '/doctors/availability/daily',
+    RECURRING_SCHEDULE: '/doctors/availability/recurring',
+    SPECIFIC_AVAILABILITY: '/doctors/availability/specific',
+    SCHEDULE_BLOCKS: '/doctors/availability/blocks',
 } as const;
