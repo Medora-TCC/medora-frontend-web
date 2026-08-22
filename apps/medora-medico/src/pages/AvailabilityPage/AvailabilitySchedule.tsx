@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
-  Settings, FileText, ChevronLeft, ChevronRight,
+  Settings, ChevronLeft, ChevronRight,
   Video, User, Clock, Trash2, CheckCircle2,
   Loader2, Building2, Monitor, RefreshCw, CalendarDays,
 } from 'lucide-react';

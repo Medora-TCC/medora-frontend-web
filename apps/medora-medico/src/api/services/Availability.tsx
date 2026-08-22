@@ -1,6 +1,7 @@
 import { type AvailabilitySlotType, type DailyAvailabilitySlotDTO } from '@medora_web/shared';
+import { isAxiosError } from 'axios';
 import { Endpoints } from '../enums/endpoints';
-import { request } from '../http';
+import { api } from './api';
 import { type ApiDailyScheduleSlot, toDailySlotDTO } from '../mappers/availability';
 
 export const DEFAULT_TIME_ZONE = 'America/Sao_Paulo';
@@ -46,36 +47,80 @@ export interface CreateBlockBody {
   timeZoneId: string;
 }
 
-async function getDailySchedule(date: string): Promise<DailyAvailabilitySlotDTO[]> {
-  const slots = await request<ApiDailyScheduleSlot[]>(Endpoints.DAILY_SCHEDULE, { query: { date } });
+function toDomainError(error: unknown, fallback: string): Error {
+  if (isAxiosError(error) && error.response) {
+    const { status, data } = error.response;
 
-  return slots.map((slot) => toDailySlotDTO(slot, date));
+    if (status === 409) {
+      return new Error(data?.detail ?? 'Conflito com um horário já cadastrado.');
+    }
+    if (status === 400) {
+      return new Error(data?.detail ?? 'Dados inválidos. Revise os horários informados.');
+    }
+  }
+  return new Error(fallback);
+}
+
+async function getDailySchedule(date: string): Promise<DailyAvailabilitySlotDTO[]> {
+  try {
+    const res = await api.get<ApiDailyScheduleSlot[]>(Endpoints.DAILY_SCHEDULE, {
+      params: { date },
+    });
+
+    return res.data.map((slot) => toDailySlotDTO(slot, date));
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao carregar a agenda do dia.');
+  }
 }
 
 async function createRecurringSchedule(body: CreateRecurringScheduleBody) {
-  return request<{ rulesCreated: number }>(Endpoints.RECURRING_SCHEDULE, { method: 'POST', body });
+  try {
+    const res = await api.post<{ rulesCreated: number }>(Endpoints.RECURRING_SCHEDULE, body);
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao salvar a disponibilidade recorrente.');
+  }
 }
 
 async function updateRecurringSchedule(scheduleId: number, body: UpdateRecurringScheduleBody) {
-  return request<{ newScheduleId: number; previousRuleLastDay: string | null }>(
-    `${Endpoints.RECURRING_SCHEDULE}/${scheduleId}`,
-    { method: 'PUT', body },
-  );
+  try {
+    const res = await api.put<{ newScheduleId: number; previousRuleLastDay: string | null }>(
+      `${Endpoints.RECURRING_SCHEDULE}/${scheduleId}`,
+      body,
+    );
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao atualizar a disponibilidade recorrente.');
+  }
 }
 
 async function createSpecificAvailability(body: CreateSpecificAvailabilityBody) {
-  return request<{ scheduleId: number }>(Endpoints.SPECIFIC_AVAILABILITY, { method: 'POST', body });
+  try {
+    const res = await api.post<{ scheduleId: number }>(Endpoints.SPECIFIC_AVAILABILITY, body);
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao salvar a disponibilidade avulsa.');
+  }
 }
 
 async function createBlock(body: CreateBlockBody) {
-  return request<{ blockId: number; canceledAppointments: number }>(Endpoints.SCHEDULE_BLOCKS, {
-    method: 'POST',
-    body,
-  });
+  try {
+    const res = await api.post<{ blockId: number; canceledAppointments: number }>(
+      Endpoints.SCHEDULE_BLOCKS,
+      body,
+    );
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao bloquear o horário.');
+  }
 }
 
 async function removeBlock(blockId: number) {
-  return request<void>(`${Endpoints.SCHEDULE_BLOCKS}/${blockId}`, { method: 'DELETE' });
+  try {
+    await api.delete(`${Endpoints.SCHEDULE_BLOCKS}/${blockId}`);
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao remover o bloqueio.');
+  }
 }
 
 const AvailabilityService = {
