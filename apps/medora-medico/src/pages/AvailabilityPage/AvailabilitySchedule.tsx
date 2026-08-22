@@ -4,10 +4,11 @@ import {
   Video, User, Clock, Trash2, CheckCircle2,
   Loader2, Building2, Monitor, RefreshCw, CalendarDays,
 } from 'lucide-react';
-import { Card, Button } from '@heroui/react';
+import { Card, Button, toast } from '@heroui/react';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService, { DEFAULT_TIME_ZONE } from '../../api/services/Availability';
+import { errorMessage } from '../../api/errors';
 
 
 type SlotType   = 'InPerson' | 'Online' | 'Any';
@@ -157,7 +158,9 @@ export function AvailabilityHistorical() {
         if (activeSlotKey === slot.slotKey) setActiveSlotKey(next[0]?.slotKey ?? null);
         return next;
       });
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao bloquear o horário.'));
+    }
   };
 
   const navigate = (delta: number) => {

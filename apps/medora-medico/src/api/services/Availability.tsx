@@ -1,7 +1,7 @@
 import { type AvailabilitySlotType, type DailyAvailabilitySlotDTO } from '@medora_web/shared';
-import { isAxiosError } from 'axios';
 import { Endpoints } from '../enums/endpoints';
 import { api } from './api';
+import { toDomainError } from '../errors';
 import { type ApiDailyScheduleSlot, toDailySlotDTO } from '../mappers/availability';
 
 export const DEFAULT_TIME_ZONE = 'America/Sao_Paulo';
@@ -45,20 +45,6 @@ export interface CreateBlockBody {
   startTime: string;
   endTime: string;
   timeZoneId: string;
-}
-
-function toDomainError(error: unknown, fallback: string): Error {
-  if (isAxiosError(error) && error.response) {
-    const { status, data } = error.response;
-
-    if (status === 409) {
-      return new Error(data?.detail ?? 'Conflito com um horário já cadastrado.');
-    }
-    if (status === 400) {
-      return new Error(data?.detail ?? 'Dados inválidos. Revise os horários informados.');
-    }
-  }
-  return new Error(fallback);
 }
 
 async function getDailySchedule(date: string): Promise<DailyAvailabilitySlotDTO[]> {

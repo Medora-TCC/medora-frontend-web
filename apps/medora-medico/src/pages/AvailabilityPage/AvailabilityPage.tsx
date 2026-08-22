@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService, { DEFAULT_TIME_ZONE } from '../../api/services/Availability';
+import { errorMessage } from '../../api/errors';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
 
@@ -249,8 +250,8 @@ export default function AvailabilityPage() {
       setVisibleHistory(
         days.flatMap((slots, i) => toHistoryDay(dates[i], slots)),
       );
-    } catch {
-      toast.danger('Erro ao carregar os horários cadastrados.');
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao carregar os horários cadastrados.'));
     } finally {
       setIsLoadingHistory(false);
     }
@@ -304,16 +305,34 @@ export default function AvailabilityPage() {
 
   const validate = useCallback((): boolean => {
     const errors: Record<string, string> = {};
-    let valid = true;
-    Object.values(shifts).flat().forEach((s) => {
-      if (s.start >= s.end) {
-        errors[s.id] = 'Horário final deve ser maior que o inicial';
-        valid = false;
-      }
+    const slotDuration = Number.parseInt(duration);
+
+    Object.entries(shifts).forEach(([, dayShifts]) => {
+      dayShifts.forEach((s) => {
+        if (s.start >= s.end) {
+          errors[s.id] = 'Horário final deve ser maior que o inicial';
+          return;
+        }
+        if ((minutesOf(s.end) - minutesOf(s.start)) % slotDuration !== 0) {
+          errors[s.id] = `O turno deve ser múltiplo de ${slotDuration} minutos`;
+        }
+      });
+
+      const ordered = [...dayShifts]
+        .filter((s) => s.start < s.end)
+        .sort((a, b) => a.start.localeCompare(b.start));
+
+      ordered.forEach((s, i) => {
+        const next = ordered[i + 1];
+        if (next && s.end > next.start) {
+          errors[next.id] = 'Este turno se sobrepõe a outro no mesmo dia';
+        }
+      });
     });
+
     setShiftErrors(errors);
-    return valid;
-  }, [shifts]);
+    return Object.keys(errors).length === 0;
+  }, [shifts, duration]);
 
   const handleSave = async () => {
     if (!validate()) {
@@ -351,8 +370,8 @@ export default function AvailabilityPage() {
       toast.success('Grade de horários salva com sucesso!');
       setShifts({});
       fetchAvailabilityHistory();
-    } catch {
-      toast.danger('Erro ao salvar os horários.');
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao salvar os horários.'));
     } finally {
       setLoading(false);
     }
@@ -561,8 +580,8 @@ export default function AvailabilityPage() {
                               : 'Agenda bloqueada com sucesso!',
                           );
                           fetchAvailabilityHistory();
-                        } catch {
-                          toast.danger('Erro ao bloquear a agenda.');
+                        } catch (err) {
+                          toast.danger(errorMessage(err, 'Erro ao bloquear a agenda.'));
                         }
                       }}
                     >
