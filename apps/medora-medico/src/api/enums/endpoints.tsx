@@ -3,7 +3,9 @@ export const Endpoints = {
     REFRESH: '/auth/refresh',
 
     INIT_MFA: '/mfa/',
-    VERIFY_CODE: '/mfa/verify',
+    VERIFY_AUTH_CODE: '/mfa/auth/verify',
+
+    USE_BACKUP_CODE: '/backup-code/use',
 
     REGISTER_DOCTOR: '/doctors/register',
 
