@@ -147,7 +147,7 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete, backupLoginHr
               {isVerifying ? <Spinner color="current" /> : "Verificar código"}
             </Button>
           </Form>
-          <div className="mt-8 text-center text-sm">
+          <div className="my-8 text-center text-sm">
             <p className="text-text-secondary">
               {!mfaData.useAuthenticationApp ?
                 (
