@@ -1,14 +1,16 @@
 import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS, ToastProvider, toast } from "@heroui/react";
 import { CircleCheckBig, MailQuestionMark } from "lucide-react";
+import { Link as RouterLink } from "react-router"
 import { useEffect, useState } from "react"
 
 export interface VerifyMfaScreenProps {
   onInitMfa: () => Promise<{ useAuthenticationApp: boolean; sentTo?: string }>;
   onVerify: (code: string, rememberDevice: boolean) => Promise<{ accessToken: string }>
   onComplete: (accessToken: string) => void;
+  backupLoginHref: string;
 }
 
-export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete }: VerifyMfaScreenProps) {
+export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete, backupLoginHref }: VerifyMfaScreenProps) {
   const [code, setCode] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
 
@@ -60,7 +62,7 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete }: VerifyMfaSc
     setIsValid(null);
     setCode("");
 
-    toast.promise(onInitMfa, { error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso" })
+    toast.promise(onInitMfa(), { error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso" })
   }
 
   if (!mfaData) {
@@ -159,6 +161,16 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete }: VerifyMfaSc
               </p>
             </div>
           )}
+          <div>
+            <p className="text-text-secondary">
+              <RouterLink
+                to={backupLoginHref}
+                className="text-primary-color hover:text-primary-hover font-semibold transition-colors cursor-pointer"
+              >
+                Usar Código de backup
+              </RouterLink>
+            </p>
+          </div>
         </div></>}
   </section>)
 }

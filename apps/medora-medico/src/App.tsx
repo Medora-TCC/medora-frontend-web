@@ -23,6 +23,7 @@ import FinancialManagement from './pages/FinancialManagementPage/FinancialManage
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import MfaPage from './pages/MfaPage/MfaPage';
+import BackupLoginPage from './pages/BackupLoginPage/BackupLoginPage';
 
 
 function App() {
@@ -61,6 +62,7 @@ function App() {
                 <Route path="/cadastro" element={<RegisterPage />} />
                 <Route path='/esqueci-a-senha' element={<ForgotPassword />} />
                 <Route path='/mfa' element={<MfaPage />} />
+                <Route path='backup-code' element={<BackupLoginPage/>} />
                 <Route path='/trocar-senha' element={<ResetPassword />} />
                 <Route path="/server-error" element={<ServerErrorPage />} />
                 <Route path="/connection-error" element={<ConnectionErrorPage />} />
