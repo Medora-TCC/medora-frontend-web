@@ -147,30 +147,35 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete, backupLoginHr
               {isVerifying ? <Spinner color="current" /> : "Verificar código"}
             </Button>
           </Form>
-          {!mfaData.useAuthenticationApp && (
-            <div className="my-8 text-center text-sm">
-              <p className="text-text-secondary">
-                Não recebeu o email? {' '}
-                {timeLeft > 0 ? (
-                  <span>Reenviar em {timeLeft}s</span>
-                ) : (
-                  <Link onPress={handleResend} className="text-primary-color hover:text-primary-hover font-semibold transition-colors cursor-pointer">
-                    Reenviar Agora
-                  </Link>
-                )}
-              </p>
-            </div>
-          )}
-          <div>
+          <div className="mt-8 text-center text-sm">
             <p className="text-text-secondary">
-              <RouterLink
-                to={backupLoginHref}
-                className="text-primary-color hover:text-primary-hover font-semibold transition-colors cursor-pointer"
-              >
-                Usar Código de backup
-              </RouterLink>
+              {!mfaData.useAuthenticationApp ?
+                (
+                  <>
+                    Não recebeu o email? {' '}
+                    {timeLeft > 0 ? (
+                      <span>Reenviar em {timeLeft}s</span>
+                    ) : (
+                      <Link onPress={handleResend} className="text-primary-color hover:text-primary-hover font-semibold transition-colors cursor-pointer">
+                        Reenviar Agora
+                      </Link>
+                    )
+                    }
+                  </>
+                ) : (
+                  <>
+                    <RouterLink
+                      to={backupLoginHref}
+                      className="text-text-secondary hover:text-primary-hover transition-colors cursor-pointer"
+                    >
+                      Usar Código de backup
+                    </RouterLink>
+                  </>
+                )
+              }
             </p>
           </div>
+
         </div></>}
   </section>)
 }
