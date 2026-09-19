@@ -13,11 +13,13 @@ import {
   ChevronDown,
   AlertCircle,
 } from 'lucide-react';
-// import AvailabilityService from '../../api/services/Availability';
+import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
+import AvailabilityService, { DEFAULT_TIME_ZONE } from '../../api/services/Availability';
+import { errorMessage } from '../../api/errors';
 import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
 
 
-export type SlotMode = 'presential' | 'telemedicine' | 'hybrid';
+export type SlotMode = 'InPerson' | 'Online' | 'Any';
 
 interface DayShift {
   id: string;
@@ -65,21 +67,21 @@ const MODE_CONFIG: Record<SlotMode, {
   bgClass: string;
   borderClass: string;
 }> = {
-  presential:   {
+  InPerson:   {
     label: 'Presencial',
     icon: <Building2 size={13} />,
     colorClass: 'text-primary-text',
     bgClass: 'bg-primary-subtle',
     borderClass: 'border-primary/30',
   },
-  telemedicine: {
+  Online: {
     label: 'Telemedicina',
     icon: <Monitor size={13} />,
     colorClass: 'text-violet-700',
     bgClass: 'bg-violet-100',
     borderClass: 'border-violet-300',
   },
-  hybrid: {
+  Any: {
     label: 'Ambos',
     icon: <RefreshCw size={13} />,
     colorClass: 'text-success-text',
@@ -91,6 +93,45 @@ const MODE_CONFIG: Record<SlotMode, {
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+const HISTORY_DAYS = 5;
+
+interface HistoryDay {
+  id: string;
+  date: string;
+  scheduleId: number;
+  start: string;
+  end: string;
+  duration: number;
+  slots: number;
+}
+
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const minutesOf = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+function toHistoryDay(date: string, slots: DailyAvailabilitySlotDTO[]): HistoryDay[] {
+  if (!Array.isArray(slots) || slots.length === 0) return [];
+
+  const ordered = [...slots].sort((a, b) => a.startDateTime.localeCompare(b.startDateTime));
+  const first = ordered[0];
+  const last = ordered[ordered.length - 1];
+  const end = last.endDateTime.slice(11, 16);
+
+  return [{
+    id: date,
+    date,
+    scheduleId: first.scheduleId,
+    start: first.time,
+    end,
+    duration: minutesOf(first.endDateTime.slice(11, 16)) - minutesOf(first.time),
+    slots: ordered.length
+  }];
+}
+
 
 function SelectField({
   label,
@@ -98,13 +139,13 @@ function SelectField({
   value,
   onChange,
   options,
-}: {
+}: Readonly<{
   label: string;
   icon?: React.ReactNode;
   value: string;
   onChange: (v: string) => void;
   options: { label: string; value: string }[];
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
@@ -132,10 +173,10 @@ function SelectField({
 function ModeSelect({
   value,
   onChange,
-}: {
+}: Readonly<{
   value: SlotMode;
   onChange: (v: SlotMode) => void;
-}) {
+}>) {
   const cfg = MODE_CONFIG[value];
   return (
     <div className={`relative flex items-center border rounded-lg h-9 px-2.5 pr-7 text-xs font-medium cursor-pointer transition-colors ${cfg.bgClass} ${cfg.borderClass} ${cfg.colorClass}`}>
@@ -161,11 +202,11 @@ function TimeInput({
   value,
   onChange,
   hasError,
-}: {
+}: Readonly<{
   value: string;
   onChange: (v: string) => void;
   hasError?: boolean;
-}) {
+}>) {
   return (
     <input
       type="time"
@@ -187,51 +228,30 @@ export default function AvailabilityPage() {
 
   const [loading, setLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [visibleHistory, setVisibleHistory] = useState<any[]>([]);
+  const [visibleHistory, setVisibleHistory] = useState<HistoryDay[]>([]);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDayData, setEditingDayData] = useState<any>(null);
-
-  // const doctorId = '1';
-  // const token = '';
-
+  const [editingDayData, setEditingDayData] = useState<HistoryDay | null>(null);
 
   const fetchAvailabilityHistory = async () => {
     try {
       setIsLoadingHistory(true);
-      // const start = new Date().toISOString().split('T')[0];
-      // const end = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      // const response = await AvailabilityService.GetAllAvailabilityByRangeDateAndDoctorId(
-      //   doctorId, start, end, token,
-      // );
-      const response = [
-        { id: '1', startDateTime: '2024-06-20T08:00:00Z', time: '08:00' },
-        { id: '2', startDateTime: '2024-06-20T08:15:00Z', time: '08:15' },
-      ]
-console.log(response);
 
-      if (Array.isArray(response)) {
-        const grouped: Record<string, any> = {};
-        response.forEach((slot: any) => {
-          if (!slot.startDateTime) return;
-          const key = slot.startDateTime.split('T')[0];
-          if (!grouped[key]) {
-            grouped[key] = { id: slot.id, date: key, start: slot.time, end: slot.time, duration: 15, slots: 0, isSeries: false };
-          }
-          grouped[key].slots += 1;
-          if (slot.time < grouped[key].start) grouped[key].start = slot.time;
-          const timeEnd = "23:59"
-          if (timeEnd > grouped[key].end) grouped[key].end = timeEnd;
-        });
-        console.log("teste" , Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date)));
-        setVisibleHistory(
-          Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date)),
-        );
-      } else {
-        setVisibleHistory([]);
-      }
-    } catch {
-      toast.danger('Erro ao carregar os horários cadastrados.');
+      const dates = Array.from({ length: HISTORY_DAYS }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        return toDateStr(d);
+      });
+
+      const days = await Promise.all(
+        dates.map((date) => AvailabilityService.getDailySchedule(date)),
+      );
+
+      setVisibleHistory(
+        days.flatMap((slots, i) => toHistoryDay(dates[i], slots)),
+      );
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao carregar os horários cadastrados.'));
     } finally {
       setIsLoadingHistory(false);
     }
@@ -245,7 +265,7 @@ console.log(response);
       ...prev,
       [dayValue]: [
         ...(prev[dayValue] ?? []),
-        { id: uid(), start: '08:00', end: '12:00', mode: 'presential' as SlotMode },
+        { id: uid(), start: '08:00', end: '12:00', mode: 'InPerson' as SlotMode },
       ],
     }));
   }, []);
@@ -285,16 +305,34 @@ console.log(response);
 
   const validate = useCallback((): boolean => {
     const errors: Record<string, string> = {};
-    let valid = true;
-    Object.values(shifts).flat().forEach((s) => {
-      if (s.start >= s.end) {
-        errors[s.id] = 'Horário final deve ser maior que o inicial';
-        valid = false;
-      }
+    const slotDuration = Number.parseInt(duration);
+
+    Object.entries(shifts).forEach(([, dayShifts]) => {
+      dayShifts.forEach((s) => {
+        if (s.start >= s.end) {
+          errors[s.id] = 'Horário final deve ser maior que o inicial';
+          return;
+        }
+        if ((minutesOf(s.end) - minutesOf(s.start)) % slotDuration !== 0) {
+          errors[s.id] = `O turno deve ser múltiplo de ${slotDuration} minutos`;
+        }
+      });
+
+      const ordered = [...dayShifts]
+        .filter((s) => s.start < s.end)
+        .sort((a, b) => a.start.localeCompare(b.start));
+
+      ordered.forEach((s, i) => {
+        const next = ordered[i + 1];
+        if (next && s.end > next.start) {
+          errors[next.id] = 'Este turno se sobrepõe a outro no mesmo dia';
+        }
+      });
     });
+
     setShiftErrors(errors);
-    return valid;
-  }, [shifts]);
+    return Object.keys(errors).length === 0;
+  }, [shifts, duration]);
 
   const handleSave = async () => {
     if (!validate()) {
@@ -307,19 +345,33 @@ console.log(response);
     }
     try {
       setLoading(true);
-      // const weekDayEntries = Object.entries(shifts).map(([day, dayShifts]) => ({
-      //   weekDay: Number(day),
-      //   shifts: dayShifts.map((s) => ({ start: s.start, end: s.end, mode: s.mode })),
-      // }));
-      // await AvailabilityService.CreateDailyAvailability(
-      //   { doctorId, duration: parseInt(duration), repeatWeeks: parseInt(repeatWeeks), weekDays: weekDayEntries },
-      //   token,
-      // );
+
+      const apiShifts = Object.entries(shifts).flatMap(([day, dayShifts]) =>
+        dayShifts.map((s) => ({
+          weekDay: Number(day),
+          startTime: s.start,
+          endTime: s.end,
+          type: s.mode,
+        })),
+      );
+
+      const start = new Date();
+      const end = new Date(start);
+      end.setDate(end.getDate() + Number.parseInt(repeatWeeks) * 7 - 1);
+
+      await AvailabilityService.createRecurringSchedule({
+        slotDurationMinutes: Number.parseInt(duration),
+        recurrenceStartDate: toDateStr(start),
+        recurrenceEndDate: toDateStr(end),
+        timeZoneId: DEFAULT_TIME_ZONE,
+        shifts: apiShifts,
+      });
+
       toast.success('Grade de horários salva com sucesso!');
       setShifts({});
       fetchAvailabilityHistory();
-    } catch {
-      toast.danger('Erro ao salvar os horários.');
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao salvar os horários.'));
     } finally {
       setLoading(false);
     }
@@ -489,11 +541,6 @@ console.log(response);
                           day: '2-digit',
                           month: 'short',
                         })}
-                        {item.isSeries && (
-                          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
-                            Série
-                          </span>
-                        )}
                       </p>
                       <div className="flex items-center gap-1 mt-1 text-xs text-text-secondary">
                         <Clock size={12} />
@@ -518,14 +565,23 @@ console.log(response);
                     </button>
                     <button
                       className="p-1.5 rounded-md text-danger hover:bg-danger-subtle transition-colors"
-                      aria-label="Excluir agenda"
+                      aria-label="Bloquear agenda do dia"
                       onClick={async () => {
                         try {
-                          // await AvailabilityService.DeleteAvailabilityById(item.id, token);
-                          toast.success('Agenda excluída com sucesso!');
+                          const { canceledAppointments } = await AvailabilityService.createBlock({
+                            date: item.date,
+                            startTime: item.start,
+                            endTime: item.end,
+                            timeZoneId: DEFAULT_TIME_ZONE,
+                          });
+                          toast.success(
+                            canceledAppointments > 0
+                              ? `Agenda bloqueada. ${canceledAppointments} consulta(s) cancelada(s).`
+                              : 'Agenda bloqueada com sucesso!',
+                          );
                           fetchAvailabilityHistory();
-                        } catch {
-                          toast.danger('Erro ao excluir agenda.');
+                        } catch (err) {
+                          toast.danger(errorMessage(err, 'Erro ao bloquear a agenda.'));
                         }
                       }}
                     >

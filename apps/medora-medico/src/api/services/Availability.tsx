@@ -1,145 +1,121 @@
-import { type DailyAvailabilitySlotDTO } from "@medora_web/shared";
-import { Endpoints } from "../enums/endpoints";
+import { type AvailabilitySlotType, type DailyAvailabilitySlotDTO } from '@medora_web/shared';
+import { Endpoints } from '../enums/endpoints';
+import { api } from './api';
+import { toDomainError } from '../errors';
+import { type ApiDailyScheduleSlot, toDailySlotDTO } from '../mappers/availability';
 
+export const DEFAULT_TIME_ZONE = 'America/Sao_Paulo';
 
-async function GetDailyAvailabilityByDoctorId(doctorId: string, token: string): Promise<DailyAvailabilitySlotDTO> {
-    try {
-        const response = await fetch(`${Endpoints.GET_DAILY_AVAILABILITY}?doctorId=${doctorId}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data as DailyAvailabilitySlotDTO;
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
+export interface WeeklyShift {
+  weekDay: number;
+  startTime: string;
+  endTime: string;
+  type: AvailabilitySlotType;
 }
 
-async function DeleteAvailabilityById(availabilityId: string, token: string) {
-    try {
-        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${availabilityId}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data;
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
+export interface CreateRecurringScheduleBody {
+  slotDurationMinutes: number;
+  recurrenceStartDate: string;
+  recurrenceEndDate?: string;
+  timeZoneId: string;
+  shifts: WeeklyShift[];
 }
 
-async function ApproveAvailabilityById(availabilityId: string, token: string) {
-    try {
-        const response = await fetch(`${Endpoints.DELETE_DAILY_AVAILABILITY}/${availabilityId}/approve`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data;
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
+export interface UpdateRecurringScheduleBody {
+  effectiveFrom: string;
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  type: AvailabilitySlotType;
+  recurrenceEndDate?: string;
+  timeZoneId: string;
 }
 
-async function GetAllAvailabilityByRangeDateAndDoctorId(doctorId: string, startDate: string, endDate: string, token: string) {
-    try {
-        const response = await fetch(`${Endpoints.GET_DAILY_AVAILABILITY}?doctorId=${doctorId}&startDate=${startDate}&endDate=${endDate}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data as DailyAvailabilitySlotDTO[];
-    }
-    catch (error) {
-        console.error("Error fetching data:", error);
-        throw error;
-    }
+export interface CreateSpecificAvailabilityBody {
+  date: string;
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  type: AvailabilitySlotType;
+  timeZoneId: string;
 }
 
-async function CreateDailyAvailability(body: any, token: string) {  
+export interface CreateBlockBody {
+  date: string;
+  startTime: string;
+  endTime: string;
+  timeZoneId: string;
+}
+
+async function getDailySchedule(date: string): Promise<DailyAvailabilitySlotDTO[]> {
   try {
-    const response = await fetch(Endpoints.CREATE_DAILY_AVAILABILITY, {
-    method: "POST",
-        headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-    body: JSON.stringify(body),
+    const res = await api.get<ApiDailyScheduleSlot[]>(Endpoints.DAILY_SCHEDULE, {
+      params: { date },
     });
-    const data = await response.json();
-    return data;
-    }catch (error) {
-    console.error("Error fetching data:", error);
-    throw error;
-    }
+
+    return res.data.map((slot) => toDailySlotDTO(slot, date));
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao carregar a agenda do dia.');
+  }
 }
 
-async function UpdateDailyAvailabilityType(id: string, type: 'presential' | 'telemedicine' | 'hybrid', token: string) {  
+async function createRecurringSchedule(body: CreateRecurringScheduleBody) {
   try {
-    const response = await fetch(`${Endpoints.UPDATE_DAILY_AVAILABILITY_TYPE}/${id}/type`, {
-    method: "PATCH",
-        headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-    body: JSON.stringify({ type }),
-    });
-    const data = await response.json();
-    return data;
-    }catch (error) {
-    console.error("Error fetching data:", error);
-    throw error;
-    }
+    const res = await api.post<{ rulesCreated: number }>(Endpoints.RECURRING_SCHEDULE, body);
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao salvar a disponibilidade recorrente.');
+  }
 }
 
-export type AvailabilityService = {
-    GetDailyAvailabilityByDoctorId: typeof GetDailyAvailabilityByDoctorId;
-    DeleteAvailabilityById: typeof DeleteAvailabilityById;
-    ApproveAvailabilityById: typeof ApproveAvailabilityById;
-    GetAllAvailabilityByRangeDateAndDoctorId: typeof GetAllAvailabilityByRangeDateAndDoctorId;
-    CreateDailyAvailability: typeof CreateDailyAvailability;
-    UpdateDailyAvailabilityType: typeof UpdateDailyAvailabilityType;
+async function updateRecurringSchedule(scheduleId: number, body: UpdateRecurringScheduleBody) {
+  try {
+    const res = await api.put<{ newScheduleId: number; previousRuleLastDay: string | null }>(
+      `${Endpoints.RECURRING_SCHEDULE}/${scheduleId}`,
+      body,
+    );
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao atualizar a disponibilidade recorrente.');
+  }
 }
 
-const AvailabilityService: AvailabilityService = {
-    GetDailyAvailabilityByDoctorId,
-    DeleteAvailabilityById,
-    ApproveAvailabilityById,
-    GetAllAvailabilityByRangeDateAndDoctorId,
-    CreateDailyAvailability,
-    UpdateDailyAvailabilityType
+async function createSpecificAvailability(body: CreateSpecificAvailabilityBody) {
+  try {
+    const res = await api.post<{ scheduleId: number }>(Endpoints.SPECIFIC_AVAILABILITY, body);
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao salvar a disponibilidade avulsa.');
+  }
 }
+
+async function createBlock(body: CreateBlockBody) {
+  try {
+    const res = await api.post<{ blockId: number; canceledAppointments: number }>(
+      Endpoints.SCHEDULE_BLOCKS,
+      body,
+    );
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao bloquear o horário.');
+  }
+}
+
+async function removeBlock(blockId: number) {
+  try {
+    await api.delete(`${Endpoints.SCHEDULE_BLOCKS}/${blockId}`);
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao remover o bloqueio.');
+  }
+}
+
+const AvailabilityService = {
+  getDailySchedule,
+  createRecurringSchedule,
+  updateRecurringSchedule,
+  createSpecificAvailability,
+  createBlock,
+  removeBlock,
+};
 
 export default AvailabilityService;
-
- 
