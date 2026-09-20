@@ -4,4 +4,4 @@ export * from "./Maintenance/Maintenance";
 export * from "./NotFound/NotFound";
 export * from "./ServerErrorPage/ServerErrorPage";
 export * from "./VerifyMfaPage/VerifyMfaPage";
-export * from "./ResetPassword/ResetPassword";
+export * from "./ResetPassword/ResetPassword"
