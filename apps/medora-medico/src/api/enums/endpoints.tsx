@@ -1,6 +1,7 @@
 export const Endpoints = {
     LOGIN: '/auth/login',
     REFRESH: '/auth/refresh',
+    LOGOUT: '/auth/logout',
 
     INIT_MFA: '/mfa/',
     VERIFY_AUTH_CODE: '/mfa/auth/verify',

@@ -3,9 +3,12 @@ import { Activity, Bell, LogOut, Settings, User } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { useNavigate } from 'react-router';
 import { ThemeToggle } from '@medora_web/shared';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Header() {
     const navigate = useNavigate();
+
+    const { signOut } = useAuth()
     
     const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -13,7 +16,8 @@ export default function Header() {
     const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        signOut();
         navigate("/");
     };
 

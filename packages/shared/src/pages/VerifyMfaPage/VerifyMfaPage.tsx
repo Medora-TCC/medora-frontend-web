@@ -45,6 +45,7 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete, backupLoginHr
 
     try {
       const response = await onVerify(code, true);
+      console.log("Não lancou")
       setToken(response.accessToken);
       setIsValid(true);
 
