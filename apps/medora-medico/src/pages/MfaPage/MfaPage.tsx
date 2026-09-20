@@ -10,11 +10,16 @@ export default function MfaPage() {
 
   const handleInitMfa = async () => {
     const response = await api.post(Endpoints.INIT_MFA);
+
+    if (response.status !== 200) {
+      navigate("/login/")
+    }
+
     return response.data;
   }
 
   const handleVerify = async (code: string, rememberDevice: boolean) => {
-    const response = await api.post("/mfa/verify/", { code, rememberDevice });
+    const response = await api.post(Endpoints.VERIFY_AUTH_CODE, { code, rememberDevice });
     return response.data;
   };
 
@@ -28,6 +33,7 @@ export default function MfaPage() {
       onInitMfa={handleInitMfa} 
       onVerify={handleVerify} 
       onComplete={handleComplete} 
+      backupLoginHref="/backup-code"
     />
   );
 }
