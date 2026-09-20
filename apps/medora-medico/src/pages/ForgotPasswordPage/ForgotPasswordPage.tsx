@@ -5,7 +5,7 @@ import { Endpoints } from "../../api/enums/endpoints";
 export default function ForgotPasswordPage() {
 
   const handleSend = async (email: string) => {
-      var response = await api.post(Endpoints.FORGOT_PWD, {email: email})
+      await api.post(Endpoints.FORGOT_PWD, {email: email})
   }
 
   return <>
