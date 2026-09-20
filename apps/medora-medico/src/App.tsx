@@ -1,5 +1,5 @@
 import ConsultaScreen from './pages/ConsultaScreen/ConsultaScreen';
-import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage, ForgotPassword } from "@medora_web/shared";
+import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage } from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
@@ -24,6 +24,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import MfaPage from './pages/MfaPage/MfaPage';
 import BackupLoginPage from './pages/BackupLoginPage/BackupLoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage';
 
 
 function App() {
@@ -60,7 +61,7 @@ function App() {
                 <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
                 <Route path="/login" element={<LoginScreen />} />
                 <Route path="/cadastro" element={<RegisterPage />} />
-                <Route path='/esqueci-a-senha' element={<ForgotPassword />} />
+                <Route path='/esqueci-a-senha' element={<ForgotPasswordPage />} />
                 <Route path='/mfa' element={<MfaPage />} />
                 <Route path='backup-code' element={<BackupLoginPage/>} />
                 <Route path='/trocar-senha' element={<ResetPassword />} />
