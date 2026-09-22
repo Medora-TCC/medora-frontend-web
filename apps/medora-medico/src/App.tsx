@@ -1,5 +1,5 @@
 import ConsultaScreen from './pages/ConsultaScreen/ConsultaScreen';
-import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage, ForgotPassword } from "@medora_web/shared";
+import { ThemeProvider, Layout, NotFound, ServerErrorPage, ConnectionErrorPage } from "@medora_web/shared";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { TermsOfUsePage } from "./pages/TermsOfUsePage/TermsOfUsePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage/PrivacyPolicyPage";
@@ -18,12 +18,13 @@ import ConfigPage from './pages/ConfigPage/ConfigPage';
 import { PrescriptionPage } from './pages/PrescriptionPage/PrescriptionPage';
 import { SignaturePage } from './pages/SignaturePage/SignaturePage';
 import { TeleconsultaLayout } from './pages/TeleconsultaScreen/TeleconsultaLayout';
-import ResetPassword from '../../../packages/shared/src/pages/ResetPassword/ResetPassword';
 import FinancialManagement from './pages/FinancialManagementPage/FinancialManagement';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import MfaPage from './pages/MfaPage/MfaPage';
 import BackupLoginPage from './pages/BackupLoginPage/BackupLoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage';
 
 
 function App() {
@@ -60,10 +61,10 @@ function App() {
                 <Route path="/termos-de-uso" element={<TermsOfUsePage />} />
                 <Route path="/login" element={<LoginScreen />} />
                 <Route path="/cadastro" element={<RegisterPage />} />
-                <Route path='/esqueci-a-senha' element={<ForgotPassword />} />
+                <Route path='/esqueci-a-senha' element={<ForgotPasswordPage />} />
                 <Route path='/mfa' element={<MfaPage />} />
                 <Route path='backup-code' element={<BackupLoginPage/>} />
-                <Route path='/trocar-senha' element={<ResetPassword />} />
+                <Route path='/trocar-senha' element={<ResetPasswordPage />} />
                 <Route path="/server-error" element={<ServerErrorPage />} />
                 <Route path="/connection-error" element={<ConnectionErrorPage />} />
                 <Route path="/" element={< HomePage />} />

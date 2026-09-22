@@ -95,7 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error.response?.status === 401 &&
           !originalRequest._retry &&
           originalRequest.url !== Endpoints.REFRESH &&
-          originalRequest.url !== Endpoints.LOGIN
+          originalRequest.url !== Endpoints.LOGIN &&
+          originalRequest.url !== Endpoints.VERIFY_AUTH_CODE &&
+          originalRequest.url !== Endpoints.INIT_MFA
         ) {
           if (isRefreshing) {
             return new Promise(function (resolve, reject) {
@@ -147,7 +149,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenRef.current = token;
   };
 
-  const signOut = () => {
+  const signOut = async () => {
+    await api.post(Endpoints.LOGOUT);
     setAccessToken(null);
   };
 
