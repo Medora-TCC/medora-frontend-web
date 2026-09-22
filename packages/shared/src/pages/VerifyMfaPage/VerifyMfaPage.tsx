@@ -1,14 +1,16 @@
 import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS, ToastProvider, toast } from "@heroui/react";
 import { CircleCheckBig, MailQuestionMark } from "lucide-react";
+import { Link as RouterLink } from "react-router"
 import { useEffect, useState } from "react"
 
 export interface VerifyMfaScreenProps {
   onInitMfa: () => Promise<{ useAuthenticationApp: boolean; sentTo?: string }>;
   onVerify: (code: string, rememberDevice: boolean) => Promise<{ accessToken: string }>
   onComplete: (accessToken: string) => void;
+  backupLoginHref: string;
 }
 
-export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete }: VerifyMfaScreenProps) {
+export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete, backupLoginHref }: VerifyMfaScreenProps) {
   const [code, setCode] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
 
@@ -43,6 +45,7 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete }: VerifyMfaSc
 
     try {
       const response = await onVerify(code, true);
+      console.log("Não lancou")
       setToken(response.accessToken);
       setIsValid(true);
 
@@ -60,7 +63,7 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete }: VerifyMfaSc
     setIsValid(null);
     setCode("");
 
-    toast.promise(onInitMfa, { error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso" })
+    toast.promise(onInitMfa(), { error: "Falha ao enviar e-mail", loading: "Enviando e-mail...", success: "Email enviado com sucesso" })
   }
 
   if (!mfaData) {
@@ -145,20 +148,35 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete }: VerifyMfaSc
               {isVerifying ? <Spinner color="current" /> : "Verificar código"}
             </Button>
           </Form>
-          {!mfaData.useAuthenticationApp && (
-            <div className="my-8 text-center text-sm">
-              <p className="text-text-secondary">
-                Não recebeu o email? {' '}
-                {timeLeft > 0 ? (
-                  <span>Reenviar em {timeLeft}s</span>
+          <div className="my-8 text-center text-sm">
+            <p className="text-text-secondary">
+              {!mfaData.useAuthenticationApp ?
+                (
+                  <>
+                    Não recebeu o email? {' '}
+                    {timeLeft > 0 ? (
+                      <span>Reenviar em {timeLeft}s</span>
+                    ) : (
+                      <Link onPress={handleResend} className="text-primary-color hover:text-primary-hover font-semibold transition-colors cursor-pointer">
+                        Reenviar Agora
+                      </Link>
+                    )
+                    }
+                  </>
                 ) : (
-                  <Link onPress={handleResend} className="text-primary-color hover:text-primary-hover font-semibold transition-colors cursor-pointer">
-                    Reenviar Agora
-                  </Link>
-                )}
-              </p>
-            </div>
-          )}
+                  <>
+                    <RouterLink
+                      to={backupLoginHref}
+                      className="text-text-secondary hover:text-primary-hover transition-colors cursor-pointer"
+                    >
+                      Usar Código de backup
+                    </RouterLink>
+                  </>
+                )
+              }
+            </p>
+          </div>
+
         </div></>}
   </section>)
 }
