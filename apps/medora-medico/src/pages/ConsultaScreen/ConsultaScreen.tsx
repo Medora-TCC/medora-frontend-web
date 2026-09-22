@@ -157,7 +157,7 @@ export function ConsultaScreen() {
     return c;
   }, [consultas]);
 
-  const [view, setView] = useState<"lista" | "grid">("lista");
+  const [view] = useState<"lista" | "grid">("lista");
 
   const filtroOpcoes: { key: Filtro; label: string }[] = [
     { key: "todas", label: "Todas" },
