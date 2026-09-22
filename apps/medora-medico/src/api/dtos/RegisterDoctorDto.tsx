@@ -4,7 +4,7 @@ export interface RegisterDoctorDto {
     email: string;
     password: string;
     nationality: string;
-    birthDate: Date;
+    birthDate: string;
     sex: number;
     race: number;
     phone: string;
