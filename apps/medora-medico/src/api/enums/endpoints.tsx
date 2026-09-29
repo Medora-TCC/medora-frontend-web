@@ -1,9 +1,14 @@
 export const Endpoints = {
     LOGIN: '/auth/login',
     REFRESH: '/auth/refresh',
+    FORGOT_PWD: '/auth/forgot-password',
+    RESET_PWD: '/auth/reset-password',
+    LOGOUT: '/auth/logout',
 
     INIT_MFA: '/mfa/',
-    VERIFY_CODE: '/mfa/verify',
+    VERIFY_AUTH_CODE: '/mfa/auth/verify',
+
+    USE_BACKUP_CODE: '/backup-code/use',
 
     REGISTER_DOCTOR: '/v1/Doctor',
 
