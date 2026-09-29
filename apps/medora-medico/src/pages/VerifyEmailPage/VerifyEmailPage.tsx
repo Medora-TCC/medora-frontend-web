@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
 import { api } from "../../api/services/api";
 import { Endpoints } from "../../api/enums/endpoints";
+import { MfaAction } from "../../api/enums/mfaAction"; // ajustar para o caminho real do enum já existente
 import { VerifyEmailScreen } from "@medora_web/shared";
 
 export default function VerifyEmailPage() {
@@ -12,11 +13,17 @@ export default function VerifyEmailPage() {
   const userId = location.state?.userId ?? "";
 
   const handleInitVerification = async () => {
-    await api.post(Endpoints.RESEND_EMAIL_VERIFICATION, null, { params: { userId } });
-  };
+  await api.post(Endpoints.RESEND_EMAIL_VERIFICATION, null, {
+    params: { ids: userId },
+  });
+};
 
   const handleVerify = async (code: string) => {
-    const response = await api.post(Endpoints.VERIFY_EMAIL, { code, userId });
+    const response = await api.post(Endpoints.VERIFY_EMAIL, {
+      code,
+      userId,
+      action: MfaAction.EMAIL_VERIFICATION,
+    });
     return response.data;
   };
 
