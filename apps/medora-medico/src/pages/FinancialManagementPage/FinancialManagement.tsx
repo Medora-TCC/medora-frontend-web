@@ -198,11 +198,11 @@ function TransactionItem({
   );
 }
 
-function FeeRow({ label, value }: { label: string; value: string }) {
-  return (
-    <li className="flex justify-between items-center">
-      <span className="text-xs text-text-secondary">{label}</span>
-      <span className="text-[13px] font-semibold text-text-secondary">{value}</span>
-    </li>
-  );
-}
+// function FeeRow({ label, value }: { label: string; value: string }) {
+//   return (
+//     <li className="flex justify-between items-center">
+//       <span className="text-xs text-text-secondary">{label}</span>
+//       <span className="text-[13px] font-semibold text-text-secondary">{value}</span>
+//     </li>
+//   );
+// }

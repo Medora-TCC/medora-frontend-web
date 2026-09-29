@@ -22,6 +22,7 @@ import FinancialManagement from './pages/FinancialManagementPage/FinancialManage
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import MfaPage from './pages/MfaPage/MfaPage';
+import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage';
 import BackupLoginPage from './pages/BackupLoginPage/BackupLoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage';
@@ -63,12 +64,13 @@ function App() {
                 <Route path="/cadastro" element={<RegisterPage />} />
                 <Route path='/esqueci-a-senha' element={<ForgotPasswordPage />} />
                 <Route path='/mfa' element={<MfaPage />} />
+                <Route path='/verify-email' element={<VerifyEmailPage />} />
                 <Route path='backup-code' element={<BackupLoginPage/>} />
                 <Route path='/trocar-senha' element={<ResetPasswordPage />} />
                 <Route path="/server-error" element={<ServerErrorPage />} />
                 <Route path="/connection-error" element={<ConnectionErrorPage />} />
                 <Route path="/" element={< HomePage />} />
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<NotFound />} /> 
               </Route>
             </Routes>
           </AuthProvider>
