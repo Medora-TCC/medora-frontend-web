@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
 import { api } from "../../api/services/api";
 import { Endpoints } from "../../api/enums/endpoints";
-import { MfaAction } from "../../api/enums/mfaAction"; // ajustar para o caminho real do enum já existente
+import { MfaAction } from "../../api/enums/mfaAction"; 
 import { VerifyEmailScreen } from "@medora_web/shared";
 
 export default function VerifyEmailPage() {
