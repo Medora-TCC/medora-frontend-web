@@ -21,4 +21,7 @@ export const Endpoints = {
     SCHEDULE_BLOCKS: '/doctors/availability/blocks',
     VERIFY_EMAIL: '/mfa/config/authenticator/verify-email',
     RESEND_EMAIL_VERIFICATION: '/mfa/config/authenticator/resend-email',    
+
+    ICE_SERVERS: '/api/telemedicine/ice-servers',
+    TELEMEDICINE_HUB: '/hubs/telemedicine',
 } as const;
