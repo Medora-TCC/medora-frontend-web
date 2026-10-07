@@ -1,11 +1,36 @@
 import { useState, useRef, useEffect } from 'react';
-import { Activity, Bell, LogOut, Settings, User } from 'lucide-react';
+import { Activity, Bell, LogOut, Settings, User, Stethoscope } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { useNavigate } from 'react-router';
 import { ThemeToggle } from '@medora_web/shared';
 import { useAuth } from '../../hooks/useAuth';
 
-export default function Header() {
+interface HeaderProps {
+    doctorName: string | null;
+    mainSpecialty: string | null;
+    extraSpecialtiesCount: number;
+    onOpenSpecialties: () => void;
+}
+
+function getInitials(name: string | null): string {
+    if (!name) return "";
+    const parts = name.trim().split(/\s+/);
+    const first = parts[0]?.[0] ?? "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
+}
+function getShortName(name: string | null): string {
+    if (!name) return "";
+    const parts = name.trim().split(/\s+/);
+    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1]}` : parts[0];
+}
+
+export default function Header({
+    doctorName,
+    mainSpecialty,
+    extraSpecialtiesCount,
+    onOpenSpecialties,
+}: HeaderProps) {
     const navigate = useNavigate();
 
     const { signOut } = useAuth()
@@ -96,11 +121,17 @@ export default function Header() {
                         className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none select-none"
                     >
                         <div className="hidden md:block text-right">
-                            <p className="text-xs font-bold text-text-primary leading-none">Dr. João Silva</p>
-                            <p className="text-[9px] text-text-muted uppercase tracking-wider mt-0.5">Cardiologia</p>
+                            <p className="text-xs font-bold text-text-primary leading-none">
+                                {doctorName ? getShortName(doctorName) : "Carregando..."}
+                            </p>
+                            <p className="text-[9px] text-text-muted uppercase tracking-wider mt-0.5">
+                                {mainSpecialty
+                                    ? <>{mainSpecialty}{extraSpecialtiesCount > 0 && ` +${extraSpecialtiesCount}`}</>
+                                    : <span className="text-orange-500">Sem especialidade</span>}
+                            </p>
                         </div>
                         <div className="h-8 w-8 rounded-full bg-primary-color flex items-center justify-center text-white text-xs font-bold shadow-sm border border-surface">
-                            DR
+                            {getInitials(doctorName)}
                         </div>
                     </button>
 
@@ -114,7 +145,13 @@ export default function Header() {
                                 <User size={16} className="text-text-muted" />
                                 <span>Meu Perfil</span>
                             </button>
-                            
+                            <button
+                                onClick={() => { onOpenSpecialties(); setProfileOpen(false); }}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-muted/50 text-left"
+                            >
+                                <Stethoscope size={16} className="text-text-muted" />
+                                <span>Minhas especialidades</span>
+                            </button>
                             <button 
                                 onClick={() => { navigate("/medico/configuracoes"); setProfileOpen(false); }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-muted/50 text-left"
