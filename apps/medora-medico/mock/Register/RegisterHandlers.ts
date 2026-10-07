@@ -1,5 +1,5 @@
 import { http, HttpResponse, delay } from "msw";
-import { type RegisterDoctorDto } from "../../src/api/dtos/RegisterDoctorDto";
+import { type RegisterDoctorDto } from "../../src/api/dtos/Doctors/RegisterDoctorDto";
 
 export const registerHandlers = [
   http.post("/doctors/register", async ({ request }) => {
