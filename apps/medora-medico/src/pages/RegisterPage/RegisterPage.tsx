@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Input, Button, toast, ToastProvider } from "@heroui/react";
 import { FloatingCard, FormStepper, PasswordInput, FieldWrapper } from "@medora_web/shared";
 import doctorImage from '../../assets/medicoSegurandoTable.png';
-import type { RegisterDoctorDto, ForeignerDto } from "../../api/dtos/RegisterDoctorDto";
+import type { RegisterDoctorDto, ForeignerDto } from "../../api/dtos/Doctors/RegisterDoctorDto";
 import { Endpoints } from "../../api/enums/endpoints";
 import { registerDoctor } from "../../api/services/DoctorService";
 import { Activity, ChevronDown } from "lucide-react";
