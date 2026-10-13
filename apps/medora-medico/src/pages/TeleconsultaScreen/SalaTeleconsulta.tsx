@@ -23,6 +23,7 @@ import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordCompon
 import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
 import { useTelemedicineCall } from "../../hooks/useTelemedicineCall";
 import { AuthContext } from "../../contexts/AuthContext";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
   camOn?: boolean;
@@ -62,6 +63,7 @@ function ParticipantTile({
   camOff,
   mirrored = false,
   large = false,
+  isLocal = false,
 }: {
   stream: MediaStream | null;
   name: string;
@@ -69,12 +71,30 @@ function ParticipantTile({
   camOff: boolean;
   mirrored?: boolean;
   large?: boolean;
+  isLocal?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current) videoRef.current.srcObject = stream;
-  }, [stream]);
+    const el = videoRef.current;
+    if (!el) return;
+    el.srcObject = stream;
+    if (!stream) return;
+
+    // Tenta reproduzir explicitamente; se o navegador bloquear áudio sem
+    // interação do usuário, mostra um botão para liberar manualmente.
+    el.play().catch(() => {
+      if (!isLocal) setAudioBlocked(true);
+    });
+  }, [stream, isLocal]);
+
+  function unlockAudio() {
+    videoRef.current
+      ?.play()
+      .then(() => setAudioBlocked(false))
+      .catch(() => {});
+  }
 
   const initials = name
     .split(" ")
@@ -84,18 +104,19 @@ function ParticipantTile({
     .toUpperCase();
 
   return (
-    <div className="relative w-full h-full bg-surface-overlay rounded-2xl overflow-hidden flex items-center justify-center group">
-      {/* Vídeo */}
+    <div className="relative w-full h-full bg-surface-overlay rounded-2xl overflow-hidden group">
       {!camOff && stream ? (
         <video
           ref={videoRef}
           autoPlay
           playsInline
-          muted
-          className={`absolute inset-0 w-full h-full ${mirrored ? "scale-x-[-1]" : ""}`}
+          // Só o próprio vídeo (self-view) fica mudo — evita eco.
+          // O do participante remoto precisa tocar o áudio recebido.
+          muted={isLocal}
+          className={`absolute inset-0 w-full h-full object-cover ${mirrored ? "scale-x-[-1]" : ""}`}
         />
       ) : (
-        <div className="absolute inset-0  flex flex-col items-center gap-3">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
           <div
             className={`
               flex items-center justify-center rounded-full bg-accent-soft text-accent font-semibold select-none
@@ -107,11 +128,18 @@ function ParticipantTile({
           {large && (
             <span className="text-text-secondary text-sm">Câmera desativada</span>
           )}
-          {/*VALIDAR pode fehcar a camera? */}
         </div>
       )}
 
-      {/* Overlay inferior */}
+      {audioBlocked && (
+        <button
+          onClick={unlockAudio}
+          className="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-sm gap-2"
+        >
+          <Mic size={16} /> Toque para ativar o áudio
+        </button>
+      )}
+
       <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between">
         <span className={`text-xs font-medium truncate ${name == "Você" ? "text-white" : "text-text-primary"}`}>{name}</span>
         {muted && (
@@ -150,7 +178,6 @@ function ChatPanel({
 
   return (
     <div className="flex flex-col h-full bg-surface border-l border-ring">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-ring">
         <span className="text-text-primary text-sm font-medium">Chat</span>
         <button
@@ -161,7 +188,6 @@ function ChatPanel({
         </button>
       </div>
 
-      {/* Mensagens */}
       <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
         {messages.length === 0 && (
           <p className="text-text-secondary text-xs text-center mt-8">
@@ -190,7 +216,6 @@ function ChatPanel({
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div className="px-3 py-3 border-t border-ring flex gap-2">
         <input
           value={input}
@@ -228,7 +253,7 @@ function ControlBtn({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 ">
+    <div className="flex flex-col items-center gap-1.5">
       <button
         onClick={onClick}
         title={label}
@@ -260,36 +285,31 @@ export default function SalaTeleConsulta() {
   const { accessToken } = useContext(AuthContext);
   const role = "doctor";
 
-   const{ remoteStream, remoteConnected, callState, error: callError, hangUp } =
+  const { remoteStream, remoteConnected, callState, error: callError, hangUp, reconnect } =
     useTelemedicineCall({
       meetingCode: id,
       token: accessToken,
       role: role,
-      localStream: localStream
-    })
+      localStream: localStream,
+    });
 
-    /*VALIDAR como vou procurar o nome do paciente?*/
-    const remoteName = "Paciente"
-    const remoteCamOn = true;
-
-    /*TODO evento de reconnect*/
+  /* TODO: nome real do paciente — buscar via API da consulta */
+  const remoteName = "Paciente";
+  /* TODO: Hub ainda não propaga estado de câmera do remoto */
+  const remoteCamOn = true;
 
   const timer = useCallTimer();
 
-  // Controles
   const [camOn, setCamOn] = useState(state.camOn ?? true);
   const [micOn, setMicOn] = useState(state.micOn ?? true);
   const [screenSharing, setScreenSharing] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
-  // UI
   const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | "receita" | null>(null);
-  // const [sidePanelSize, setSidePanelSize] = useState<"normal" | "large" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Chat
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
@@ -311,8 +331,7 @@ export default function SalaTeleConsulta() {
   // ── Inicializa stream local ──────────────────────────────────────────────
   useEffect(() => {
     let active = true;
-    console.log(error);
-    
+
     const constraints: MediaStreamConstraints = {
       video: state.selectedCam
         ? { deviceId: { exact: state.selectedCam } }
@@ -325,8 +344,10 @@ export default function SalaTeleConsulta() {
     navigator.mediaDevices
       .getUserMedia(constraints)
       .then((s) => {
-        if (!active) { s.getTracks().forEach((t) => t.stop()); return; }
-        // Aplica estado inicial
+        if (!active) {
+          s.getTracks().forEach((t) => t.stop());
+          return;
+        }
         s.getVideoTracks().forEach((t) => (t.enabled = camOn));
         s.getAudioTracks().forEach((t) => (t.enabled = micOn));
         setLocalStream(s);
@@ -338,14 +359,12 @@ export default function SalaTeleConsulta() {
     };
   }, []);
 
- 
-
-  // Cleanup ao desmontar
   useEffect(() => {
-    return () => { localStream?.getTracks().forEach((t) => t.stop()); };
+    return () => {
+      localStream?.getTracks().forEach((t) => t.stop());
+    };
   }, [localStream]);
 
-  // ── Toggle câmera ────────────────────────────────────────────────────────
   function toggleCam() {
     setCamOn((v) => {
       const next = !v;
@@ -354,7 +373,6 @@ export default function SalaTeleConsulta() {
     });
   }
 
-  // ── Toggle microfone ─────────────────────────────────────────────────────
   function toggleMic() {
     setMicOn((v) => {
       const next = !v;
@@ -363,7 +381,6 @@ export default function SalaTeleConsulta() {
     });
   }
 
-  // ── Compartilhar tela ────────────────────────────────────────────────────
   async function toggleScreenShare() {
     if (screenSharing) {
       setScreenSharing(false);
@@ -377,7 +394,6 @@ export default function SalaTeleConsulta() {
     }
   }
 
-  // ── Auto-hide dos controles ──────────────────────────────────────────────
   const resetHide = useCallback(() => {
     setControlsVisible(true);
     if (hideTimeout.current) clearTimeout(hideTimeout.current);
@@ -389,7 +405,6 @@ export default function SalaTeleConsulta() {
     return () => { if (hideTimeout.current) clearTimeout(hideTimeout.current); };
   }, []);
 
-  // ── Fullscreen ───────────────────────────────────────────────────────────
   function toggleFullscreen() {
     if (!fullscreen) {
       document.documentElement.requestFullscreen?.();
@@ -399,13 +414,11 @@ export default function SalaTeleConsulta() {
     setFullscreen((v) => !v);
   }
 
-  // ── Chat ─────────────────────────────────────────────────────────────────
   function openChat() {
     setSidePanel((p) => (p === "chat" ? null : "chat"));
     setUnread(0);
   }
 
-  // ── Prontuario ─────────────────────────────────────────────────────────────────
   function openProntuario() {
     setSidePanel((p) => (p === "prontuario" ? null : "prontuario"));
     setUnread(0);
@@ -415,7 +428,6 @@ export default function SalaTeleConsulta() {
     setSidePanel((p) => (p === "receita" ? null : "receita"));
     setUnread(0);
   }
-
 
   function sendMessage(text: string) {
     const msg: ChatMessage = {
@@ -428,32 +440,28 @@ export default function SalaTeleConsulta() {
     setMessages((prev) => [...prev, msg]);
   }
 
-  // ── Encerrar ─────────────────────────────────────────────────────────────
   function encerrar() {
     localStream?.getTracks().forEach((t) => t.stop());
-    hangUp()
+    hangUp();
     navigate(`../../consulta`);
   }
 
-  // Define a classe de posicionamento baseada no painel ativo
-  let positionClass = "left-1/2 -translate-x-1/2"; // Padrão fechado
-
+  let positionClass = "left-1/2 -translate-x-1/2";
   if (sidePanel === "chat") {
-    positionClass = "left-[calc(50%-160px)] -translate-x-1/2"; // Ajuste o valor do chat aqui
+    positionClass = "left-[calc(50%-160px)] -translate-x-1/2";
   } else if (sidePanel === "prontuario") {
-    positionClass = "left-[calc(50%-480px)] -translate-x-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+    positionClass = "left-[calc(50%-480px)] -translate-x-1/2";
   } else if (sidePanel === "receita") {
-    positionClass = "left-[calc(50%-480px)] -translate-x-1/2"; // Ajuste o valor do receita aqui (ex: se for maior)
+    positionClass = "left-[calc(50%-480px)] -translate-x-1/2";
   }
 
-  let sidePanelWidth = "w-0 overflow-hidden"
-
+  let sidePanelWidth = "w-0 overflow-hidden";
   if (sidePanel === "chat") {
-    sidePanelWidth = "w-80"; // Ajuste o valor do chat aqui
+    sidePanelWidth = "w-80";
   } else if (sidePanel === "prontuario") {
-    sidePanelWidth = "w-1/2"; // Ajuste o valor do prontuário aqui (ex: se for maior)
+    sidePanelWidth = "w-1/2";
   } else if (sidePanel === "receita") {
-    sidePanelWidth = "w-1/2"; // Ajuste o valor do receita aqui (ex: se for maior)
+    sidePanelWidth = "w-1/2";
   }
 
   return (
@@ -462,10 +470,7 @@ export default function SalaTeleConsulta() {
       onMouseMove={resetHide}
       onTouchStart={resetHide}
     >
-      {/* ── Área principal de vídeo ──────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-
-        {/* ── Header ──────────────────────────────────── */}
         <div
           className={`
             relative z-20 flex items-center justify-between
@@ -505,13 +510,31 @@ export default function SalaTeleConsulta() {
           </button>
         </div>
 
-        {/* ── Vídeos ──────────────────────────────────── */}
         <div className="relative flex-1 p-3 pb-24 min-h-0">
-          {/* Participante remoto (tela cheia) */}
+          {/* Banner de reconexão */}
+          {(callState === "reconnecting" || callState === "failed") && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-black/70 text-white text-sm px-4 py-2 rounded-full">
+              {callState === "reconnecting" ? (
+                <>
+                  <span className="size-2 rounded-full bg-warning animate-pulse" />
+                  Reconectando…
+                </>
+              ) : (
+                <>
+                  <span className="size-2 rounded-full bg-danger" />
+                  Conexão perdida.
+                  <button onClick={reconnect} className="underline font-medium hover:text-accent">
+                    Reconectar
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="w-full h-full">
             {remoteConnected ? (
               <ParticipantTile
-                stream={remoteStream} // em prod: stream remoto WebRTC
+                stream={remoteStream}
                 name={remoteName}
                 muted={false}
                 camOff={!remoteCamOn}
@@ -539,7 +562,6 @@ export default function SalaTeleConsulta() {
             )}
           </div>
 
-          {/* Self-view (pip) */}
           <div className="absolute bottom-4 right-4 w-44 aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10 z-10">
             <ParticipantTile
               stream={localStream}
@@ -547,12 +569,11 @@ export default function SalaTeleConsulta() {
               muted={!micOn}
               camOff={!camOn}
               mirrored
+              isLocal
             />
           </div>
-
         </div>
 
-        {/* ── Barra de controles ───────────────────────── */}
         <div
           className={`
             absolute bottom-6 z-20 
@@ -576,7 +597,6 @@ export default function SalaTeleConsulta() {
               <MonitorUp size={20} />
             </ControlBtn>
 
-            {/* Encerrar — destacado no centro */}
             <div className="flex flex-col items-center gap-1.5 mx-2">
               <button
                 onClick={encerrar}
@@ -587,28 +607,16 @@ export default function SalaTeleConsulta() {
               <span className="text-text-primary text-[10px]">Encerrar</span>
             </div>
 
-            <ControlBtn
-              onClick={openProntuario}
-              active={sidePanel === "prontuario"}
-              label="Prontuário"
-            >
-              <ClipboardClock  size={20} />
+            <ControlBtn onClick={openProntuario} active={sidePanel === "prontuario"} label="Prontuário">
+              <ClipboardClock size={20} />
             </ControlBtn>
 
-            <ControlBtn
-              onClick={openReceita}
-              active={sidePanel === "receita"}
-              label="Prescrição"
-            >
-              <FileUser   size={20} />
+            <ControlBtn onClick={openReceita} active={sidePanel === "receita"} label="Prescrição">
+              <FileUser size={20} />
             </ControlBtn>
 
             <div className="relative">
-              <ControlBtn
-                onClick={openChat}
-                active={sidePanel === "chat"}
-                label="Chat"
-              >
+              <ControlBtn onClick={openChat} active={sidePanel === "chat"} label="Chat">
                 <MessageSquare size={20} />
               </ControlBtn>
               {unread > 0 && (
@@ -617,12 +625,10 @@ export default function SalaTeleConsulta() {
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* ── Painel lateral ──────────────────────────────── */}
       <div
         className={`
           shrink-0 transition-all duration-300 ease-in-out
@@ -630,23 +636,16 @@ export default function SalaTeleConsulta() {
         `}
       >
         {sidePanel === "chat" && (
-          <ChatPanel
-            messages={messages}
-            onSend={sendMessage}
-            onClose={() => setSidePanel(null)}
-          />
+          <ChatPanel messages={messages} onSend={sendMessage} onClose={() => setSidePanel(null)} />
         )}
         {sidePanel === "prontuario" && (
           <div className="h-full">
-            <MedicalRecordComponent setError={setError}/>
+            <MedicalRecordComponent setError={setError} />
           </div>
         )}
         {sidePanel === "receita" && (
           <div className="h-full border-r-2 border-ring flex justify-center items-center bg-surface-overlay">
-            <PrescricaoWizard
-              onConcluir={(rascunho) => console.log(rascunho)}
-              onCancelar={() => { }}
-            />
+            <PrescricaoWizard onConcluir={(rascunho) => console.log(rascunho)} onCancelar={() => {}} />
           </div>
         )}
       </div>

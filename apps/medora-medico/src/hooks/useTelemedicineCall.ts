@@ -1,42 +1,61 @@
-// hooks/useTelemedicineCall.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
+import { api } from "../api/services/api";
 
-type Role = "doctor";
+type Role = "doctor" | "patient";
 
 interface UseTelemedicineCallParams {
   meetingCode: string | undefined;
   token: string | null;
   role: Role | null;
-  localStream: MediaStream | null; // já criado pela tela, com camOn/micOn aplicados
+  localStream: MediaStream | null;
 }
+
+type CallState =
+  | "idle"
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "disconnected"
+  | "failed";
 
 interface TelemedicineCallState {
   remoteStream: MediaStream | null;
   remoteConnected: boolean;
-  callState: "idle" | "connecting" | "connected" | "disconnected" | "failed";
+  callState: CallState;
   error: string | null;
 }
 
-// TODO: ajuste para a env var real do projeto (ex: import.meta.env.VITE_API_BASE_URL)
+// Reaproveita o baseURL já configurado no axios do projeto.
 const API_BASE = "https://localhost:7069";
 const HUB_URL = `${API_BASE}/hubs/telemedicine`;
+
+const RECONNECT_GRACE_MS = 4000;
+const MAX_AUTO_RECONNECT_ATTEMPTS = 3;
 
 export function useTelemedicineCall({
   meetingCode,
   token,
   role,
   localStream,
-}: UseTelemedicineCallParams): TelemedicineCallState & { hangUp: () => void } {
+}: UseTelemedicineCallParams): TelemedicineCallState & {
+  hangUp: () => void;
+  reconnect: () => void;
+} {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [remoteConnected, setRemoteConnected] = useState(false);
-  const [callState, setCallState] = useState<TelemedicineCallState["callState"]>("idle");
+  const [callState, setCallState] = useState<CallState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [reconnectKey, setReconnectKey] = useState(0);
 
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
+  const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoAttemptsRef = useRef(0);
+  const makingOfferRef = useRef(false);
 
   const hangUp = useCallback(() => {
+    if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
     pcRef.current?.close();
     pcRef.current = null;
     connectionRef.current?.stop();
@@ -46,8 +65,15 @@ export function useTelemedicineCall({
     setCallState("idle");
   }, []);
 
+  // Reconexão manual: derruba tudo e deixa o efeito principal recriar
+  // a peer connection e a conexão SignalR do zero.
+  const reconnect = useCallback(() => {
+    autoAttemptsRef.current = 0;
+    setError(null);
+    setReconnectKey((k) => k + 1);
+  }, []);
+
   useEffect(() => {
-    // só inicia quando temos tudo que precisamos
     if (!meetingCode || !token || !role || !localStream) return;
 
     let cancelled = false;
@@ -56,7 +82,6 @@ export function useTelemedicineCall({
       setCallState("connecting");
       setError(null);
 
-      // 1. Credenciais ICE (Open Relay)
       let iceServers: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
       try {
         const res = await fetch(`${API_BASE}/api/telemedicine/ice-servers`, {
@@ -68,10 +93,15 @@ export function useTelemedicineCall({
       }
       if (cancelled) return;
 
-      // 2. PeerConnection
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
 
+      const audioTracks = localStream?.getAudioTracks();
+      if (audioTracks?.length === 0) {
+        console.warn(
+          "[useTelemedicineCall] localStream sem trilha de áudio — o microfone não será enviado."
+        );
+      }
       localStream?.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
       pc.ontrack = (e) => {
@@ -79,43 +109,92 @@ export function useTelemedicineCall({
         setRemoteConnected(true);
       };
 
-      pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
-          setCallState("connected");
-        } else if (pc.iceConnectionState === "failed") {
-          setCallState("failed");
-          setError("Falha na conexão. Verifique sua rede.");
-        } else if (pc.iceConnectionState === "disconnected") {
-          setCallState("disconnected");
-        }
-      };
-
-      // 3. SignalR
-      const connection = new signalR.HubConnectionBuilder()
-        .withUrl(HUB_URL, { accessTokenFactory: () => token ?? "" })
-        .withAutomaticReconnect()
-        .build();
-      connectionRef.current = connection;
-
       pc.onicecandidate = (e) => {
         if (e.candidate) {
-          connection
-            .invoke("SendSignal", { type: "ice-candidate", payload: JSON.stringify(e.candidate) })
+          connectionRef.current
+            ?.invoke("SendSignal", {
+              type: "ice-candidate",
+              payload: JSON.stringify(e.candidate),
+            })
             .catch(() => {});
         }
       };
 
-      async function createAndSendOffer() {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        await connection.invoke("SendSignal", { type: "offer", payload: JSON.stringify(offer) });
+      async function sendOffer(iceRestart = false) {
+        if (makingOfferRef.current) return;
+        makingOfferRef.current = true;
+        try {
+          const offer = await pc.createOffer({ iceRestart });
+          await pc.setLocalDescription(offer);
+          await connectionRef.current?.invoke("SendSignal", {
+            type: "offer",
+            payload: JSON.stringify(offer),
+          });
+        } finally {
+          makingOfferRef.current = false;
+        }
       }
+
+      // Renegociação automática (necessária para restartIce e para
+      // qualquer mudança futura de trilhas). Só o médico oferece.
+      if (role === "doctor") {
+        pc.onnegotiationneeded = () => {
+          sendOffer().catch((e) => console.error("Falha ao renegociar:", e));
+        };
+      }
+
+      function attemptAutoRecover() {
+        if (autoAttemptsRef.current >= MAX_AUTO_RECONNECT_ATTEMPTS) {
+          setCallState("failed");
+          setError(
+            "Não foi possível restabelecer a conexão automaticamente. Tente reconectar manualmente."
+          );
+          return;
+        }
+        autoAttemptsRef.current += 1;
+        setCallState("reconnecting");
+        if (role === "doctor") {
+          sendOffer(true).catch(() => setCallState("failed"));
+        }
+      }
+
+      pc.oniceconnectionstatechange = () => {
+        const s = pc.iceConnectionState;
+
+        if (s === "connected" || s === "completed") {
+          autoAttemptsRef.current = 0;
+          if (disconnectTimerRef.current) {
+            clearTimeout(disconnectTimerRef.current);
+            disconnectTimerRef.current = null;
+          }
+          setCallState("connected");
+          return;
+        }
+
+        if (s === "disconnected") {
+          setCallState("reconnecting");
+          if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
+          disconnectTimerRef.current = setTimeout(() => {
+            if (pc.iceConnectionState === "disconnected") attemptAutoRecover();
+          }, RECONNECT_GRACE_MS);
+          return;
+        }
+
+        if (s === "failed") {
+          attemptAutoRecover();
+        }
+      };
+
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl(HUB_URL, { accessTokenFactory: () => token ?? ""})
+        .withAutomaticReconnect()
+        .build();
+      connectionRef.current = connection;
 
       connection.on("UserJoined", async (otherRole: string) => {
         setRemoteConnected(true);
-        // quem está entrando por último dispara a offer (sempre o médico, no seu fluxo)
         if (role === "doctor" && otherRole === "patient") {
-          await createAndSendOffer();
+          await sendOffer();
         }
       });
 
@@ -125,7 +204,10 @@ export function useTelemedicineCall({
             await pc.setRemoteDescription(JSON.parse(signal.payload));
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
-            await connection.invoke("SendSignal", { type: "answer", payload: JSON.stringify(answer) });
+            await connection.invoke("SendSignal", {
+              type: "answer",
+              payload: JSON.stringify(answer),
+            });
           } else if (signal.type === "answer") {
             await pc.setRemoteDescription(JSON.parse(signal.payload));
           } else if (signal.type === "ice-candidate") {
@@ -161,12 +243,14 @@ export function useTelemedicineCall({
 
     return () => {
       cancelled = true;
+      if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
       pcRef.current?.close();
       pcRef.current = null;
       connectionRef.current?.stop();
       connectionRef.current = null;
     };
-  }, [meetingCode, token, role, localStream]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meetingCode, token, role, localStream, reconnectKey]);
 
-  return { remoteStream, remoteConnected, callState, error, hangUp };
+  return { remoteStream, remoteConnected, callState, error, hangUp, reconnect };
 }
