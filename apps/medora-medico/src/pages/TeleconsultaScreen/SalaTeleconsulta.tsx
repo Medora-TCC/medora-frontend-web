@@ -92,10 +92,10 @@ function ParticipantTile({
           autoPlay
           playsInline
           muted
-          className={`w-full h-full object-cover ${mirrored ? "scale-x-[-1]" : ""}`}
+          className={`absolute inset-0 w-full h-full ${mirrored ? "scale-x-[-1]" : ""}`}
         />
       ) : (
-        <div className="flex flex-col items-center gap-3">
+        <div className="absolute inset-0  flex flex-col items-center gap-3">
           <div
             className={`
               flex items-center justify-center rounded-full bg-accent-soft text-accent font-semibold select-none
@@ -272,6 +272,7 @@ export default function SalaTeleConsulta() {
     const remoteName = "Paciente"
     const remoteCamOn = true;
 
+    /*TODO evento de reconnect*/
 
   const timer = useCallTimer();
 
@@ -457,12 +458,12 @@ export default function SalaTeleConsulta() {
 
   return (
     <div
-      className="relative flex h-full w-full bg-surface overflow-hidden"
+      className="relative flex h-dvh w-full bg-surface overflow-hidden"
       onMouseMove={resetHide}
       onTouchStart={resetHide}
     >
       {/* ── Área principal de vídeo ──────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
 
         {/* ── Header ──────────────────────────────────── */}
         <div
@@ -505,12 +506,12 @@ export default function SalaTeleConsulta() {
         </div>
 
         {/* ── Vídeos ──────────────────────────────────── */}
-        <div className="relative flex-1 p-3 pb-24">
+        <div className="relative flex-1 p-3 pb-24 min-h-0">
           {/* Participante remoto (tela cheia) */}
           <div className="w-full h-full">
             {remoteConnected ? (
               <ParticipantTile
-                stream={null} // em prod: stream remoto WebRTC
+                stream={remoteStream} // em prod: stream remoto WebRTC
                 name={remoteName}
                 muted={false}
                 camOff={!remoteCamOn}
