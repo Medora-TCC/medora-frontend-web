@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { Card, toast, ToastProvider, Button } from '@heroui/react';
 import {
   Clock,
@@ -6,20 +7,30 @@ import {
   Pencil,
   Trash2,
   Plus,
-  Monitor,
-  Building2,
-  RefreshCw,
   Calendar,
-  ChevronDown,
   AlertCircle,
+  Ban,
+  Power,
 } from 'lucide-react';
 import { type DailyAvailabilitySlotDTO } from '@medora_web/shared';
 import AvailabilityService, { DEFAULT_TIME_ZONE } from '../../api/services/Availability';
 import { errorMessage } from '../../api/errors';
-import { EditAvailabilityModal } from '../../modals/AvailabilityModals/EditAvailability';
+import {
+  DeactivateShiftModal,
+  EditShiftModal,
+  ExtraHoursModal,
+  type ShiftSummary,
+} from '../../modals/AvailabilityModals/ShiftModals';
+import { ModeSelect, SelectField, TimeInput } from './AvailabilityFields';
+import {
+  DURATION_OPTIONS,
+  MODE_CONFIG,
+  type SlotMode,
+  minutesOf,
+  toDateStr,
+  tomorrowStr,
+} from './availabilityConfig';
 
-
-export type SlotMode = 'InPerson' | 'Online' | 'Any';
 
 interface DayShift {
   id: string;
@@ -44,14 +55,6 @@ const WEEK_DAYS: WeekDay[] = [
   { label: 'Domingo',  value: 0 },
 ];
 
-const DURATION_OPTIONS = [
-  { label: '15 minutos', value: '15' },
-  { label: '20 minutos', value: '20' },
-  { label: '30 minutos', value: '30' },
-  { label: '45 minutos', value: '45' },
-  { label: '60 minutos', value: '60' },
-];
-
 const REPEAT_OPTIONS = [
   { label: '1 semana',  value: '1'  },
   { label: '2 semanas', value: '2'  },
@@ -60,164 +63,73 @@ const REPEAT_OPTIONS = [
   { label: '8 semanas', value: '8'  },
 ];
 
-const MODE_CONFIG: Record<SlotMode, {
-  label: string;
-  icon: React.ReactNode;
-  colorClass: string;
-  bgClass: string;
-  borderClass: string;
-}> = {
-  InPerson:   {
-    label: 'Presencial',
-    icon: <Building2 size={13} />,
-    colorClass: 'text-primary-text',
-    bgClass: 'bg-primary-subtle',
-    borderClass: 'border-primary/30',
-  },
-  Online: {
-    label: 'Telemedicina',
-    icon: <Monitor size={13} />,
-    colorClass: 'text-violet-700',
-    bgClass: 'bg-violet-100',
-    borderClass: 'border-violet-300',
-  },
-  Any: {
-    label: 'Ambos',
-    icon: <RefreshCw size={13} />,
-    colorClass: 'text-success-text',
-    bgClass: 'bg-success-subtle',
-    borderClass: 'border-success/30',
-  },
-};
-
-
 const uid = () => Math.random().toString(36).slice(2, 9);
 
-const HISTORY_DAYS = 5;
+const DAYS_AHEAD = 7;
 
-interface HistoryDay {
-  id: string;
-  date: string;
-  scheduleId: number;
-  start: string;
-  end: string;
-  duration: number;
-  slots: number;
-}
-
-const toDateStr = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-const minutesOf = (time: string) => {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
+const STATUS_CFG: Record<DailyAvailabilitySlotDTO['status'], { label: string; chip: string; action?: string }> = {
+  Available: {
+    label: 'Livre',
+    chip: 'border-border bg-surface text-text-primary hover:border-danger hover:bg-danger-subtle',
+    action: 'Bloquear',
+  },
+  Booked: {
+    label: 'Consulta',
+    chip: 'border-primary/30 bg-primary/10 text-primary-text cursor-default',
+  },
+  Blocked: {
+    label: 'Bloqueado',
+    chip: 'border-danger/30 bg-danger-subtle text-danger-text line-through hover:no-underline',
+    action: 'Desbloquear',
+  },
 };
 
-function toHistoryDay(date: string, slots: DailyAvailabilitySlotDTO[]): HistoryDay[] {
-  if (!Array.isArray(slots) || slots.length === 0) return [];
+function groupIntoShifts(slots: DailyAvailabilitySlotDTO[]): { shift: ShiftSummary; slots: DailyAvailabilitySlotDTO[] }[] {
+  const groups = new Map<number, DailyAvailabilitySlotDTO[]>();
 
-  const ordered = [...slots].sort((a, b) => a.startDateTime.localeCompare(b.startDateTime));
-  const first = ordered[0];
-  const last = ordered[ordered.length - 1];
-  const end = last.endDateTime.slice(11, 16);
+  for (const slot of slots) {
+    groups.set(slot.scheduleId, [...(groups.get(slot.scheduleId) ?? []), slot]);
+  }
 
-  return [{
-    id: date,
-    date,
-    scheduleId: first.scheduleId,
-    start: first.time,
-    end,
-    duration: minutesOf(first.endDateTime.slice(11, 16)) - minutesOf(first.time),
-    slots: ordered.length
-  }];
+  return [...groups.values()]
+    .map((group) => {
+      const ordered = [...group].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      const first = ordered[0];
+      return {
+        shift: {
+          scheduleId: first.scheduleId,
+          isRecurring: first.isRecurring,
+          start: first.startTime,
+          end: ordered[ordered.length - 1].endTime,
+          duration: minutesOf(first.endTime) - minutesOf(first.startTime),
+          type: first.type,
+        },
+        slots: ordered,
+      };
+    })
+    .sort((a, b) => a.shift.start.localeCompare(b.shift.start));
 }
 
+const nextDays = () =>
+  Array.from({ length: DAYS_AHEAD }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return toDateStr(d);
+  });
 
-function SelectField({
-  label,
-  icon,
-  value,
-  onChange,
-  options,
-}: Readonly<{
-  label: string;
-  icon?: React.ReactNode;
-  value: string;
-  onChange: (v: string) => void;
-  options: { label: string; value: string }[];
-}>) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
-        {icon}
-        {label}
-      </label>
-      <div className="relative flex items-center border border-border rounded-lg bg-surface h-10 focus-within:border-primary-hover transition-colors">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full h-full px-3 pr-8 bg-transparent outline-none text-sm text-text-primary cursor-pointer appearance-none"
-        >
-          {options.map((o) => (
-            <option key={o.value} value={o.value} className="bg-surface text-text-primary">
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-text-muted" />
-      </div>
-    </div>
-  );
-}
+const dayChipLabel = (date: string, index: number) => {
+  const d = new Date(`${date}T12:00:00`);
+  return {
+    top: index === 0 ? 'Hoje' : d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''),
+    sub: String(d.getDate()).padStart(2, '0'),
+  };
+};
 
-function ModeSelect({
-  value,
-  onChange,
-}: Readonly<{
-  value: SlotMode;
-  onChange: (v: SlotMode) => void;
-}>) {
-  const cfg = MODE_CONFIG[value];
-  return (
-    <div className={`relative flex items-center border rounded-lg h-9 px-2.5 pr-7 text-xs font-medium cursor-pointer transition-colors ${cfg.bgClass} ${cfg.borderClass} ${cfg.colorClass}`}>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as SlotMode)}
-        className="absolute inset-0 w-full h-full opacity-0 text-text-primary cursor-pointer bg-surface"
-      >
-        {(Object.keys(MODE_CONFIG) as SlotMode[]).map((k) => (
-          <option key={k} value={k}>{MODE_CONFIG[k].label}</option>
-        ))}
-      </select>
-      <span className="flex items-center gap-1.5 pointer-events-none whitespace-nowrap">
-        {cfg.icon}
-        {cfg.label}
-      </span>
-      <ChevronDown size={11} className="absolute right-2 pointer-events-none opacity-50" />
-    </div>
-  );
-}
-
-function TimeInput({
-  value,
-  onChange,
-  hasError,
-}: Readonly<{
-  value: string;
-  onChange: (v: string) => void;
-  hasError?: boolean;
-}>) {
-  return (
-    <input
-      type="time"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`h-9 px-2.5 rounded-lg border text-sm text-text-primary bg-surface outline-none transition-colors
-        focus:border-primary-hover
-        ${hasError ? 'border-danger bg-danger-subtle' : 'border-border'}`}
-    />
-  );
-}
+type OpenModal =
+  | { kind: 'edit'; shift: ShiftSummary }
+  | { kind: 'deactivate'; shift: ShiftSummary }
+  | { kind: 'extra' }
+  | null;
 
 
 export default function AvailabilityPage() {
@@ -227,37 +139,88 @@ export default function AvailabilityPage() {
   const [shiftErrors, setShiftErrors] = useState<Record<string, string>>({});
 
   const [loading, setLoading] = useState(false);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [visibleHistory, setVisibleHistory] = useState<HistoryDay[]>([]);
+  const navigate = useNavigate();
+  const days = nextDays();
+  const [selectedDate, setSelectedDate] = useState(days[0]);
+  const [daySlots, setDaySlots] = useState<DailyAvailabilitySlotDTO[]>([]);
+  const [isLoadingDay, setIsLoadingDay] = useState(true);
+  const [busySlotKey, setBusySlotKey] = useState<string | null>(null);
+  const [openModal, setOpenModal] = useState<OpenModal>(null);
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDayData, setEditingDayData] = useState<HistoryDay | null>(null);
-
-  const fetchAvailabilityHistory = async () => {
+  const fetchDay = useCallback(async (date: string) => {
     try {
-      setIsLoadingHistory(true);
-
-      const dates = Array.from({ length: HISTORY_DAYS }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() + i);
-        return toDateStr(d);
-      });
-
-      const days = await Promise.all(
-        dates.map((date) => AvailabilityService.getDailySchedule(date)),
-      );
-
-      setVisibleHistory(
-        days.flatMap((slots, i) => toHistoryDay(dates[i], slots)),
-      );
+      setIsLoadingDay(true);
+      setDaySlots(await AvailabilityService.getDailySchedule(date));
     } catch (err) {
-      toast.danger(errorMessage(err, 'Erro ao carregar os horários cadastrados.'));
+      setDaySlots([]);
+      toast.danger(errorMessage(err, 'Erro ao carregar os horários do dia.'));
     } finally {
-      setIsLoadingHistory(false);
+      setIsLoadingDay(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchDay(selectedDate); }, [fetchDay, selectedDate]);
+
+  const refreshDay = () => fetchDay(selectedDate);
+
+  const closeModalAndRefresh = () => {
+    setOpenModal(null);
+    refreshDay();
+  };
+
+  const toggleSlotBlock = async (slot: DailyAvailabilitySlotDTO) => {
+    if (slot.status === 'Booked') return;
+
+    try {
+      setBusySlotKey(slot.slotKey);
+      if (slot.status === 'Blocked' && slot.blockId) {
+        await AvailabilityService.removeBlock(slot.blockId);
+      } else {
+        await AvailabilityService.createBlock({
+          date: selectedDate,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          timeZoneId: DEFAULT_TIME_ZONE,
+        });
+      }
+      await fetchDay(selectedDate);
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao atualizar o horário.'));
+    } finally {
+      setBusySlotKey(null);
     }
   };
 
-  useEffect(() => { fetchAvailabilityHistory(); }, []);
+  const blockWholeDay = async () => {
+    const ordered = [...daySlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    if (ordered.length === 0) return;
+
+    // Bloquear o dia cancela as consultas marcadas nele; um horário livre não tem consulta pra cancelar.
+    const hasBooked = ordered.some((s) => s.status === 'Booked');
+    const question = hasBooked
+      ? 'Bloquear o dia inteiro? As consultas marcadas neste dia serão canceladas.'
+      : 'Bloquear o dia inteiro?';
+    if (!window.confirm(question)) return;
+
+    try {
+      const { canceledAppointments } = await AvailabilityService.createBlock({
+        date: selectedDate,
+        startTime: ordered[0].startTime,
+        endTime: ordered[ordered.length - 1].endTime,
+        timeZoneId: DEFAULT_TIME_ZONE,
+      });
+      toast.success(
+        canceledAppointments > 0
+          ? `Dia bloqueado. ${canceledAppointments} consulta(s) cancelada(s).`
+          : 'Dia bloqueado.',
+      );
+      refreshDay();
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao bloquear o dia.'));
+    }
+  };
+
+  const shiftsOfDay = groupIntoShifts(daySlots);
 
 
   const addShift = useCallback((dayValue: number) => {
@@ -369,7 +332,7 @@ export default function AvailabilityPage() {
 
       toast.success('Grade de horários salva com sucesso!');
       setShifts({});
-      fetchAvailabilityHistory();
+      refreshDay();
     } catch (err) {
       toast.danger(errorMessage(err, 'Erro ao salvar os horários.'));
     } finally {
@@ -505,112 +468,155 @@ export default function AvailabilityPage() {
           </div>
         </Card>
 
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-base font-semibold text-primary-text">Próximos 5 dias configurados</h2>
-            <p className="text-sm text-text-secondary mt-0.5">
-              Resumo das suas próximas agendas cadastradas.
-            </p>
+        <Card className="border border-border bg-surface shadow-none rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-primary-text">Seus horários</h2>
+              <p className="text-xs text-text-secondary mt-0.5">
+                Clique num horário livre para bloquear, ou num bloqueado para liberar.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 flex-wrap">
+              {days.map((date, index) => {
+                const { top, sub } = dayChipLabel(date, index);
+                const isActive = date === selectedDate;
+                return (
+                  <button
+                    key={date}
+                    onClick={() => setSelectedDate(date)}
+                    className={`flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 min-w-12 transition-all
+                      ${isActive ? 'bg-primary text-white shadow-sm' : 'hover:bg-surface-alt text-text-secondary'}`}
+                  >
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${isActive ? 'text-white' : 'text-text-muted'}`}>{top}</span>
+                    <span className="text-base font-bold leading-tight">{sub}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {isLoadingHistory ? (
-            <div className="text-center py-10 rounded-xl border border-border bg-surface-alt">
-              <p className="text-sm text-text-muted animate-pulse">Carregando agendas...</p>
-            </div>
-          ) : visibleHistory.length === 0 ? (
-            <div className="text-center py-10 rounded-xl border border-dashed border-border bg-surface-alt">
-              <Calendar size={30} className="mx-auto text-text-muted mb-2 opacity-40" />
-              <p className="text-sm font-medium text-text-secondary">Nenhuma agenda encontrada</p>
-              <p className="text-xs text-text-muted mt-1">Configure novos turnos acima e salve.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {visibleHistory.map((item) => (
-                <Card
-                  key={item.id}
-                  className="p-4 border border-border bg-surface shadow-none rounded-xl relative overflow-hidden group"
-                >
-                  <div className="absolute top-0 left-0 w-0.5 h-full bg-primary opacity-70" />
-
-                  <div className="pl-3 flex justify-between items-start gap-2">
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm text-primary-text flex items-center gap-1.5 flex-wrap">
-                        {new Date(item.date).toLocaleDateString('pt-BR', {
-                          timeZone: 'UTC',
-                          weekday: 'short',
-                          day: '2-digit',
-                          month: 'short',
-                        })}
-                      </p>
-                      <div className="flex items-center gap-1 mt-1 text-xs text-text-secondary">
-                        <Clock size={12} />
-                        {item.start} às {item.end}
+          <div className="p-5 space-y-5">
+            {isLoadingDay ? (
+              <p className="text-sm text-text-muted animate-pulse text-center py-6">Carregando horários...</p>
+            ) : shiftsOfDay.length === 0 ? (
+              <div className="text-center py-6">
+                <Calendar size={30} className="mx-auto text-text-muted mb-2 opacity-40" />
+                <p className="text-sm font-medium text-text-secondary">Sem horários neste dia</p>
+                <p className="text-xs text-text-muted mt-1">Configure turnos semanais acima ou adicione um horário extra.</p>
+              </div>
+            ) : (
+              shiftsOfDay.map(({ shift, slots }) => {
+                const mode = MODE_CONFIG[shift.type];
+                return (
+                  <div key={shift.scheduleId} className="space-y-2.5">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap text-sm">
+                        <span className="font-semibold text-text-primary flex items-center gap-1">
+                          <Clock size={13} /> {shift.start} às {shift.end}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${mode.bgClass} ${mode.colorClass}`}>
+                          {mode.icon} {mode.label}
+                        </span>
+                        <span className="text-xs text-text-muted">
+                          {shift.duration} min · {shift.isRecurring ? 'toda semana' : 'só neste dia'}
+                        </span>
                       </div>
+                      {(shift.isRecurring || selectedDate >= tomorrowStr()) && (
+                        <div className="flex gap-1">
+                          {shift.isRecurring && (
+                            <button
+                              onClick={() => setOpenModal({ kind: 'edit', shift })}
+                              className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md text-primary hover:bg-primary/10 transition-colors"
+                            >
+                              <Pencil size={13} /> Alterar
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setOpenModal({ kind: 'deactivate', shift })}
+                            className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md text-danger hover:bg-danger-subtle transition-colors"
+                          >
+                            <Power size={13} /> Desativar
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary whitespace-nowrap">
-                        {item.duration} min
-                      </span>
-                      <span className="text-xs text-text-muted">{item.slots} vagas</span>
+
+                    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                      {slots.map((slot) => {
+                        const cfg = STATUS_CFG[slot.status];
+                        const isBusy = busySlotKey === slot.slotKey;
+                        return (
+                          <button
+                            key={slot.slotKey}
+                            onClick={() => toggleSlotBlock(slot)}
+                            disabled={slot.status === 'Booked' || isBusy}
+                            title={cfg.action ? `${cfg.action} ${slot.startTime}` : 'Consulta marcada — veja na Agenda'}
+                            className={`flex flex-col items-center py-1.5 rounded-lg border text-sm font-semibold tabular-nums transition-colors disabled:opacity-60 ${cfg.chip}`}
+                          >
+                            {slot.startTime}
+                            <span className="text-[10px] font-medium no-underline">{isBusy ? '...' : cfg.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
+                );
+              })
+            )}
+          </div>
 
-                  <div className="pl-3 mt-3 pt-3 border-t border-border flex justify-end gap-1">
-                    <button
-                      className="p-1.5 rounded-md text-primary hover:bg-primary/10 transition-colors"
-                      aria-label="Editar agenda"
-                      onClick={() => { setEditingDayData(item); setIsEditModalOpen(true); }}
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      className="p-1.5 rounded-md text-danger hover:bg-danger-subtle transition-colors"
-                      aria-label="Bloquear agenda do dia"
-                      onClick={async () => {
-                        try {
-                          const { canceledAppointments } = await AvailabilityService.createBlock({
-                            date: item.date,
-                            startTime: item.start,
-                            endTime: item.end,
-                            timeZoneId: DEFAULT_TIME_ZONE,
-                          });
-                          toast.success(
-                            canceledAppointments > 0
-                              ? `Agenda bloqueada. ${canceledAppointments} consulta(s) cancelada(s).`
-                              : 'Agenda bloqueada com sucesso!',
-                          );
-                          fetchAvailabilityHistory();
-                        } catch (err) {
-                          toast.danger(errorMessage(err, 'Erro ao bloquear a agenda.'));
-                        }
-                      }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          <div className="flex justify-center pt-2">
+          <div className="px-5 py-4 border-t border-border bg-surface-alt flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <button
-              onClick={() => (window.location.href = 'agenda')}
+              onClick={() => navigate('/medico/agenda')}
               className="text-sm font-medium text-primary hover:text-primary-hover underline underline-offset-2 transition-colors"
             >
-              Ver agenda completa e editar horários →
+              Ver consultas na Agenda →
             </button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onPress={() => setOpenModal({ kind: 'extra' })}
+                className="flex items-center gap-1.5 text-sm rounded-md"
+              >
+                <Plus size={14} /> Horário extra
+              </Button>
+              <Button
+                variant="outline"
+                onPress={blockWholeDay}
+                isDisabled={daySlots.length === 0}
+                className="flex items-center gap-1.5 text-sm rounded-md text-danger border-danger/40"
+              >
+                <Ban size={14} /> Bloquear dia
+              </Button>
+            </div>
           </div>
-        </div>
+        </Card>
 
       </div>
 
-      <EditAvailabilityModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        dayData={editingDayData}
-        editType="single"
-      />
+      {openModal?.kind === 'edit' && (
+        <EditShiftModal
+          shift={openModal.shift}
+          date={selectedDate}
+          onClose={() => setOpenModal(null)}
+          onSaved={closeModalAndRefresh}
+        />
+      )}
+      {openModal?.kind === 'deactivate' && (
+        <DeactivateShiftModal
+          shift={openModal.shift}
+          date={selectedDate}
+          onClose={() => setOpenModal(null)}
+          onSaved={closeModalAndRefresh}
+        />
+      )}
+      {openModal?.kind === 'extra' && (
+        <ExtraHoursModal
+          date={selectedDate}
+          onClose={() => setOpenModal(null)}
+          onSaved={closeModalAndRefresh}
+        />
+      )}
     </>
   );
 }
