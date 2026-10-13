@@ -25,6 +25,7 @@ export interface IConsultaSimplified{
 
 
 export interface ITeleConsultaDetailed extends IConsultaDetailed {
+   meetingCode: string;
    meetingUrl?: string; //EX. Medora.com/nanoID
    platform: string; //EX. fixo -> Medora
    doctorTermsAccepted: boolean; 

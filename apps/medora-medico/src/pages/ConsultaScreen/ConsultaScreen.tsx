@@ -50,9 +50,6 @@ function SkeletonCard() {
   );
 }
 
-
-// ─── Consulta card componentizar ────────────────────────────────────────────────────────────
-
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ filtro }: { filtro: Filtro }) {
   return (

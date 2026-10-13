@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useContext } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
 import { Chip } from "@heroui/react";
 import {
@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
 import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
-
+import { useTelemedicineCall } from "../../hooks/useTelemedicineCall";
+import { AuthContext } from "../../contexts/AuthContext";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
   camOn?: boolean;
@@ -106,6 +107,7 @@ function ParticipantTile({
           {large && (
             <span className="text-text-secondary text-sm">Câmera desativada</span>
           )}
+          {/*VALIDAR pode fehcar a camera? */}
         </div>
       )}
 
@@ -254,10 +256,24 @@ export default function SalaTeleConsulta() {
   const location = useLocation();
   const state = (location.state ?? {}) as LocationState;
 
-  const timer = useCallTimer();
-
-  // Streams
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const { accessToken } = useContext(AuthContext);
+  const role = "doctor";
+
+   const{ remoteStream, remoteConnected, callState, error: callError, hangUp } =
+    useTelemedicineCall({
+      meetingCode: id,
+      token: accessToken,
+      role: role,
+      localStream: localStream
+    })
+
+    /*VALIDAR como vou procurar o nome do paciente?*/
+    const remoteName = "Paciente"
+    const remoteCamOn = true;
+
+
+  const timer = useCallTimer();
 
   // Controles
   const [camOn, setCamOn] = useState(state.camOn ?? true);
@@ -291,11 +307,6 @@ export default function SalaTeleConsulta() {
   ]);
   const [unread, setUnread] = useState(0);
 
-  // Participante remoto simulado (em prod viria do WebRTC)
-  const remoteConnected = true;
-  const remoteName = "Carlos Oliveira";
-  const remoteCamOn = true;
-
   // ── Inicializa stream local ──────────────────────────────────────────────
   useEffect(() => {
     let active = true;
@@ -325,6 +336,8 @@ export default function SalaTeleConsulta() {
       active = false;
     };
   }, []);
+
+ 
 
   // Cleanup ao desmontar
   useEffect(() => {
@@ -417,6 +430,7 @@ export default function SalaTeleConsulta() {
   // ── Encerrar ─────────────────────────────────────────────────────────────
   function encerrar() {
     localStream?.getTracks().forEach((t) => t.stop());
+    hangUp()
     navigate(`../../consulta`);
   }
 

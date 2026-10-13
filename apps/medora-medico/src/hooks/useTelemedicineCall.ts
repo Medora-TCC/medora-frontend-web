@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 
-type Role = "doctor" | "patient";
+type Role = "doctor";
 
 interface UseTelemedicineCallParams {
   meetingCode: string | undefined;
@@ -19,7 +19,7 @@ interface TelemedicineCallState {
 }
 
 // TODO: ajuste para a env var real do projeto (ex: import.meta.env.VITE_API_BASE_URL)
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = "https://localhost:7069";
 const HUB_URL = `${API_BASE}/hubs/telemedicine`;
 
 export function useTelemedicineCall({
@@ -72,7 +72,7 @@ export function useTelemedicineCall({
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
 
-      localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+      localStream?.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
       pc.ontrack = (e) => {
         setRemoteStream(e.streams[0]);
@@ -92,7 +92,7 @@ export function useTelemedicineCall({
 
       // 3. SignalR
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl(HUB_URL, { accessTokenFactory: () => token })
+        .withUrl(HUB_URL, { accessTokenFactory: () => token ?? "" })
         .withAutomaticReconnect()
         .build();
       connectionRef.current = connection;

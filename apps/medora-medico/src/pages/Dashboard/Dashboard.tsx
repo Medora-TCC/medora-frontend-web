@@ -139,7 +139,7 @@ export default function Dashboard() {
               <Button
                 size="sm"
                 className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs"
-                onPress={() => navigate("teleconsulta/Vf8kQ2mLpX/pre-sala")}
+                onPress={() => navigate("teleconsulta/gXGmWTbxjkIR/pre-sala")}
               >
                 Abrir Sala Virtual
               </Button>
