@@ -20,7 +20,9 @@ export const Endpoints = {
     SPECIFIC_AVAILABILITY: '/doctors/availability/specific',
     SCHEDULE_BLOCKS: '/doctors/availability/blocks',
     VERIFY_EMAIL: '/mfa/config/authenticator/verify-email',
-    RESEND_EMAIL_VERIFICATION: '/mfa/config/authenticator/resend-email',    
+    RESEND_EMAIL_VERIFICATION: '/mfa/config/authenticator/resend-email',
     GET_DOCTOR_RQES: '/v1/Doctor/me/rqes',
     UPDATE_RQE_PRIORITIES: `/v1/Doctor/me/rqes/priorities`,
+
+    DOCTOR_APPOINTMENTS: '/appointments/doctor/me',
 } as const;
