@@ -6,27 +6,23 @@ import type {
 
 export interface ApiDailyScheduleSlot {
   scheduleId: number;
-  time: string;
-  startDateTime: string;
-  endDateTime: string;
+  isRecurring: boolean;
+  startTime: string;
+  endTime: string;
   status: AvailabilitySlotStatus;
   type: AvailabilitySlotType;
-  patientId?: string | null;
-  patientName?: string | null;
-  appointmentId?: number | null;
+  blockId?: number | null;
 }
 
 export function toDailySlotDTO(slot: ApiDailyScheduleSlot, date: string): DailyAvailabilitySlotDTO {
   return {
+    slotKey: `${date}T${slot.startTime}`,
     scheduleId: slot.scheduleId,
-    slotKey: `${date}T${slot.time}`,
-    startDateTime: slot.startDateTime,
-    endDateTime: slot.endDateTime,
-    time: slot.time,
+    isRecurring: slot.isRecurring,
+    startTime: slot.startTime,
+    endTime: slot.endTime,
     status: slot.status,
     type: slot.type,
-    patientId: slot.patientId ?? undefined,
-    patientName: slot.patientName ?? undefined,
-    appointmentId: slot.appointmentId ?? undefined,
+    blockId: slot.blockId ?? undefined,
   };
 }
