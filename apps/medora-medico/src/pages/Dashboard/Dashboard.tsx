@@ -96,10 +96,14 @@ export default function Dashboard() {
 
   const openAppointment = (appointment: UpcomingAppointmentDto) => {
     if (appointment.type === "Online" && appointment.meetingCode) {
-      navigate(`teleconsulta/${appointment.meetingCode}/pre-sala`);
+      navigate(`teleconsulta/${appointment.meetingCode}/pre-sala`, {
+        state: { appointmentId: appointment.id, patientName: appointment.patientName },
+      });
       return;
     }
-    navigate("prontuario"); // TODO: rota do prontuário com o id da consulta
+    navigate(`prontuario/${appointment.id}`, {
+      state: { patientName: appointment.patientName, appointmentDate: formatDateTime(appointment.startDateTime) },
+    });
   };
 
   return (
@@ -187,7 +191,7 @@ export default function Dashboard() {
                 <p className="text-xs opacity-90 mb-2.5">
                   Inicie sua sala virtual para receber o paciente <span className="font-bold">{tele.patientName}</span> às {formatTime(tele.startDateTime)}.
                 </p>
-                <Button size="sm" className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs" onPress={() => navigate(`teleconsulta/${tele.meetingCode}/pre-sala`)}>
+                <Button size="sm" className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs" onPress={() => navigate(`teleconsulta/${tele.meetingCode}/pre-sala`, { state: { appointmentId: tele.appointmentId, patientName: tele.patientName } })}>
                   Abrir Sala Virtual
                 </Button>
               </div>
@@ -215,7 +219,11 @@ export default function Dashboard() {
                         key={item.appointmentId}
                         patient={item.patientName}
                         date={formatDateTime(item.appointmentDate)}
-                        onPress={() => navigate("prontuario")} // TODO: rota com o id
+                        onPress={() =>
+                          navigate(`prontuario/${item.appointmentId}`, {
+                            state: { patientName: item.patientName, appointmentDate: formatDateTime(item.appointmentDate) },
+                          })
+                        }
                       />
                     ))}
                   </div>
