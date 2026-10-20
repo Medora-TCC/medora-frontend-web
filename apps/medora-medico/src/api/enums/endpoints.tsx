@@ -23,4 +23,6 @@ export const Endpoints = {
     RESEND_EMAIL_VERIFICATION: '/mfa/config/authenticator/resend-email',    
     GET_DOCTOR_RQES: '/v1/Doctor/me/rqes',
     UPDATE_RQE_PRIORITIES: `/v1/Doctor/me/rqes/priorities`,
+
+    DOCTOR_APPOINTMENTS: "/appointments/doctor/me",
 } as const;
