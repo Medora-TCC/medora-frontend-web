@@ -1,15 +1,39 @@
 import { Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { Activity } from "lucide-react";
 import type React from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
+import { login } from "../../api/auth";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function AdminLoginScreen() {
 
     const navigate = useNavigate();
+    const { signIn } = useAuth();
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        navigate('/admin/')
+        const form = new FormData(e.currentTarget);
+        setError(null);
+        setLoading(true);
+
+        try {
+            const result = await login(String(form.get("email") ?? ""), String(form.get("senha") ?? ""));
+
+            if ("mfaRequired" in result) {
+                navigate("/mfa");
+                return;
+            }
+
+            signIn(result.accessToken);
+            navigate("/admin");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Erro ao fazer login.");
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -39,13 +63,16 @@ export default function AdminLoginScreen() {
                             <FieldError>Insira uma senha válida</FieldError>
                         </TextField>
                         
+                        {error && <p className="text-sm text-center text-red-500">{error}</p>}
+
                         <div className="flex flex-col items-center gap-5 mt-5">
                             <Button
                                 size="lg"
                                 className={"w-45 rounded-xl bg-primary-color text-white font-bold"}
                                 type="submit"
+                                isDisabled={loading}
                             >
-                                Entrar no Painel
+                                {loading ? "Entrando..." : "Entrar no Painel"}
                             </Button>
                             <a href="#" className="w-full text-[14px] text-center text-accent pr-1">Esqueci a senha</a>
                         </div>
