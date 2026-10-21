@@ -28,4 +28,7 @@ export const Endpoints = {
     GET_DASHBOARD_DOCTOR: '/v1/Doctor/me/dashboard',
     GET_WEEK_FLOW: '/v1/Doctor/me/dashboard/weekly-flow',
     DOCTOR_APPOINTMENTS: '/appointments/doctor/me',
+
+    MY_PAYOUTS: '/payouts/me',
+    MY_PAYOUT_CLOSINGS: '/payouts/me/closings',
 } as const;
