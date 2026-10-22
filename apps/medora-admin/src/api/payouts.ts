@@ -50,7 +50,11 @@ export interface PayoutAttentionItem {
   amount: number;
   holdReason: string | null;
   heldAt: string | null;
+  issueId: number | null;
+  issueReason: AppointmentIssueReason | null;
 }
+
+export type AppointmentIssueReason = "DoctorNoShow" | "CallDropped" | "AudioOrVideoProblem" | "DoctorLate" | "EndedEarly";
 
 const base = "/admin/payouts";
 
@@ -77,3 +81,9 @@ export const holdPayout = (appointmentId: number, reason: string) =>
 
 export const releasePayout = (appointmentId: number) =>
   request<void>(`${base}/appointments/${appointmentId}/hold`, { method: "DELETE" });
+
+export const releaseIssuePayout = (issueId: number) =>
+  request<void>(`/admin/appointment-issues/${issueId}/release`, { method: "POST" });
+
+export const refundIssuePatient = (issueId: number) =>
+  request<void>(`/admin/appointment-issues/${issueId}/refund`, { method: "POST" });

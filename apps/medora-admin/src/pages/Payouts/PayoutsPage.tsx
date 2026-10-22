@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@heroui/react";
-import { AlertTriangle, Banknote, CheckCircle2, ChevronDown, ChevronUp, Lock, Unlock, Trash2 } from "lucide-react";
+import { AlertTriangle, Banknote, CheckCircle2, ChevronDown, ChevronUp, Lock, MessageSquareWarning, Undo2, Unlock, Trash2 } from "lucide-react";
 import {
   approveClosing,
   discardClosing,
@@ -11,7 +11,10 @@ import {
   holdPayout,
   listClosings,
   markClosingAsPaid,
+  refundIssuePatient,
+  releaseIssuePayout,
   releasePayout,
+  type AppointmentIssueReason,
   type PayoutAttentionItem,
   type PayoutClosingDetail,
   type PayoutClosingStatus,
@@ -27,6 +30,14 @@ const statusLabel: Record<PayoutClosingStatus, { label: string; className: strin
   PendingApproval: { label: "Aguardando aprovação", className: "bg-amber-100 text-amber-700" },
   Approved: { label: "Aprovado", className: "bg-blue-100 text-blue-700" },
   Paid: { label: "Pago", className: "bg-emerald-100 text-emerald-700" },
+};
+
+const issueLabel: Record<AppointmentIssueReason, string> = {
+  DoctorNoShow: "Médico não compareceu",
+  CallDropped: "Chamada caiu",
+  AudioOrVideoProblem: "Problema de áudio ou vídeo",
+  DoctorLate: "Médico atrasou muito",
+  EndedEarly: "Consulta encerrada antes do tempo",
 };
 
 function previousMonth() {
@@ -265,6 +276,41 @@ function ClosingRow({ closing, busy, run }: { closing: PayoutClosingSummary; bus
 function AttentionRow({ item, busy, run }: { item: PayoutAttentionItem; busy: boolean; run: Run }) {
   const [reason, setReason] = useState("");
   const held = item.heldAt !== null;
+
+  if (item.issueId !== null) {
+    const issueId = item.issueId;
+
+    return (
+      <div className="py-3 px-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <MessageSquareWarning size={16} className="text-red-500" />
+          <div>
+            <p className="text-sm font-semibold text-text-primary">
+              Consulta #{item.appointmentId} · {item.doctorName} · {money(item.amount)}
+            </p>
+            <p className="text-xs text-text-muted">
+              {date(item.appointmentStartDateTime)} · Relato do paciente: {item.issueReason ? issueLabel[item.issueReason] : "—"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="rounded-lg border-divider" isDisabled={busy}
+            onPress={() => run(() => releaseIssuePayout(issueId), `Relato da consulta #${item.appointmentId} recusado: repasse liberado.`)}>
+            <Unlock size={14} /> Liberar repasse
+          </Button>
+          <Button size="sm" className="bg-red-600 text-white rounded-lg" isDisabled={busy}
+            onPress={() => {
+              if (window.confirm(`Estornar ${money(item.amount)} ao paciente? O médico não recebe por esta consulta.`)) {
+                run(() => refundIssuePatient(issueId), `Paciente da consulta #${item.appointmentId} estornado.`);
+              }
+            }}>
+            <Undo2 size={14} /> Estornar paciente
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-3 px-4 flex flex-wrap items-center justify-between gap-3">
