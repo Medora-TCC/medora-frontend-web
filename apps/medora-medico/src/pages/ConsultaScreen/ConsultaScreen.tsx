@@ -13,7 +13,7 @@ import {
 
 import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
 
-import { fetchConsultas } from "./Consulta";
+import { fetchConsultas } from "../../api/services/Appointment";
 import { CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 import ConsultaModal from "../../components/Consulta/ConsultaModal";
@@ -29,10 +29,13 @@ const statusCfg: Record<
   { label: string; color: "accent" | "success" | "default" | "danger" }
 > = {
   agendado: { label: "Agendada", color: "accent" },
-  em_espera: { label: "Em Espera", color: "accent" },
+  esperando_pagamento: { label: "Aguardando Pagamento", color: "accent" },
+  esperando_confirmacao: { label: "Aguardando Confirmação", color: "accent" },
+  confirmado: { label: "Confirmada", color: "accent" },
   em_atendimento: { label: "Em andamento", color: "success" },
   finalizado: { label: "Concluída", color: "default" },
   cancelado: { label: "Cancelada", color: "danger" },
+  ausente: { label: "Ausente", color: "danger" },
 };
 
 // ─── Skeleton card ────────────────────────────────────────────────────────────
@@ -77,33 +80,28 @@ export function ConsultaScreen() {
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [filtroData, setFiltroData] = useState<FiltroData>("nenhum");
   const [busca, setBusca] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const consultaModal = useOverlayState();
 
-  async function logApiReq() {
-    fetch("/api/teleconsultas")
-      .then((res) => res.json())
-      .then(console.log); // REMINDER deve logar seus dados mockados
-  }
 
-  const handleCardClick = (id: string) => {
+  const handleCardClick = (id: number) => {
     setSelectedId(id);
     consultaModal.open();
   };
 
   async function carregar() {
     setLoading(true);
-    logApiReq();
     setError(null);
     try {
       setConsultas(await fetchConsultas());
     } catch (e: unknown) {
+      setConsultas([]);
       setError(e instanceof Error ? e.message : "Erro desconhecido");
     } finally {
       setLoading(false);
     }
   }
-
+ 
   useEffect(() => {
     carregar();
   }, []);
@@ -160,12 +158,16 @@ export function ConsultaScreen() {
   const [view] = useState<"lista" | "grid">("lista");
 
   const filtroOpcoes: { key: Filtro; label: string }[] = [
-    { key: "todas", label: "Todas" },
-    { key: "agendado", label: "Agendadas" },
-    { key: "em_atendimento", label: "Em andamento" },
-    { key: "finalizado", label: "Concluídas" },
-    { key: "cancelado", label: "Canceladas" },
-  ];
+  { key: "todas", label: "Todas" },
+  { key: "agendado", label: "Agendadas" },
+  { key: "esperando_pagamento", label: "Aguard. pagamento" },
+  { key: "esperando_confirmacao", label: "Aguard. confirmação" },
+  { key: "confirmado", label: "Confirmadas" },
+  { key: "em_atendimento", label: "Em andamento" },
+  { key: "finalizado", label: "Concluídas" },
+  { key: "cancelado", label: "Canceladas" },
+  { key: "ausente", label: "Ausentes" },
+];
 
   const filtroDataOpcoes: { key: FiltroData; label: string }[] = [
     { key: "hoje", label: "Hoje" },
@@ -296,7 +298,7 @@ export function ConsultaScreen() {
                 <SkeletonCard />
                 <SkeletonCard />
               </>
-            ) : filtradas.length === 0 ? (
+            ) : error ? null : filtradas.length === 0 ? (
               <div className="col-span-full">
                 <EmptyState filtro={filtro} />
               </div>

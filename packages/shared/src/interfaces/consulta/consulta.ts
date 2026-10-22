@@ -1,13 +1,13 @@
-export type StatusConsulta = 'agendado' | 'esperando_pagamento' | 'esperando_confirmacao' |'em_espera' |'confirmado'| 'em_atendimento' | 'finalizado' | 'cancelado' | 'ausente';
+export type StatusConsulta = 'agendado' | 'esperando_pagamento' | 'esperando_confirmacao' |'confirmado'| 'em_atendimento' | 'finalizado' | 'cancelado' | 'ausente';
 export type TypeConsulta = 'presencial' | 'teleconsulta' | 'outro'
 
-const typeMap: Record<number, TypeConsulta> = {
+export const typeMapByCode: Record<number, TypeConsulta> = {
   1: "presencial",
   2: "teleconsulta",
   3: "outro"
 };
 
-const statusMap: Record<number, StatusConsulta> = {
+export const statusMapByCode: Record<number, StatusConsulta> = {
   1: "agendado",
   2: "esperando_pagamento",
   3: "esperando_confirmacao",

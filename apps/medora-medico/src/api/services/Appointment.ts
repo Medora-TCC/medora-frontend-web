@@ -1,9 +1,12 @@
-// services/consultaService.ts
 import { isAxiosError } from "axios";
-import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
+import {
+  statusMapByCode,
+  typeMapByCode,
+  type IConsultaDetailed,
+} from "@medora_web/shared";
 
+import { api } from "../services/api";
 import { Endpoints } from "../enums/endpoints";
-import { api } from "./api";
 
 interface AppointmentDto {
   appointmentId: number;
@@ -27,29 +30,19 @@ interface PagedResponse<T> {
   totalCount: number;
 }
 
-// ⚠️ Confirmar os valores do enum com o backend
-const statusMap: Record<number, StatusConsulta> = {
-  1: "agendado",
-  2: "em_espera",
-  3: "em_atendimento",
-  4: "finalizado",
-  5: "cancelado",
-};
-
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
+  const type = typeMapByCode[a.type] ?? "outro";
+
   return {
-    id: String(a.appointmentId),
+    id: a.appointmentId,
     patientNome: a.patientName,
+    healthInsurance: "", // a API ainda não retorna convênio
     startDateTime: a.startDateTime,
-    status: statusMap[a.status] ?? "agendado",
-    patientId: a.patientId,
     endDateTime: a.endDateTime,
-    localStartDateTime: a.localStartDateTime,
-    timeZoneId: a.timeZoneId,
-    meetingUrl: a.meetingUrl,
-    platform: a.platform,
-    meetingCode: a.meetingCode,
-  } as IConsultaDetailed;
+    locationAdress: type === "teleconsulta" ? "Sala Virtual" : "",
+    status: statusMapByCode[a.status] ?? "agendado",
+    type,
+  };
 }
 
 export async function fetchConsultas(): Promise<IConsultaDetailed[]> {
@@ -75,6 +68,23 @@ export async function fetchConsultas(): Promise<IConsultaDetailed[]> {
     if (isAxiosError(error) && error.response?.status === 401) {
       throw new Error("Sessão expirada. Faça login novamente.");
     }
-    throw new Error("Erro ao carregar as consultas.");
+    throw new Error("Erro ao carregar consultas");
+  }
+}
+
+export async function FindConsultaDetailedById(
+  id: string | number,
+): Promise<IConsultaDetailed> {
+  try {
+    // ⚠️ Endpoint assumido: GET /appointments/{id}
+    const { data } = await api.get<AppointmentDto>(
+      `${Endpoints.DOCTOR_APPOINTMENTS}/${id}`,
+    );
+    return toConsulta(data);
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 404) {
+      throw new Error("Consulta não encontrada.");
+    }
+    throw new Error("Erro ao carregar detalhes da consulta");
   }
 }

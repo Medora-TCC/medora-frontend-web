@@ -20,7 +20,7 @@ import EnterReceitaButton from "../Receita/EnterReceitaButton";
 import EnterProntuarioButton from "../Prontuario/EnterProntuarioButton";
 
 interface ConsultaModalProps {
-  id: string | null;
+  id: number | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -68,13 +68,13 @@ export default function ConsultaModal({
     setCurrentConsulta(null);
     setIsJoinable(false);
 
-    FindConsultaDetailedById(id)
-      .then((consulta) => {
-        setCurrentConsulta(consulta);
-        setIsJoinable(canEnter(consulta));
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    // FindConsultaDetailedById(id)
+    //   .then((consulta) => {
+    //     setCurrentConsulta(consulta);
+    //     setIsJoinable(canEnter(consulta));
+    //   })
+    //   .catch((e) => setError(e.message))
+    //   .finally(() => setLoading(false));
   }, [id, isOpen]);
 
   const formatDate = (isoString: any) => {
