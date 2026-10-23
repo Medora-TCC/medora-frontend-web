@@ -17,7 +17,7 @@ import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { FindConsultaDetailedById } from "../../pages/ConsultaScreen/Consulta";
 import { canEnter } from "../../pages/ConsultaScreen/ConsultaHelpers";
 import EnterReceitaButton from "../Receita/EnterReceitaButton";
-import EnterProntuarioButton from "../Prontuario/EnterProntuarioButton";
+import EnterMedicalRecordButton from "../Prontuario/EnterMedicalRecordButton";
 
 interface ConsultaModalProps {
   id: string | null;
@@ -238,7 +238,10 @@ export default function ConsultaModal({
                     variant="danger"
                   />
                   <EnterReceitaButton />
-                  <EnterProntuarioButton />
+                  <EnterMedicalRecordButton
+                    appointmentId={currentConsulta?.id}
+                    state={{ patientName: currentConsulta?.patientNome }}
+                  />
                   {currentConsulta?.type === "teleconsulta" && (
                     <EnterConsultaButton
                       isJoinable={isJoinable}
