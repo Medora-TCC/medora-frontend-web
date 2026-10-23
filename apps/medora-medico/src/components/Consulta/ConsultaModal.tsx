@@ -20,7 +20,7 @@ import EnterReceitaButton from "../Receita/EnterReceitaButton";
 import EnterProntuarioButton from "../Prontuario/EnterProntuarioButton";
 
 interface ConsultaModalProps {
-  id: number | null;
+  appointment: IConsultaDetailed | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -50,7 +50,7 @@ function InfoCard({
 }
 
 export default function ConsultaModal({
-  id,
+  appointment,
   isOpen,
   onOpenChange,
 }: ConsultaModalProps) {
@@ -61,11 +61,11 @@ export default function ConsultaModal({
   const [isJoinable, setIsJoinable] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!id || !isOpen) return;
+    if (!appointment || !isOpen) return;
 
     setLoading(true);
     setError(null);
-    setCurrentConsulta(null);
+    setCurrentConsulta(appointment);
     setIsJoinable(false);
 
     // FindConsultaDetailedById(id)
@@ -75,7 +75,7 @@ export default function ConsultaModal({
     //   })
     //   .catch((e) => setError(e.message))
     //   .finally(() => setLoading(false));
-  }, [id, isOpen]);
+  }, [appointment, isOpen]);
 
   const formatDate = (isoString: any) => {
     return new Date(isoString).toLocaleString("pt-BR", {
@@ -102,7 +102,7 @@ export default function ConsultaModal({
                   </div>
                   <div>
                     <p className="text-[11px] font-semibold tracking-widest uppercase text-text-secondary">
-                      #{currentConsulta?.id ?? id ?? "—"}
+                      #{currentConsulta?.id ?? appointment?.id ?? "—"}
                     </p>
                     <h2 className="text-lg font-bold text-text-primary leading-tight">
                       Detalhes da Consulta

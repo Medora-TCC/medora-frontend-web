@@ -1,4 +1,4 @@
-import type { IConsultaDetailed, ITeleConsultaDetailed } from "@medora_web/shared";
+import type { IConsultaDetailed } from "@medora_web/shared";
 
 export function PatientInitials(nome: string) {
   return nome
@@ -20,7 +20,7 @@ export function canEnter(c: IConsultaDetailed): boolean {
 }
 
 // dispara para o back a ação de tentar entrar na consulta
-export function enterConsulta(id: string, navigate: any) {
+export function enterConsulta(id: number, navigate: any) {
   // **LOGICA DE VALIDACAO COM O BACK (Seus fetchs/axios continuam aqui normais)**
   // Exemplo: await api.post(`/consultas/${id}/entrar`);
 
@@ -28,7 +28,7 @@ export function enterConsulta(id: string, navigate: any) {
   navigate(`../teleconsulta/${id}/pre-sala`);
 }
 
-export function isTeleConsulta(consulta: IConsultaDetailed | ITeleConsultaDetailed): consulta is ITeleConsultaDetailed {
+export function isTeleConsulta(consulta: IConsultaDetailed ) {
   return consulta.type === 'teleconsulta' && 'meetingUrl' in consulta;
 }
 

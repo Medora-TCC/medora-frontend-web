@@ -28,6 +28,9 @@ export interface IConsultaDetailed {
   status: StatusConsulta;
   type: TypeConsulta;
   tags?: string[];
+  meetingUrl?: string; //EX. Medora.com/nanoID
+  platform: string; //EX. fixo -> Medora
+  patientTermsAccepted: boolean; 
 }
 
 export interface IConsultaSimplified{

@@ -30,6 +30,8 @@ interface PagedResponse<T> {
   totalCount: number;
 }
 
+const DEFAULT_PLATFORM = "Medora";
+
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
   const type = typeMapByCode[a.type] ?? "outro";
 
@@ -39,10 +41,34 @@ function toConsulta(a: AppointmentDto): IConsultaDetailed {
     healthInsurance: "", // a API ainda não retorna convênio
     startDateTime: a.startDateTime,
     endDateTime: a.endDateTime,
-    locationAdress: type === "teleconsulta" ? "Sala Virtual" : "",
+    locationAdress: type === "teleconsulta" ? "Sala Virtual" : "", // a API não retorna endereço
     status: statusMapByCode[a.status] ?? "agendado",
     type,
+    meetingUrl: a.meetingUrl ?? undefined, // API manda null, o tipo espera undefined
+    platform: a.platform ?? DEFAULT_PLATFORM,
+    patientTermsAccepted: false, // a API ainda não retorna o aceite dos termos
   };
+}
+
+function toFriendlyError(error: unknown, fallback: string): Error {
+  if (isAxiosError(error) && error.response) {
+    const { status, data } = error.response;
+
+    if (status === 401) {
+      return new Error("Sessão expirada. Faça login novamente.");
+    }
+    if (status === 403) {
+      return new Error(
+        data?.detail ??
+          data?.title ??
+          "Você não tem permissão para acessar estas consultas.",
+      );
+    }
+    if (status === 404) {
+      return new Error("Consulta não encontrada.");
+    }
+  }
+  return new Error(fallback);
 }
 
 export async function fetchConsultas(): Promise<IConsultaDetailed[]> {
@@ -65,10 +91,7 @@ export async function fetchConsultas(): Promise<IConsultaDetailed[]> {
 
     return all.map(toConsulta);
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 401) {
-      throw new Error("Sessão expirada. Faça login novamente.");
-    }
-    throw new Error("Erro ao carregar consultas");
+    throw toFriendlyError(error, "Erro ao carregar consultas");
   }
 }
 
@@ -76,15 +99,11 @@ export async function FindConsultaDetailedById(
   id: string | number,
 ): Promise<IConsultaDetailed> {
   try {
-    // ⚠️ Endpoint assumido: GET /appointments/{id}
     const { data } = await api.get<AppointmentDto>(
       `${Endpoints.DOCTOR_APPOINTMENTS}/${id}`,
     );
     return toConsulta(data);
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 404) {
-      throw new Error("Consulta não encontrada.");
-    }
-    throw new Error("Erro ao carregar detalhes da consulta");
+    throw toFriendlyError(error, "Erro ao carregar detalhes da consulta");
   }
 }

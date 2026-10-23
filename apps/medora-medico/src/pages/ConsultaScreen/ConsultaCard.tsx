@@ -7,7 +7,7 @@ import { Calendar } from "lucide-react";
 
 interface ConsultaCardProps {
   consulta: IConsultaDetailed;
-  onCardClick: (id: string) => void;
+  onCardClick: (id: number) => void;
 }
 
 const statusCfg: Record<
@@ -15,10 +15,13 @@ const statusCfg: Record<
   { label: string; color: "accent" | "success" | "default" | "danger" }
 > = {
   agendado: { label: "Agendada", color: "accent" },
-  em_espera: { label: "Em Espera", color: "accent" },
+  esperando_pagamento: { label: "Aguardando Pagamento", color: "accent" },
+  esperando_confirmacao: { label: "Aguardando Confirmação", color: "accent" },
+  confirmado: { label: "Confirmada", color: "accent" },
   em_atendimento: { label: "Em andamento", color: "success" },
   finalizado: { label: "Concluída", color: "default" },
   cancelado: { label: "Cancelada", color: "danger" },
+  ausente: { label: "Ausente", color: "danger" },
 };
 
 

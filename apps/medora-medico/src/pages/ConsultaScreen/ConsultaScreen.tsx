@@ -81,11 +81,14 @@ export function ConsultaScreen() {
   const [filtroData, setFiltroData] = useState<FiltroData>("nenhum");
   const [busca, setBusca] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<IConsultaDetailed | null>(null);
   const consultaModal = useOverlayState();
 
 
   const handleCardClick = (id: number) => {
     setSelectedId(id);
+    const appointment = consultas.find(c => c.id === id) ?? null;
+    setSelectedAppointment(appointment)
     consultaModal.open();
   };
 
@@ -313,7 +316,7 @@ export function ConsultaScreen() {
             )}
             {
               <ConsultaModal
-                id={selectedId}
+                appointment={selectedAppointment}
                 isOpen={consultaModal.isOpen}
                 onOpenChange={consultaModal.setOpen}
               />
