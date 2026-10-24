@@ -11,7 +11,8 @@ export const Endpoints = {
     INIT_MFA: '/mfa/',
     VERIFY_AUTH_CODE: '/mfa/auth/verify',
 
-    USE_BACKUP_CODE: '/backup-code/use',
+    USE_BACKUP_CODE: '/recovery-codes/use',
+    CREATE_BACKUP_CODES: '/recovery-codes/create',
 
     REGISTER_DOCTOR: '/v1/Doctor',
 
