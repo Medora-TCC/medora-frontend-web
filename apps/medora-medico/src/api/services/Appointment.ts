@@ -17,8 +17,8 @@ interface AppointmentDto {
   startDateTime: string;
   endDateTime: string;
   localStartDateTime: string;
-  status: number;
-  type: number;
+  status: string;
+  type: string;
   timeZoneId: string;
   meetingUrl: string | null;
   platform: string | null;

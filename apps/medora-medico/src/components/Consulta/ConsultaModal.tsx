@@ -17,11 +17,16 @@ import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { canEnter } from "../../pages/ConsultaScreen/ConsultaHelpers";
 import EnterReceitaButton from "../Receita/EnterReceitaButton";
 import EnterMedicalRecordButton from "../Prontuario/EnterMedicalRecordButton";
+import AppointmentsService, { canDoctorCancel } from "../../api/services/Appointments";
+
+// Mesmas regras do domínio (Appointment.cs): estes status ainda podem ser cancelados
+const CANCELAVEIS = ["agendado", "confirmado", "esperando_pagamento", "esperando_confirmacao"];
 
 interface ConsultaModalProps {
   appointment: IConsultaDetailed | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onCanceled: () => void;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -52,12 +57,34 @@ export default function ConsultaModal({
   appointment,
   isOpen,
   onOpenChange,
+  onCanceled,
 }: ConsultaModalProps) {
   const [currentConsulta, setCurrentConsulta] =
     useState<IConsultaDetailed | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isJoinable, setIsJoinable] = useState<boolean>(false);
+  const [cancelando, setCancelando] = useState(false);
+
+  const podeCancelar = !!currentConsulta
+    && CANCELAVEIS.includes(currentConsulta.status)
+    && canDoctorCancel(currentConsulta.startDateTime);
+
+  async function cancelar() {
+    if (!currentConsulta) return;
+
+    setCancelando(true);
+    setError(null);
+    try {
+      await AppointmentsService.changeAppointmentStatus(currentConsulta.id, "Canceled");
+      onOpenChange(false);
+      onCanceled();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Erro ao cancelar a consulta.");
+    } finally {
+      setCancelando(false);
+    }
+  }
 
   useEffect(() => {
     if (!appointment || !isOpen) return;
@@ -229,13 +256,15 @@ export default function ConsultaModal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <ModalConfirmacao
-                    onConfirm={() => {currentConsulta!.status = "cancelado"}}
-                    disabled={currentConsulta?.status == "finalizado" || currentConsulta?.status == "cancelado"}
-                    texto={"Deseja realmente cancelar esta consulta?"}
-                    textoBotao={"Cancelar consulta"}
-                    variant="danger"
-                  />
+                  {podeCancelar && (
+                    <ModalConfirmacao
+                      onConfirm={cancelar}
+                      disabled={cancelando}
+                      texto={"Deseja realmente cancelar esta consulta? O pagamento do paciente será estornado."}
+                      textoBotao={"Cancelar consulta"}
+                      variant="danger"
+                    />
+                  )}
                   <EnterReceitaButton />
                   <EnterMedicalRecordButton
                     appointmentId={currentConsulta?.id}

@@ -249,7 +249,7 @@ export function ConsultaScreen() {
         {/* ── Lista ─────────────────────────────────────── */}
         {view === "grid" ? (
           <div className="w-full overflow-x-hidden">
-            <ConsultaHourlyGrid consultas={filtradas} />
+            <ConsultaHourlyGrid consultas={filtradas} onCanceled={() => carregar()} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -278,6 +278,7 @@ export function ConsultaScreen() {
               appointment={selectedAppointment}
               isOpen={consultaModal.isOpen}
               onOpenChange={consultaModal.setOpen}
+              onCanceled={() => carregar()}
             />
           </div>
         )}
