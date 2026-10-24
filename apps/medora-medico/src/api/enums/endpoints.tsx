@@ -24,6 +24,9 @@ export const Endpoints = {
     SCHEDULE_BLOCKS: '/doctors/availability/blocks',
     
     GET_DOCTOR_RQES: '/v1/Doctor/me/rqes',
+    UPDATE_RQE_PRIORITIES: `/v1/Doctor/me/rqes/priorities`,
+
+    DOCTOR_APPOINTMENTS: "/appointments/doctor/me",
     UPDATE_RQE_PRIORITIES: '/v1/Doctor/me/rqes/priorities',
     GET_DASHBOARD_DOCTOR: '/v1/Doctor/me/dashboard',
     GET_WEEK_FLOW: '/v1/Doctor/me/dashboard/weekly-flow',

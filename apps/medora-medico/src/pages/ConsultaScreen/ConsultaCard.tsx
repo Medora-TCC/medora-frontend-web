@@ -5,9 +5,17 @@ import { Avatar, Card, Chip } from "@heroui/react";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { Calendar } from "lucide-react";
 
+/*
+todo
+
+[] ajustar o status bugado
+[] ajustar o tipo bugado
+*/
+
+
 interface ConsultaCardProps {
   consulta: IConsultaDetailed;
-  onCardClick: (id: string) => void;
+  onCardClick: (id: number) => void;
 }
 
 const statusCfg: Record<
@@ -15,10 +23,13 @@ const statusCfg: Record<
   { label: string; color: "accent" | "success" | "default" | "danger" }
 > = {
   agendado: { label: "Agendada", color: "accent" },
-  em_espera: { label: "Em Espera", color: "accent" },
+  esperando_pagamento: { label: "Aguardando Pagamento", color: "accent" },
+  esperando_confirmacao: { label: "Aguardando Confirmação", color: "accent" },
+  confirmado: { label: "Confirmada", color: "accent" },
   em_atendimento: { label: "Em andamento", color: "success" },
   finalizado: { label: "Concluída", color: "default" },
   cancelado: { label: "Cancelada", color: "danger" },
+  ausente: { label: "Ausente", color: "danger" },
 };
 
 
@@ -40,7 +51,7 @@ export function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
     <Card
       onClick={() => onCardClick(consulta.id)}
       className={`
-        transition-all duration-300 shadow-xl h-40 border border-ring b-2 bg-surface-raised
+        transition-all duration-300 shadow-xl h-40 border rounded-md border-ring b-2 bg-surface-raised
         ${
           isJoinable
             ? "border border-success/30 bg-success/5 hover:bg-success/10"
@@ -48,7 +59,7 @@ export function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
         }
       `}
     >
-      <Card.Content className="flex items-center justify-center flex-col gap-2">
+      <Card.Content className="flex items-center justify-center flex-row gap-2">
         {/* Avatar com iniciais */}
         <Avatar size="md" color="accent">
           <Avatar.Fallback>
@@ -58,7 +69,7 @@ export function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
 
         {/* Info */}
         <div className="flex flex-1 items-center min-w-0 flex-col gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-col items-center gap-2 flex-wrap">
             <span className="text-sm font-medium truncate">
               {consulta.patientNome}
             </span>
@@ -68,6 +79,15 @@ export function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
                 hoje
               </Chip>
             )}
+
+              <Chip
+              size="sm"
+              color={cfg.color}
+              variant="soft"
+              className="hidden sm:flex shrink-0 absolute top-0 right-0 m-5"
+            >
+              {cfg.label}
+          </Chip>
           </div>
 
           <div className="flex items-center gap-3 text-xs text-text-seconday flex-wrap">
@@ -76,17 +96,10 @@ export function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
               {formatConsultaHorario(consulta.startDateTime)}
             </span>
           </div>
+
+          
         </div>
 
-        {/* Badge status */}
-        <Chip
-          size="sm"
-          color={cfg.color}
-          variant="soft"
-          className="hidden sm:flex shrink-0 absolute top-0 right-0 m-5"
-        >
-          {cfg.label}
-        </Chip>
         {consulta?.type === "teleconsulta" && consulta?.status !== "finalizado"  &&(
           <EnterConsultaButton
             isJoinable={isJoinable}
