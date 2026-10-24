@@ -260,6 +260,7 @@ export default function SalaTeleConsulta() {
 
   // Streams
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
 
   // Controles
   const [camOn, setCamOn] = useState(state.camOn ?? true);
@@ -328,10 +329,14 @@ export default function SalaTeleConsulta() {
     };
   }, []);
 
-  // Cleanup ao desmontar
+  // Cleanup ao desmontar (inclusive pelo voltar do navegador)
   useEffect(() => {
     return () => { localStream?.getTracks().forEach((t) => t.stop()); };
   }, [localStream]);
+
+  useEffect(() => {
+    return () => { screenStreamRef.current?.getTracks().forEach((t) => t.stop()); };
+  }, []);
 
   // ── Toggle câmera ────────────────────────────────────────────────────────
   function toggleCam() {
@@ -354,11 +359,19 @@ export default function SalaTeleConsulta() {
   // ── Compartilhar tela ────────────────────────────────────────────────────
   async function toggleScreenShare() {
     if (screenSharing) {
+      screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+      screenStreamRef.current = null;
       setScreenSharing(false);
       return;
     }
     try {
-      await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const screen = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      screenStreamRef.current = screen;
+      // "Parar compartilhamento" na barra do navegador encerra a track sem passar pelo botão
+      screen.getVideoTracks()[0]?.addEventListener("ended", () => {
+        screenStreamRef.current = null;
+        setScreenSharing(false);
+      });
       setScreenSharing(true);
     } catch {
       // usuário cancelou

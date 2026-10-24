@@ -146,7 +146,16 @@ export default function TeleConsultaConfig() {
   const consultaState = (useLocation().state ?? {}) as { appointmentId?: number; patientName?: string };
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  // Refs com o stream atual: os cleanups abaixo rodam com closures antigas e
+  // veriam o valor inicial (null), deixando a câmera ligada ao sair da tela
+  const videoStreamRef = useRef<MediaStream | null>(null);
+  const audioStreamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    videoStreamRef.current = videoStream;
+    audioStreamRef.current = audioStream;
+  }, [videoStream, audioStream]);
 
   const [camPerm, setCamPerm] = useState<PermissionState>("idle");
   const [micPerm, setMicPerm] = useState<PermissionState>("idle");
@@ -225,7 +234,7 @@ export default function TeleConsultaConfig() {
   useEffect(() => {
     if (!selectedCam || camPerm !== "granted") return;
     let active = true;
-    videoStream?.getTracks().forEach((t) => t.stop());
+    videoStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (!camOn) {
       setVideoStream(null);
       return;
@@ -249,7 +258,7 @@ export default function TeleConsultaConfig() {
   useEffect(() => {
     if (!selectedMic || micPerm !== "granted") return;
     let active = true;
-    audioStream?.getTracks().forEach((t) => t.stop());
+    audioStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (!micOn) {
       setAudioStream(null);
       return;
@@ -277,8 +286,8 @@ export default function TeleConsultaConfig() {
   // ── 9. Cleanup de streams ao desmontar ───────────────────────────────────
   useEffect(() => {
     return () => {
-      videoStream?.getTracks().forEach((t) => t.stop());
-      audioStream?.getTracks().forEach((t) => t.stop());
+      videoStreamRef.current?.getTracks().forEach((t) => t.stop());
+      audioStreamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
 
