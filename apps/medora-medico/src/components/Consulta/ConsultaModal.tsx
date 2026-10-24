@@ -95,7 +95,7 @@ export default function ConsultaModal({
     try {
       setCurrentConsulta(appointment);
       setIsJoinable(canEnter(appointment))
-    } catch (error) {
+    } catch {
       setError("Não foi possível carregar as informações da consulta")
     }
     finally {
@@ -103,7 +103,7 @@ export default function ConsultaModal({
     }
   }, [appointment, isOpen]);
 
-  const formatDate = (isoString: any) => {
+  const formatDate = (isoString: string) => {
     return new Date(isoString).toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
