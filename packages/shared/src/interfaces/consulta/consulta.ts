@@ -1,9 +1,34 @@
-export type StatusConsulta = 'agendado' | 'em_espera' | 'em_atendimento' | 'finalizado' | 'cancelado';
-export type TypeConsulta = 'presencial' | 'teleconsulta'
+export type StatusConsulta = 'agendado' | 'esperando_pagamento' | 'esperando_confirmacao' |'confirmado'| 'em_atendimento' | 'finalizado' | 'cancelado' | 'ausente';
+export type TypeConsulta = 'presencial' | 'teleconsulta' | 'outro';
+export type FiltroConsulta = 'hoje' | 'amanha' | 'semana' | 'nenhum';
+
+export const typeMapByCode: Record<number, TypeConsulta> = {
+  1: "presencial",
+  2: "teleconsulta",
+  3: "outro"
+};
+
+export const filterMapByCode: Record<FiltroConsulta, number | undefined> = {
+  hoje: 0,
+  amanha: 1,
+  semana: 2,
+  nenhum: undefined,
+};
+
+
+export const statusMapByCode: Record<number, StatusConsulta> = {
+  1: "agendado",
+  2: "esperando_pagamento",
+  3: "esperando_confirmacao",
+  4: "confirmado",
+  5: "em_atendimento",
+  6: "finalizado",
+  7: "cancelado",
+  8: "ausente",
+};  
 
 export interface IConsultaDetailed {
-  id: string;
-  doctorName: string;
+  id: number;
   patientNome: string;
   healthInsurance: string; //Ex. Unimed, MedSenior e etc
   startDateTime: string; //Ex. Formato 2026-05-21T08:00:00.000-03:00
@@ -12,11 +37,13 @@ export interface IConsultaDetailed {
   status: StatusConsulta;
   type: TypeConsulta;
   tags?: string[];
+  meetingUrl?: string; //EX. Medora.com/nanoID
+  platform: string; //EX. fixo -> Medora
+  patientTermsAccepted: boolean; 
 }
 
 export interface IConsultaSimplified{
   id: string;
-  doctorName: string;
   patientNome: string;
   healthInsurance: string; //Ex. Unimed, MedSenior e etc
   status: StatusConsulta;
@@ -39,4 +66,8 @@ export interface AcceptTermsDTO{
   userResponse: boolean;
   consultaId: string;
   userIp: string;
+}
+
+export function toConsulta() {
+  
 }

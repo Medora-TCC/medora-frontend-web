@@ -17,13 +17,20 @@ export function toDomainError(error: unknown, fallback: string): Error {
 
   const body = error.response.data as ProblemDetailsBody | undefined;
 
-  const extensions = [...(body?.Erros ?? []), ...(body?.Conflitos ?? [])].filter(Boolean);
-  if (extensions.length > 0) {
-    return new Error(extensions.join(' '));
+  const validationErrors = (body?.Erros ?? []).filter(Boolean);
+  if (validationErrors.length > 0) {
+    return new Error(validationErrors.join(' '));
   }
 
-  if (body?.detail && body.detail !== GENERIC_VALIDATION_DETAIL) {
-    return new Error(body.detail);
+  const conflicts = (body?.Conflitos ?? []).filter(Boolean);
+  const detail = body?.detail && body.detail !== GENERIC_VALIDATION_DETAIL ? body.detail : undefined;
+
+  if (detail && conflicts.length > 0) {
+    return new Error(`${detail} ${conflicts.join(', ')}`);
+  }
+
+  if (detail || conflicts.length > 0) {
+    return new Error(detail ?? conflicts.join(', '));
   }
 
   return new Error(fallback);

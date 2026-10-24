@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { Button, Card, Chip, Spinner } from "@heroui/react";
 import {
   Camera,
@@ -142,6 +142,8 @@ export default function TeleConsultaConfig() {
   );
 
   // ── 2. Estado local ───────────────────────────────────────────────────────
+  // O painel manda qual é a consulta; repassamos para a sala, onde o prontuário precisa dela.
+  const consultaState = (useLocation().state ?? {}) as { appointmentId?: number; patientName?: string };
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -341,15 +343,7 @@ export default function TeleConsultaConfig() {
     videoStream?.getTracks().forEach((t) => t.stop());
     audioStream?.getTracks().forEach((t) => t.stop());
     navigate(`../${id}/sala`, {
-      state: {
-        // Só propaga como "ligado" o que realmente foi concedido —
-        // evita que a sala tente ligar câmera/mic sem permissão e
-        // falhe silenciosamente.
-        camOn: camOn && camPerm === "granted",
-        micOn: micOn && micPerm === "granted",
-        selectedCam: camPerm === "granted" ? selectedCam : undefined,
-        selectedMic: micPerm === "granted" ? selectedMic : undefined,
-      },
+      state: { ...consultaState, camOn, micOn, selectedCam, selectedMic },
     });
   }
 

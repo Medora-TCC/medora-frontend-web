@@ -26,6 +26,8 @@ import { AuthContext } from "../../contexts/AuthContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
+  appointmentId?: number;
+  patientName?: string;
   camOn?: boolean;
   micOn?: boolean;
   selectedCam?: string;
@@ -308,7 +310,7 @@ export default function SalaTeleConsulta() {
   const [sidePanel, setSidePanel] = useState<"chat" | "prontuario" | "receita" | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -640,7 +642,11 @@ export default function SalaTeleConsulta() {
         )}
         {sidePanel === "prontuario" && (
           <div className="h-full">
-            <MedicalRecordComponent setError={setError} />
+            {state.appointmentId ? (
+              <MedicalRecordComponent appointmentId={state.appointmentId} />
+            ) : (
+              <p className="p-6 text-text-secondary">Abra a teleconsulta pelo painel para escrever o prontuário.</p>
+            )}
           </div>
         )}
         {sidePanel === "receita" && (

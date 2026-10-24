@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 
 interface EnterButtonProps{
   isJoinable: boolean | false;
-  id: string | null;
+  id: number | null;
 }
 
 

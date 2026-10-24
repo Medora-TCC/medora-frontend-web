@@ -80,12 +80,32 @@ async function updateRecurringSchedule(scheduleId: number, body: UpdateRecurring
   }
 }
 
+async function deactivateRecurringSchedule(scheduleId: number, effectiveFrom: string) {
+  try {
+    const res = await api.post<{ lastDay: string | null }>(
+      `${Endpoints.RECURRING_SCHEDULE}/${scheduleId}/deactivate`,
+      { effectiveFrom },
+    );
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao desativar o turno.');
+  }
+}
+
 async function createSpecificAvailability(body: CreateSpecificAvailabilityBody) {
   try {
     const res = await api.post<{ scheduleId: number }>(Endpoints.SPECIFIC_AVAILABILITY, body);
     return res.data;
   } catch (error) {
     throw toDomainError(error, 'Erro ao salvar a disponibilidade avulsa.');
+  }
+}
+
+async function deactivateSpecificAvailability(scheduleId: number) {
+  try {
+    await api.post(`${Endpoints.SPECIFIC_AVAILABILITY}/${scheduleId}/deactivate`);
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao desativar o horário extra.');
   }
 }
 
@@ -113,9 +133,11 @@ const AvailabilityService = {
   getDailySchedule,
   createRecurringSchedule,
   updateRecurringSchedule,
+  deactivateRecurringSchedule,
   createSpecificAvailability,
   createBlock,
   removeBlock,
+  deactivateSpecificAvailability,
 };
 
 export default AvailabilityService;

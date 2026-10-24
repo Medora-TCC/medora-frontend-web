@@ -3,7 +3,14 @@ import Navbar from "../Header/Header";
 import Footer from "../Footer/Footer";
 import { Sidebar, SidebarToggle } from "../../../../../packages/shared/src/components/components";
 import { Activity, Calendar, CircleDollarSign, ClipboardList, ClipboardPlus, FilePenLine, LayoutDashboard, Settings, Users } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { getDoctorRqes } from "../../api/services/DoctorService";
+import type { DoctorRqesDto } from "../../api/dtos/Doctors/DoctorRqesDto";
+import MainSpecialtiesModal from "../../modals/MainSpecialtiesModal/MainSpecialtiesModal";
+import type { RqeItemDto } from "../../api/dtos/Doctors/DoctorRqesDto";
+
+const EMPTY_RQES: RqeItemDto[] = [];
 
 export default function MainLayout() {
 
@@ -12,7 +19,43 @@ export default function MainLayout() {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
+  const [doctorRqes, setDoctorRqes] = useState<DoctorRqesDto | null>(null);
+  const [isSpecialtiesModalOpen, setIsSpecialtiesModalOpen] = useState(false);
+  const { accessToken } = useAuth();
+  const [isLoadingRqes, setIsLoadingRqes] = useState(false);
 
+
+  
+  const loadRqes = useCallback(async () => {
+  if (!accessToken) return null;
+  setIsLoadingRqes(true);
+  try {
+    const data = await getDoctorRqes();
+    setDoctorRqes(data);
+    return data;
+  } finally {
+    setIsLoadingRqes(false);
+  }
+}, [accessToken]);
+
+  const openSpecialtiesModal = () => {
+  setIsSpecialtiesModalOpen(true);
+  loadRqes().catch((error) => console.error(error));
+};
+  useEffect(() => {
+    loadRqes()
+      .then((data) => {
+        const hasMainSpecialty = data?.rqes.some((r) => r.priority !== null);
+        if (data && !hasMainSpecialty) setIsSpecialtiesModalOpen(true);
+      })
+      .catch((error) => console.error(error));
+  }, [loadRqes]);
+
+  const rankedRqes = (doctorRqes?.rqes ?? [])
+  .filter((r) => r.priority !== null)
+  .sort((a, b) => a.priority! - b.priority!);
+  const mainSpecialty = rankedRqes[0]?.specialtyName ?? null;
+  const extraSpecialtiesCount = Math.max(rankedRqes.length - 1, 0); 
   // Liste os caminhos completos como eles aparecem na URL
   const locationsSidebar = ['/', '/home', '/medico/teleconsulta'];
   const locationsFooter = ['/medico/prontuario', '/medico/consulta', '/medico/prescricao', '/medico/agenda', '/medico/assinatura'];
@@ -110,8 +153,19 @@ export default function MainLayout() {
 
 
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <Navbar />
-
+        <Navbar
+          doctorName={doctorRqes?.doctorName ?? null}
+          mainSpecialty={mainSpecialty}
+          extraSpecialtiesCount={extraSpecialtiesCount}
+          onOpenSpecialties={openSpecialtiesModal}
+        />
+        <MainSpecialtiesModal
+          isOpen={isSpecialtiesModalOpen}
+          isLoading={isLoadingRqes}
+          onClose={() => setIsSpecialtiesModalOpen(false)}
+          rqes={doctorRqes?.rqes ?? EMPTY_RQES}
+          onSaved={loadRqes}
+        />
         <main className="flex-1 w-full">
           <Outlet />
         </main>

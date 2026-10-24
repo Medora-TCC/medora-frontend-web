@@ -27,11 +27,11 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete, backupLoginHr
         if (isMounted) setMfaData(data);
       })
       .catch(() => {
-        if (isMounted) toast.danger("Falha ao inicializar verificação.");;
+        if (isMounted) toast.danger("Falha ao inicializar verificação.");
       });
 
     return () => { isMounted = false; };
-  }, [onInitMfa]);
+  }, []);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
