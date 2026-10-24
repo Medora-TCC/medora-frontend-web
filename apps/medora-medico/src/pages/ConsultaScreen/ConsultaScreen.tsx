@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -11,14 +11,17 @@ import {
   useOverlayState,
 } from "@heroui/react";
 
-import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
+import type {
+  FiltroConsulta,
+  IConsultaDetailed,
+  StatusConsulta,
+} from "@medora_web/shared";
 
 import { fetchConsultas } from "../../api/services/Appointment";
 import { CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 import ConsultaModal from "../../components/Consulta/ConsultaModal";
 import { ConsultaCard } from "./ConsultaCard";
-import type { FiltroConsulta } from "@medora_web/shared";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
@@ -37,6 +40,25 @@ const statusCfg: Record<
   cancelado: { label: "Cancelada", color: "danger" },
   ausente: { label: "Ausente", color: "danger" },
 };
+
+// ─── Opções de filtro (constantes, fora do componente) ────────────────────────
+const filtroOpcoes: { key: Filtro; label: string }[] = [
+  { key: "todas", label: "Todas" },
+  { key: "agendado", label: "Agendadas" },
+  { key: "esperando_pagamento", label: "Aguard. pagamento" },
+  { key: "esperando_confirmacao", label: "Aguard. confirmação" },
+  { key: "confirmado", label: "Confirmadas" },
+  { key: "em_atendimento", label: "Em andamento" },
+  { key: "finalizado", label: "Concluídas" },
+  { key: "cancelado", label: "Canceladas" },
+  { key: "ausente", label: "Ausentes" },
+];
+
+const filtroDataOpcoes: { key: FiltroConsulta; label: string }[] = [
+  { key: "hoje", label: "Hoje" },
+  { key: "amanha", label: "Amanhã" },
+  { key: "semana", label: "Esta Semana" },
+];
 
 // ─── Skeleton card ────────────────────────────────────────────────────────────
 function SkeletonCard() {
@@ -57,7 +79,7 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
       <div className="flex size-14 items-center justify-center rounded-2xl bg-surface-secondary text-fg-muted">
-        <CalendarDays strokeWidth={1.50} />
+        <CalendarDays strokeWidth={1.5} />
       </div>
       <p className="text-sm text-fg-muted">
         {filtro === "todas"
@@ -76,33 +98,43 @@ export function ConsultaScreen() {
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [filtroData, setFiltroData] = useState<FiltroConsulta>("nenhum");
   const [busca, setBusca] = useState("");
-  const [selectedAppointment, setSelectedAppointment] = useState<IConsultaDetailed | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<IConsultaDetailed | null>(null);
   const consultaModal = useOverlayState();
 
+  // Evita que uma resposta lenta e antiga sobrescreva uma mais recente
+  const requestId = useRef(0);
 
   const handleCardClick = (id: number) => {
-    const appointment = consultas.find(c => c.id === id) ?? null;
-    setSelectedAppointment(appointment)
+    const appointment = consultas.find((c) => c.id === id) ?? null;
+    setSelectedAppointment(appointment);
     consultaModal.open();
   };
 
-  async function carregar() {
+  async function carregar(filtroAtual: FiltroConsulta = filtroData) {
+    const id = ++requestId.current;
     setLoading(true);
     setError(null);
     try {
-      setConsultas(await fetchConsultas(filtroData));
+      const data = await fetchConsultas(filtroAtual);
+      if (id !== requestId.current) return; // chegou uma chamada mais nova
+      setConsultas(data);
     } catch (e: unknown) {
+      if (id !== requestId.current) return;
       setConsultas([]);
       setError(e instanceof Error ? e.message : "Erro desconhecido");
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }
- 
-  useEffect(() => {
-    carregar();
-  }, []);
 
+  // Refaz a chamada sempre que o filtro de data muda (inclui a carga inicial)
+  useEffect(() => {
+    carregar(filtroData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroData]);
+
+  // O filtro de data é feito no backend; aqui só status, busca e ordenação
   const filtradas = useMemo(
     () =>
       consultas
@@ -112,40 +144,15 @@ export function ConsultaScreen() {
             busca.trim() === "" ||
             c.patientNome.toLowerCase().includes(busca.toLowerCase()),
         )
-        .filter((c) => {
-          if (filtroData === "nenhum") return true;
-
-          const data = new Date(c.startDateTime);
-          const hoje = new Date();
-
-          if (filtroData === "hoje") {
-            return data.toDateString() === hoje.toDateString();
-          }
-
-          if (filtroData === "amanha") {
-            const amanha = new Date(hoje);
-            amanha.setDate(hoje.getDate() + 1);
-            return data.toDateString() === amanha.toDateString();
-          }
-
-          if (filtroData === "semana") {
-            const inicioSemana = new Date(hoje);
-            inicioSemana.setDate(hoje.getDate() - hoje.getDay());
-            inicioSemana.setHours(0, 0, 0, 0);
-            return data >= inicioSemana;
-          }
-
-          return true;
-        })
         .sort(
           (a, b) =>
             new Date(a.startDateTime).getTime() -
             new Date(b.startDateTime).getTime(),
         ),
-    [consultas, filtro, busca, filtroData],
+    [consultas, filtro, busca],
   );
 
-  // Contagens por status para os badges dos filtros
+  // Contagens por status (refletem apenas o período carregado)
   const contagens = useMemo(() => {
     const c: Record<string, number> = { todas: consultas.length };
     for (const item of consultas) c[item.status] = (c[item.status] ?? 0) + 1;
@@ -153,25 +160,6 @@ export function ConsultaScreen() {
   }, [consultas]);
 
   const [view] = useState<"lista" | "grid">("lista");
-
-  const filtroOpcoes: { key: Filtro; label: string }[] = [
-  { key: "todas", label: "Todas" },
-  { key: "agendado", label: "Agendadas" },
-  { key: "esperando_pagamento", label: "Aguard. pagamento" },
-  { key: "esperando_confirmacao", label: "Aguard. confirmação" },
-  { key: "confirmado", label: "Confirmadas" },
-  { key: "em_atendimento", label: "Em andamento" },
-  { key: "finalizado", label: "Concluídas" },
-  { key: "cancelado", label: "Canceladas" },
-  { key: "ausente", label: "Ausentes" },
-];
-
-  const filtroDataOpcoes: { key: FiltroConsulta; label: string }[] = [
-    { key: "hoje", label: "Hoje" },
-    { key: "amanha", label: "Amanhã" },
-    { key: "semana", label: "Esta Semana" },
-    { key: "nenhum", label: "Nenhum" }
-  ];
 
   return (
     <div className="min-h-screen max-w-screen bg-surface">
@@ -190,26 +178,13 @@ export function ConsultaScreen() {
           <Button
             variant="outline"
             size="sm"
-            onPress={carregar}
+            onPress={() => carregar()}
             isDisabled={loading}
             aria-label="recarregar consultas"
           >
             {loading ? <Spinner size="sm" /> : <RotateCcw />}
             Atualizar
           </Button>
-
-          {/* <ToggleButtonGroup
-            selectionMode="single"
-            selectedKeys={new Set([view])}
-            onSelectionChange={(k) => setView([...k][0] as "lista" | "grid")}
-          >
-            <ToggleButton id="lista" size="sm">
-              Lista
-            </ToggleButton>
-            <ToggleButton id="grid" size="sm">
-              Grid
-            </ToggleButton>
-          </ToggleButtonGroup> */}
         </div>
 
         {/* ── Busca ─────────────────────────────────────── */}
@@ -219,42 +194,19 @@ export function ConsultaScreen() {
           onChange={setBusca}
           className="w-full"
         />
-      <div className="flex justify-between">
-        {/* ── Filtros Estado ────────────────── */}
-        <ToggleButtonGroup
-          selectionMode="single"
-          selectedKeys={new Set([filtro])}
-          onSelectionChange={(keys) => {
-            const val = [...keys][0] as Filtro | undefined;
-            if (val) setFiltro(val);
-          }}
-          className="flex flex-wrap gap-2"
-        >
-          {filtroOpcoes.map(({ key, label }) => (
-            <ToggleButton key={key} id={key} size="sm">
-              {label}
-              {(contagens[key] ?? 0) > 0 && (
-                <Chip size="sm" variant="soft" className="ml-1">
-                  {contagens[key]}
-                </Chip>
-              )}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
 
-        {/* ── Filtros Data ────────────────── */}
-        <ToggleButtonGroup
-          selectionMode="single"
-          selectedKeys={new Set([filtroData])}
-          onSelectionChange={(keys) => {
-            const val = [...keys][0] as FiltroConsulta | undefined;
-            setFiltroData(val ?? "nenhum");
-          }}
-          className="flex flex-wrap gap-2"
-        >
-          {filtroDataOpcoes
-            .filter(({ key }) => key !== "nenhum")
-            .map(({ key, label }) => (
+        <div className="flex justify-between gap-4">
+          {/* ── Filtros Estado ────────────────── */}
+          <ToggleButtonGroup
+            selectionMode="single"
+            selectedKeys={new Set([filtro])}
+            onSelectionChange={(keys) => {
+              const val = [...keys][0] as Filtro | undefined;
+              if (val) setFiltro(val);
+            }}
+            className="flex flex-wrap gap-2"
+          >
+            {filtroOpcoes.map(({ key, label }) => (
               <ToggleButton key={key} id={key} size="sm">
                 {label}
                 {(contagens[key] ?? 0) > 0 && (
@@ -264,27 +216,40 @@ export function ConsultaScreen() {
                 )}
               </ToggleButton>
             ))}
-        </ToggleButtonGroup>
-      </div>
+          </ToggleButtonGroup>
+
+          {/* ── Filtros Data (aplicados no backend) ────────────────── */}
+          <ToggleButtonGroup
+            selectionMode="single"
+            selectedKeys={new Set([filtroData])}
+            onSelectionChange={(keys) => {
+              const val = [...keys][0] as FiltroConsulta | undefined;
+              setFiltroData(val ?? "nenhum");
+            }}
+            className="flex flex-wrap gap-2"
+          >
+            {filtroDataOpcoes.map(({ key, label }) => (
+              <ToggleButton key={key} id={key} size="sm">
+                {label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </div>
 
         {/* ── Erro ──────────────────────────────────────── */}
         {error && (
           <Card className="border-danger-soft-hover bg-danger/5">
             <Card.Content className="flex items-center gap-2 p-3 text-sm text-danger">
               <CircleAlert strokeWidth={1.25} />
-              {error} 
-              {/* REMINDER não está esvaizando as consutlas quando dá erro.*/}
+              {error}
             </Card.Content>
           </Card>
         )}
 
         {/* ── Lista ─────────────────────────────────────── */}
-
         {view === "grid" ? (
           <div className="w-full overflow-x-hidden">
-            <ConsultaHourlyGrid
-              consultas={filtradas}
-            />
+            <ConsultaHourlyGrid consultas={filtradas} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -308,13 +273,12 @@ export function ConsultaScreen() {
                 />
               ))
             )}
-            {
-              <ConsultaModal
-                appointment={selectedAppointment}
-                isOpen={consultaModal.isOpen}
-                onOpenChange={consultaModal.setOpen}
-              />
-            }
+
+            <ConsultaModal
+              appointment={selectedAppointment}
+              isOpen={consultaModal.isOpen}
+              onOpenChange={consultaModal.setOpen}
+            />
           </div>
         )}
       </div>

@@ -5,6 +5,14 @@ import { Avatar, Card, Chip } from "@heroui/react";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { Calendar } from "lucide-react";
 
+/*
+todo
+
+[] ajustar o status bugado
+[] ajustar o tipo bugado
+*/
+
+
 interface ConsultaCardProps {
   consulta: IConsultaDetailed;
   onCardClick: (id: number) => void;
