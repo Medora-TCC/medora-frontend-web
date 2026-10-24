@@ -18,10 +18,10 @@ import { CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 import ConsultaModal from "../../components/Consulta/ConsultaModal";
 import { ConsultaCard } from "./ConsultaCard";
+import type { FiltroConsulta } from "@medora_web/shared";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta;
-type FiltroData = "hoje" | "amanha" | "semana" | "nenhum";
 
 // ─── Status config → Chip color + label ───────────────────────────────────────
 const statusCfg: Record<
@@ -39,7 +39,6 @@ const statusCfg: Record<
 };
 
 // ─── Skeleton card ────────────────────────────────────────────────────────────
-
 function SkeletonCard() {
   return (
     <Card className="flex flex-col items-center gap-4 p-4 h-60">
@@ -52,9 +51,6 @@ function SkeletonCard() {
     </Card>
   );
 }
-
-
-// ─── Consulta card componentizar ────────────────────────────────────────────────────────────
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ filtro }: { filtro: Filtro }) {
@@ -78,15 +74,13 @@ export function ConsultaScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todas");
-  const [filtroData, setFiltroData] = useState<FiltroData>("nenhum");
+  const [filtroData, setFiltroData] = useState<FiltroConsulta>("nenhum");
   const [busca, setBusca] = useState("");
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<IConsultaDetailed | null>(null);
   const consultaModal = useOverlayState();
 
 
   const handleCardClick = (id: number) => {
-    setSelectedId(id);
     const appointment = consultas.find(c => c.id === id) ?? null;
     setSelectedAppointment(appointment)
     consultaModal.open();
@@ -96,7 +90,7 @@ export function ConsultaScreen() {
     setLoading(true);
     setError(null);
     try {
-      setConsultas(await fetchConsultas());
+      setConsultas(await fetchConsultas(filtroData));
     } catch (e: unknown) {
       setConsultas([]);
       setError(e instanceof Error ? e.message : "Erro desconhecido");
@@ -172,7 +166,7 @@ export function ConsultaScreen() {
   { key: "ausente", label: "Ausentes" },
 ];
 
-  const filtroDataOpcoes: { key: FiltroData; label: string }[] = [
+  const filtroDataOpcoes: { key: FiltroConsulta; label: string }[] = [
     { key: "hoje", label: "Hoje" },
     { key: "amanha", label: "Amanhã" },
     { key: "semana", label: "Esta Semana" },
@@ -253,7 +247,7 @@ export function ConsultaScreen() {
           selectionMode="single"
           selectedKeys={new Set([filtroData])}
           onSelectionChange={(keys) => {
-            const val = [...keys][0] as FiltroData | undefined;
+            const val = [...keys][0] as FiltroConsulta | undefined;
             setFiltroData(val ?? "nenhum");
           }}
           className="flex flex-wrap gap-2"

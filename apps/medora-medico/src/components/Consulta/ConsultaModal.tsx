@@ -14,7 +14,6 @@ import {
   House,
 } from "lucide-react";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
-import { FindConsultaDetailedById } from "../../pages/ConsultaScreen/Consulta";
 import { canEnter } from "../../pages/ConsultaScreen/ConsultaHelpers";
 import EnterReceitaButton from "../Receita/EnterReceitaButton";
 import EnterProntuarioButton from "../Prontuario/EnterProntuarioButton";
@@ -65,16 +64,16 @@ export default function ConsultaModal({
 
     setLoading(true);
     setError(null);
-    setCurrentConsulta(appointment);
     setIsJoinable(false);
-
-    // FindConsultaDetailedById(id)
-    //   .then((consulta) => {
-    //     setCurrentConsulta(consulta);
-    //     setIsJoinable(canEnter(consulta));
-    //   })
-    //   .catch((e) => setError(e.message))
-    //   .finally(() => setLoading(false));
+    try {
+      setCurrentConsulta(appointment);
+      setIsJoinable(canEnter(appointment))
+    } catch (error) {
+      setError("Não foi possível carregar as informações da consulta")
+    }
+    finally {
+      setLoading(false)
+    }
   }, [appointment, isOpen]);
 
   const formatDate = (isoString: any) => {

@@ -1,11 +1,20 @@
 export type StatusConsulta = 'agendado' | 'esperando_pagamento' | 'esperando_confirmacao' |'confirmado'| 'em_atendimento' | 'finalizado' | 'cancelado' | 'ausente';
-export type TypeConsulta = 'presencial' | 'teleconsulta' | 'outro'
+export type TypeConsulta = 'presencial' | 'teleconsulta' | 'outro';
+export type FiltroConsulta = 'hoje' | 'amanha' | 'semana' | 'nenhum';
 
 export const typeMapByCode: Record<number, TypeConsulta> = {
   1: "presencial",
   2: "teleconsulta",
   3: "outro"
 };
+
+export const filterMapByCode: Record<FiltroConsulta, number | undefined> = {
+  hoje: 0,
+  amanha: 1,
+  semana: 2,
+  nenhum: undefined,
+};
+
 
 export const statusMapByCode: Record<number, StatusConsulta> = {
   1: "agendado",

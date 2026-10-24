@@ -1,7 +1,9 @@
 import { isAxiosError } from "axios";
 import {
+  filterMapByCode,
   statusMapByCode,
   typeMapByCode,
+  type FiltroConsulta,
   type IConsultaDetailed,
 } from "@medora_web/shared";
 
@@ -71,16 +73,20 @@ function toFriendlyError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-export async function fetchConsultas(): Promise<IConsultaDetailed[]> {
+export async function fetchConsultas(filtro: FiltroConsulta): Promise<IConsultaDetailed[]> {
   try {
     const all: AppointmentDto[] = [];
     const pageSize = 100;
     let page = 1;
+    const filterValue = filterMapByCode[filtro]
 
     while (true) {
       const { data } = await api.get<PagedResponse<AppointmentDto>>(
         Endpoints.DOCTOR_APPOINTMENTS,
-        { params: { page, pageSize } },
+        { params: { 
+            page, 
+            pageSize,
+            filter: filterValue} },
       );
 
       all.push(...data.items);
