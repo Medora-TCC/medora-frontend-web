@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
-import { Chip } from "@heroui/react";
+import { Button, Chip, Modal, useOverlayState } from "@heroui/react";
 import {
   Mic,
   MicOff,
@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
 import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
+import AppointmentsService from "../../api/services/Appointments";
+import { errorMessage } from "../../api/errors";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
@@ -430,9 +432,39 @@ export default function SalaTeleConsulta() {
   }
 
   // ── Encerrar ─────────────────────────────────────────────────────────────
-  function encerrar() {
+  const encerrarModal = useOverlayState();
+  const [concluindo, setConcluindo] = useState(false);
+  const [erroEncerrar, setErroEncerrar] = useState<string | null>(null);
+
+  function sair() {
     localStream?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
     navigate(`../../consulta`);
+  }
+
+  function encerrar() {
+    // sem o id da consulta não dá para concluir, só sair
+    if (!state.appointmentId) {
+      sair();
+      return;
+    }
+    setErroEncerrar(null);
+    encerrarModal.open();
+  }
+
+  async function concluirESair() {
+    if (!state.appointmentId) return;
+
+    setConcluindo(true);
+    setErroEncerrar(null);
+    try {
+      await AppointmentsService.changeAppointmentStatus(state.appointmentId, "Completed");
+      sair();
+    } catch (e) {
+      setErroEncerrar(errorMessage(e, "Erro ao concluir a consulta."));
+    } finally {
+      setConcluindo(false);
+    }
   }
 
   // Define a classe de posicionamento baseada no painel ativo
@@ -654,6 +686,33 @@ export default function SalaTeleConsulta() {
           </div>
         )}
       </div>
+
+      <Modal isOpen={encerrarModal.isOpen} onOpenChange={encerrarModal.setOpen}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="bg-surface">
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading className="text-lg font-semibold text-text-primary">Encerrar teleconsulta</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className="space-y-3">
+                <p className="text-sm text-text-secondary">
+                  Concluir a consulta marca o atendimento como realizado. Se só precisa sair e voltar depois, saia sem concluir.
+                </p>
+                {erroEncerrar && <p className="text-sm text-danger">{erroEncerrar}</p>}
+              </Modal.Body>
+              <Modal.Footer className="flex gap-2">
+                <Button variant="secondary" className="w-full" isDisabled={concluindo} onPress={sair}>
+                  Sair sem concluir
+                </Button>
+                <Button variant="primary" className="w-full" isDisabled={concluindo} onPress={concluirESair}>
+                  {concluindo ? "Concluindo…" : "Concluir e sair"}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </div>
   );
 }
