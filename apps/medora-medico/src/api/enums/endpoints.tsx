@@ -4,6 +4,9 @@ export const Endpoints = {
     FORGOT_PWD: '/auth/forgot-password',
     RESET_PWD: '/auth/reset-password',
     LOGOUT: '/auth/logout',
+  
+    VERIFY_EMAIL: '/mfa/config/authenticator/verify-email',
+    RESEND_EMAIL_VERIFICATION: '/mfa/config/authenticator/resend-email',
 
     INIT_MFA: '/mfa/',
     VERIFY_AUTH_CODE: '/mfa/auth/verify',
@@ -19,10 +22,17 @@ export const Endpoints = {
     RECURRING_SCHEDULE: '/doctors/availability/recurring',
     SPECIFIC_AVAILABILITY: '/doctors/availability/specific',
     SCHEDULE_BLOCKS: '/doctors/availability/blocks',
-    VERIFY_EMAIL: '/mfa/config/authenticator/verify-email',
-    RESEND_EMAIL_VERIFICATION: '/mfa/config/authenticator/resend-email',    
+    
     GET_DOCTOR_RQES: '/v1/Doctor/me/rqes',
     UPDATE_RQE_PRIORITIES: `/v1/Doctor/me/rqes/priorities`,
 
     DOCTOR_APPOINTMENTS: "/appointments/doctor/me",
+    UPDATE_RQE_PRIORITIES: '/v1/Doctor/me/rqes/priorities',
+    GET_DASHBOARD_DOCTOR: '/v1/Doctor/me/dashboard',
+    GET_WEEK_FLOW: '/v1/Doctor/me/dashboard/weekly-flow',
+    DOCTOR_APPOINTMENTS: '/appointments/doctor/me',
+
+    MEDICAL_RECORD_BY_APPOINTMENT: (appointmentId: number) => `/appointments/${appointmentId}/medical-record`,
+    FINALIZE_MEDICAL_RECORD: (id: number) => `/medical-records/${id}/finalize`,
+    MEDICAL_RECORD_PDF: (id: number) => `/medical-records/${id}/pdf`,
 } as const;

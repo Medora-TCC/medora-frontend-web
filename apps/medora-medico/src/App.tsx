@@ -45,6 +45,7 @@ function App() {
                   <Route path="consulta" element={<ConsultaScreen />} />
                   <Route path="" element={<Dashboard />} />
                   <Route path="prontuario" element={<MedicalRecordPage />} />
+                  <Route path="prontuario/:appointmentId" element={<MedicalRecordPage />} />
                   <Route path="prescricao" element={<PrescriptionPage />} />
                   <Route path="assinatura" element={<SignaturePage />} />
                   <Route path="perfil" element={<ProfessionalProfilePage />} />
