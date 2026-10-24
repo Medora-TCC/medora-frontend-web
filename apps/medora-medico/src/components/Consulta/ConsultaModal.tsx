@@ -265,7 +265,10 @@ export default function ConsultaModal({
                       variant="danger"
                     />
                   )}
-                  <EnterReceitaButton />
+                  <EnterReceitaButton
+                    appointmentId={currentConsulta?.id}
+                    state={{ patientName: currentConsulta?.patientNome }}
+                  />
                   <EnterMedicalRecordButton
                     appointmentId={currentConsulta?.id}
                     state={{ patientName: currentConsulta?.patientNome }}
