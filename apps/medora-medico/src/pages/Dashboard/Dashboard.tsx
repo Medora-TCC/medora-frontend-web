@@ -95,8 +95,9 @@ export default function Dashboard() {
     now.getTime() < new Date(tele.endDateTime).getTime();
 
   const openAppointment = (appointment: UpcomingAppointmentDto) => {
-    if (appointment.type === "Online" && appointment.meetingCode) {
-      navigate(`teleconsulta/${appointment.meetingCode}/pre-sala`, {
+    // só teleconsulta confirmada abre a sala; as outras vão para o prontuário
+    if (appointment.type === "Online" && appointment.status === "Confirmed") {
+      navigate(`teleconsulta/${appointment.id}/pre-sala`, {
         state: { appointmentId: appointment.id, patientName: appointment.patientName },
       });
       return;
@@ -191,7 +192,7 @@ export default function Dashboard() {
                 <p className="text-xs opacity-90 mb-2.5">
                   Inicie sua sala virtual para receber o paciente <span className="font-bold">{tele.patientName}</span> às {formatTime(tele.startDateTime)}.
                 </p>
-                <Button size="sm" className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs" onPress={() => navigate(`teleconsulta/${tele.meetingCode}/pre-sala`, { state: { appointmentId: tele.appointmentId, patientName: tele.patientName } })}>
+                <Button size="sm" className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs" onPress={() => navigate(`teleconsulta/${tele.appointmentId}/pre-sala`, { state: { appointmentId: tele.appointmentId, patientName: tele.patientName } })}>
                   Abrir Sala Virtual
                 </Button>
               </div>
@@ -265,6 +266,7 @@ interface CompactPatientItemProps {
 function CompactPatientItem({ appointment, onAction }: CompactPatientItemProps) {
   const isOnline = appointment.type === "Online";
   const isWaiting = appointment.status === "Scheduled";
+  const canAttend = isOnline && appointment.status === "Confirmed";
 
   return (
     <div className="flex items-center justify-between py-2 px-3 hover:bg-surface/50 transition-colors">
@@ -286,8 +288,8 @@ function CompactPatientItem({ appointment, onAction }: CompactPatientItemProps) 
         }`}>
           {appointmentStatusLabel[appointment.status]}
         </span>
-        <Button size="sm" variant={isOnline ? "secondary" : "primary"} onPress={onAction} className="flex items-center gap-1 h-8 text-xs px-3 font-medium">
-          {isOnline ? "Atender" : "Prontuário"}
+        <Button size="sm" variant={canAttend ? "secondary" : "primary"} onPress={onAction} className="flex items-center gap-1 h-8 text-xs px-3 font-medium">
+          {canAttend ? "Atender" : "Prontuário"}
           <ArrowUpRight size={13} />
         </Button>
       </div>

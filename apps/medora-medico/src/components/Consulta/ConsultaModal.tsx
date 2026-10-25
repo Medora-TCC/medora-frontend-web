@@ -19,8 +19,11 @@ import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { canEnter } from "../../pages/ConsultaScreen/ConsultaHelpers";
 import EnterReceitaButton from "../Receita/EnterReceitaButton";
 import EnterMedicalRecordButton from "../Prontuario/EnterMedicalRecordButton";
-import AppointmentsService from "../../api/services/Appointments";
+import AppointmentsService, { canDoctorCancel } from "../../api/services/Appointments";
 import { errorMessage } from "../../api/errors";
+
+// Mesmas regras do domínio (Appointment.cs): estes status ainda podem ser cancelados
+const CANCELAVEIS = ["agendado", "confirmado", "esperando_pagamento", "esperando_confirmacao"];
 
 type DoctorAction = "confirm" | "reject" | "complete" | "absent";
 
@@ -35,7 +38,7 @@ interface ConsultaModalProps {
   appointment: IConsultaDetailed | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Chamado depois que o médico confirma, recusa, conclui ou registra falta. */
+  /** Chamado depois que o médico confirma, recusa, conclui, registra falta ou cancela. */
   onChanged?: () => void;
 }
 
@@ -85,8 +88,8 @@ export default function ConsultaModal({
     setActionError(null);
     try {
       const id = currentConsulta.id;
-      if (action === "confirm") await AppointmentsService.confirmAppointment(id);
-      if (action === "reject") await AppointmentsService.rejectAppointment(id);
+      if (action === "confirm") await AppointmentsService.confirmTeleconsultation(id);
+      if (action === "reject") await AppointmentsService.rejectTeleconsultation(id);
       if (action === "complete") await AppointmentsService.changeAppointmentStatus(id, "Completed");
       if (action === "absent") await AppointmentsService.changeAppointmentStatus(id, "Absent");
       onChanged?.();
@@ -106,6 +109,28 @@ export default function ConsultaModal({
   // calculado ao abrir: Date.now() não pode ser chamado durante a renderização
   const [hasStarted, setHasStarted] = useState(false);
 
+  const [cancelando, setCancelando] = useState(false);
+
+  const podeCancelar = !!currentConsulta
+    && CANCELAVEIS.includes(currentConsulta.status)
+    && canDoctorCancel(currentConsulta.startDateTime);
+
+  async function cancelar() {
+    if (!currentConsulta) return;
+
+    setCancelando(true);
+    setError(null);
+    try {
+      await AppointmentsService.changeAppointmentStatus(currentConsulta.id, "Canceled");
+      onOpenChange(false);
+      onChanged?.();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Erro ao cancelar a consulta.");
+    } finally {
+      setCancelando(false);
+    }
+  }
+
   useEffect(() => {
     if (!appointment || !isOpen) return;
 
@@ -116,7 +141,7 @@ export default function ConsultaModal({
       setCurrentConsulta(appointment);
       setIsJoinable(canEnter(appointment))
       setHasStarted(new Date(appointment.startDateTime).getTime() <= Date.now());
-    } catch (error) {
+    } catch {
       setError("Não foi possível carregar as informações da consulta")
     }
     finally {
@@ -124,7 +149,7 @@ export default function ConsultaModal({
     }
   }, [appointment, isOpen]);
 
-  const formatDate = (isoString: any) => {
+  const formatDate = (isoString: string) => {
     return new Date(isoString).toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
@@ -285,14 +310,19 @@ export default function ConsultaModal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <ModalConfirmacao
-                    onConfirm={() => {currentConsulta!.status = "cancelado"}}
-                    disabled={currentConsulta?.status == "finalizado" || currentConsulta?.status == "cancelado"}
-                    texto={"Deseja realmente cancelar esta consulta?"}
-                    textoBotao={"Cancelar consulta"}
-                    variant="danger"
+                  {podeCancelar && (
+                    <ModalConfirmacao
+                      onConfirm={cancelar}
+                      disabled={cancelando}
+                      texto={"Deseja realmente cancelar esta consulta? O pagamento do paciente será estornado."}
+                      textoBotao={"Cancelar consulta"}
+                      variant="danger"
+                    />
+                  )}
+                  <EnterReceitaButton
+                    appointmentId={currentConsulta?.id}
+                    state={{ patientName: currentConsulta?.patientNome }}
                   />
-                  <EnterReceitaButton />
                   <EnterMedicalRecordButton
                     appointmentId={currentConsulta?.id}
                     state={{ patientName: currentConsulta?.patientNome }}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
-import { Chip } from "@heroui/react";
+import { Button, Chip, Modal, useOverlayState } from "@heroui/react";
 import {
   Mic,
   MicOff,
@@ -20,7 +20,9 @@ import {
   FileUser,
 } from "lucide-react";
 import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
-import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
+import { PrescricaoDaConsulta } from "../PrescriptionPage/PrescriptionPage";
+import AppointmentsService from "../../api/services/Appointments";
+import { errorMessage } from "../../api/errors";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LocationState {
@@ -260,6 +262,7 @@ export default function SalaTeleConsulta() {
 
   // Streams
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
 
   // Controles
   const [camOn, setCamOn] = useState(state.camOn ?? true);
@@ -328,10 +331,14 @@ export default function SalaTeleConsulta() {
     };
   }, []);
 
-  // Cleanup ao desmontar
+  // Cleanup ao desmontar (inclusive pelo voltar do navegador)
   useEffect(() => {
     return () => { localStream?.getTracks().forEach((t) => t.stop()); };
   }, [localStream]);
+
+  useEffect(() => {
+    return () => { screenStreamRef.current?.getTracks().forEach((t) => t.stop()); };
+  }, []);
 
   // ── Toggle câmera ────────────────────────────────────────────────────────
   function toggleCam() {
@@ -354,11 +361,19 @@ export default function SalaTeleConsulta() {
   // ── Compartilhar tela ────────────────────────────────────────────────────
   async function toggleScreenShare() {
     if (screenSharing) {
+      screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+      screenStreamRef.current = null;
       setScreenSharing(false);
       return;
     }
     try {
-      await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const screen = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      screenStreamRef.current = screen;
+      // "Parar compartilhamento" na barra do navegador encerra a track sem passar pelo botão
+      screen.getVideoTracks()[0]?.addEventListener("ended", () => {
+        screenStreamRef.current = null;
+        setScreenSharing(false);
+      });
       setScreenSharing(true);
     } catch {
       // usuário cancelou
@@ -417,9 +432,39 @@ export default function SalaTeleConsulta() {
   }
 
   // ── Encerrar ─────────────────────────────────────────────────────────────
-  function encerrar() {
+  const encerrarModal = useOverlayState();
+  const [concluindo, setConcluindo] = useState(false);
+  const [erroEncerrar, setErroEncerrar] = useState<string | null>(null);
+
+  function sair() {
     localStream?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
     navigate(`../../consulta`);
+  }
+
+  function encerrar() {
+    // sem o id da consulta não dá para concluir, só sair
+    if (!state.appointmentId) {
+      sair();
+      return;
+    }
+    setErroEncerrar(null);
+    encerrarModal.open();
+  }
+
+  async function concluirESair() {
+    if (!state.appointmentId) return;
+
+    setConcluindo(true);
+    setErroEncerrar(null);
+    try {
+      await AppointmentsService.changeAppointmentStatus(state.appointmentId, "Completed");
+      sair();
+    } catch (e) {
+      setErroEncerrar(errorMessage(e, "Erro ao concluir a consulta."));
+    } finally {
+      setConcluindo(false);
+    }
   }
 
   // Define a classe de posicionamento baseada no painel ativo
@@ -634,13 +679,46 @@ export default function SalaTeleConsulta() {
         )}
         {sidePanel === "receita" && (
           <div className="h-full border-r-2 border-ring flex justify-center items-center bg-surface-overlay">
-            <PrescricaoWizard
-              onConcluir={(rascunho) => console.log(rascunho)}
-              onCancelar={() => { }}
-            />
+            {state.appointmentId ? (
+              <PrescricaoDaConsulta
+                appointmentId={state.appointmentId}
+                patientName={state.patientName}
+                onAbrirProntuario={() => setSidePanel("prontuario")}
+                onCancelar={() => setSidePanel(null)}
+              />
+            ) : (
+              <p className="p-6 text-text-secondary">Abra a teleconsulta pelo painel para emitir a receita.</p>
+            )}
           </div>
         )}
       </div>
+
+      <Modal isOpen={encerrarModal.isOpen} onOpenChange={encerrarModal.setOpen}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="bg-surface">
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading className="text-lg font-semibold text-text-primary">Encerrar teleconsulta</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className="space-y-3">
+                <p className="text-sm text-text-secondary">
+                  Concluir a consulta marca o atendimento como realizado. Se só precisa sair e voltar depois, saia sem concluir.
+                </p>
+                {erroEncerrar && <p className="text-sm text-danger">{erroEncerrar}</p>}
+              </Modal.Body>
+              <Modal.Footer className="flex gap-2">
+                <Button variant="secondary" className="w-full" isDisabled={concluindo} onPress={sair}>
+                  Sair sem concluir
+                </Button>
+                <Button variant="primary" className="w-full" isDisabled={concluindo} onPress={concluirESair}>
+                  {concluindo ? "Concluindo…" : "Concluir e sair"}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </div>
   );
 }

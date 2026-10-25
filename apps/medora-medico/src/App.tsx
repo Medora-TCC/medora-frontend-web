@@ -47,6 +47,7 @@ function App() {
                   <Route path="prontuario" element={<MedicalRecordPage />} />
                   <Route path="prontuario/:appointmentId" element={<MedicalRecordPage />} />
                   <Route path="prescricao" element={<PrescriptionPage />} />
+                  <Route path="prescricao/:appointmentId" element={<PrescriptionPage />} />
                   <Route path="assinatura" element={<SignaturePage />} />
                   <Route path="perfil" element={<ProfessionalProfilePage />} />
                   <Route path="financeiro" element={<FinancialManagement />} />

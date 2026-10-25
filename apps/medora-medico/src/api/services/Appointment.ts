@@ -1,8 +1,8 @@
 import { isAxiosError } from "axios";
 import {
+  statusMapByCode,
+  typeMapByCode,
   type IConsultaDetailed,
-  type StatusConsulta,
-  type TypeConsulta,
 } from "@medora_web/shared";
 
 import { api } from "../services/api";
@@ -15,7 +15,6 @@ interface AppointmentDto {
   startDateTime: string;
   endDateTime: string;
   localStartDateTime: string;
-  // a API serializa os enums como texto ("Confirmed", "Online")
   status: string;
   type: string;
   timeZoneId: string;
@@ -42,26 +41,9 @@ export type DoctorAppointmentsApiFilter =
   | "ToComplete"
   | "Upcoming";
 
-const statusByApi: Record<string, StatusConsulta> = {
-  Scheduled: "agendado",
-  AwaitingPayment: "esperando_pagamento",
-  AwaitingConfirmation: "esperando_confirmacao",
-  Confirmed: "confirmado",
-  InProgress: "em_atendimento",
-  Completed: "finalizado",
-  Canceled: "cancelado",
-  Absent: "ausente",
-  // precisa de novo horário: na lista aparece como agendada
-  RescheduleNeeded: "agendado",
-};
-
-const typeByApi: Record<string, TypeConsulta> = {
-  InPerson: "presencial",
-  Online: "teleconsulta",
-};
 
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
-  const type = typeByApi[a.type] ?? "outro";
+  const type = typeMapByCode[a.type] ?? "outro";
 
   return {
     id: a.appointmentId,
@@ -70,7 +52,7 @@ function toConsulta(a: AppointmentDto): IConsultaDetailed {
     startDateTime: a.startDateTime,
     endDateTime: a.endDateTime,
     locationAdress: type === "teleconsulta" ? "Sala Virtual" : "", // a API não retorna endereço
-    status: statusByApi[a.status] ?? "agendado",
+    status: statusMapByCode[a.status] ?? "agendado",
     type,
     meetingUrl: a.meetingUrl ?? undefined, // API manda null, o tipo espera undefined
     platform: a.platform ?? DEFAULT_PLATFORM,

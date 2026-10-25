@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  Settings, Video, User, Clock, Loader2, Building2, Monitor, RefreshCw, CalendarDays, ExternalLink,
+  Settings, Video, User, Clock, Loader2, Building2, Monitor, RefreshCw, CalendarDays,
 } from 'lucide-react';
 import { Card, Button, toast, ToastProvider } from '@heroui/react';
-import type { AvailabilitySlotType } from '@medora_web/shared';
+import { ModalConfirmacao, type AvailabilitySlotType } from '@medora_web/shared';
 import AppointmentsService, {
+  canDoctorCancel,
   type AppointmentStatus,
+  type AppointmentStatusChange,
   type DoctorAppointment,
   type DoctorAppointmentsFilter,
 } from '../../api/services/Appointments';
@@ -71,6 +73,88 @@ const dayHeading = (ddmmyyyy: string) => {
     .toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short' });
 };
 
+// Mesmas regras de transição do domínio (Appointment.cs)
+const OPEN: AppointmentStatus[] = ['Scheduled', 'Confirmed'];
+// Só dá para entrar na sala de uma teleconsulta já confirmada (paga e aceita pelo médico)
+const ROOM_OPEN: AppointmentStatus[] = ['Confirmed', 'InProgress'];
+const CANCELABLE: AppointmentStatus[] = ['Scheduled', 'Confirmed', 'AwaitingPayment', 'AwaitingConfirmation'];
+
+function AppointmentActions({ appointment, onChanged }: { appointment: DoctorAppointment; onChanged: () => void }) {
+  const [isSaving, setIsSaving] = useState(false);
+  const { appointmentId, status } = appointment;
+
+  const run = async (action: () => Promise<void>, success: string) => {
+    setIsSaving(true);
+    try {
+      await action();
+      toast.success(success);
+      onChanged();
+    } catch (err) {
+      toast.danger(errorMessage(err, 'Erro ao atualizar a consulta.'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const changeStatus = (change: AppointmentStatusChange, success: string) =>
+    run(() => AppointmentsService.changeAppointmentStatus(appointmentId, change), success);
+
+  const awaitingConfirmation = appointment.type === 'Online' && status === 'AwaitingConfirmation';
+  const cancelable = CANCELABLE.includes(status) && canDoctorCancel(appointment.startDateTime);
+
+  if (!awaitingConfirmation && !OPEN.includes(status) && !cancelable) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2 pt-1">
+      {awaitingConfirmation && (
+        <>
+          <Button size="sm" variant="primary" isDisabled={isSaving}
+            onPress={() => run(() => AppointmentsService.confirmTeleconsultation(appointmentId), 'Teleconsulta confirmada.')}>
+            Confirmar teleconsulta
+          </Button>
+          <ModalConfirmacao
+            onConfirm={() => run(() => AppointmentsService.rejectTeleconsultation(appointmentId), 'Teleconsulta recusada.')}
+            disabled={isSaving}
+            texto="Recusar esta teleconsulta? A reserva do pagamento será liberada sem cobrança."
+            textoBotao="Recusar"
+            variant="danger"
+          />
+        </>
+      )}
+      {status === 'Scheduled' && (
+        <Button size="sm" variant="primary" isDisabled={isSaving}
+          onPress={() => changeStatus('Confirmed', 'Consulta confirmada.')}>
+          Confirmar
+        </Button>
+      )}
+      {OPEN.includes(status) && (
+        <>
+          <Button size="sm" variant="secondary" isDisabled={isSaving}
+            onPress={() => changeStatus('Completed', 'Consulta concluída.')}>
+            Concluir
+          </Button>
+          <ModalConfirmacao
+            onConfirm={() => changeStatus('Absent', 'Ausência registrada.')}
+            disabled={isSaving}
+            texto="Registrar que o paciente faltou?"
+            textoBotao="Paciente faltou"
+            variant="danger"
+          />
+        </>
+      )}
+      {cancelable && (
+        <ModalConfirmacao
+          onConfirm={() => changeStatus('Canceled', 'Consulta cancelada.')}
+          disabled={isSaving}
+          texto="Cancelar esta consulta? O pagamento do paciente será estornado."
+          textoBotao="Cancelar consulta"
+          variant="danger"
+        />
+      )}
+    </div>
+  );
+}
+
 function groupByDay(appointments: DoctorAppointment[]) {
   const groups = new Map<string, DoctorAppointment[]>();
   for (const appointment of appointments) {
@@ -87,19 +171,20 @@ export function AvailabilityHistorical() {
   const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
   const [isLoading, setIsLoading]       = useState(false);
   const [activeId, setActiveId]         = useState<number | null>(null);
+  const [reloadKey, setReloadKey]       = useState(0);
 
   useEffect(() => {
     let active = true;
 
     const load = async () => {
       setIsLoading(true);
-      setAppointments([]);
-      setActiveId(null);
       try {
         const res = await AppointmentsService.getDoctorAppointments(filter);
         if (active) {
           setAppointments(res);
-          setActiveId(res[0]?.appointmentId ?? null);
+          // depois de uma ação, mantém a consulta selecionada
+          setActiveId((current) =>
+            res.some((a) => a.appointmentId === current) ? current : res[0]?.appointmentId ?? null);
         }
       } catch (err) {
         if (active) toast.danger(errorMessage(err, 'Erro ao carregar as consultas.'));
@@ -110,7 +195,7 @@ export function AvailabilityHistorical() {
 
     load();
     return () => { active = false; };
-  }, [filter]);
+  }, [filter, reloadKey]);
 
   const activeAppointment = appointments.find((a) => a.appointmentId === activeId) ?? null;
   const activeCfg = TYPE_CFG[activeAppointment?.type ?? 'InPerson'];
@@ -131,7 +216,7 @@ export function AvailabilityHistorical() {
             {FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setFilter(f.value)}
+                onClick={() => { setAppointments([]); setActiveId(null); setFilter(f.value); }}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors
                   ${filter === f.value ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-alt'}`}
               >
@@ -254,17 +339,22 @@ export function AvailabilityHistorical() {
                       </span>
                     </div>
 
-                    {activeAppointment.meetingUrl && (
-                      <a
-                        href={activeAppointment.meetingUrl}
-                        target="_blank"
-                        rel="noreferrer"
+                    {activeAppointment.type === 'Online' && ROOM_OPEN.includes(activeAppointment.status) && (
+                      <button
+                        onClick={() => navigate(`/medico/teleconsulta/${activeAppointment.appointmentId}/pre-sala`, {
+                          state: { appointmentId: activeAppointment.appointmentId, patientName: activeAppointment.patientName },
+                        })}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover"
                       >
-                        <ExternalLink size={14} />
-                        Abrir sala {activeAppointment.platform ? `(${activeAppointment.platform})` : ''}
-                      </a>
+                        <Video size={14} />
+                        Entrar na sala
+                      </button>
                     )}
+
+                    <AppointmentActions
+                      appointment={activeAppointment}
+                      onChanged={() => setReloadKey((k) => k + 1)}
+                    />
                   </div>
                 </Card>
 

@@ -5,6 +5,16 @@ import { toDomainError } from '../errors';
 
 export type DoctorAppointmentsFilter = 'Today' | 'Tomorrow' | 'Week' | 'PendingConfirmation' | 'ToComplete';
 
+// O backend só aceita cancelamento do médico com 72h de antecedência (ChangeAppointmentStatusUseCase)
+const DOCTOR_CANCEL_NOTICE_MS = 72 * 60 * 60 * 1000;
+
+export function canDoctorCancel(startDateTime: string): boolean {
+  return new Date(startDateTime).getTime() >= Date.now() + DOCTOR_CANCEL_NOTICE_MS;
+}
+
+/** Mudanças de status que o PATCH /appointments/{id}/status aceita */
+export type AppointmentStatusChange = 'Confirmed' | 'Completed' | 'Absent' | 'Canceled';
+
 export type AppointmentStatus =
   | 'Scheduled'
   | 'AwaitingPayment'
@@ -50,38 +60,37 @@ async function getDoctorAppointments(filter: DoctorAppointmentsFilter): Promise<
   }
 }
 
-/** Confirma a teleconsulta paga: o valor reservado no cartão do paciente é cobrado. */
-async function confirmAppointment(appointmentId: number): Promise<void> {
+async function changeAppointmentStatus(appointmentId: number, status: AppointmentStatusChange): Promise<void> {
   try {
-    await api.post(`/appointments/${appointmentId}/confirm`);
+    await api.patch(Endpoints.APPOINTMENT_STATUS(appointmentId), { status });
   } catch (error) {
-    throw toDomainError(error, 'Erro ao confirmar a consulta.');
+    throw toDomainError(error, 'Erro ao alterar o status da consulta.');
   }
 }
 
-/** Recusa a teleconsulta paga: a reserva no cartão do paciente é liberada, sem cobrança. */
-async function rejectAppointment(appointmentId: number): Promise<void> {
+/** Confirma uma teleconsulta paga e captura o valor reservado */
+async function confirmTeleconsultation(appointmentId: number): Promise<void> {
   try {
-    await api.post(`/appointments/${appointmentId}/reject`);
+    await api.post(Endpoints.CONFIRM_TELECONSULTATION(appointmentId));
   } catch (error) {
-    throw toDomainError(error, 'Erro ao recusar a consulta.');
+    throw toDomainError(error, 'Erro ao confirmar a teleconsulta.');
   }
 }
 
-/** Conclui a consulta ou registra que o paciente faltou (nesse caso o paciente é reembolsado). */
-async function changeAppointmentStatus(appointmentId: number, status: 'Completed' | 'Absent'): Promise<void> {
+/** Recusa uma teleconsulta paga e libera a reserva sem cobrar */
+async function rejectTeleconsultation(appointmentId: number): Promise<void> {
   try {
-    await api.patch(`/appointments/${appointmentId}/status`, { status });
+    await api.post(Endpoints.REJECT_TELECONSULTATION(appointmentId));
   } catch (error) {
-    throw toDomainError(error, 'Erro ao atualizar a consulta.');
+    throw toDomainError(error, 'Erro ao recusar a teleconsulta.');
   }
 }
 
 const AppointmentsService = {
   getDoctorAppointments,
-  confirmAppointment,
-  rejectAppointment,
   changeAppointmentStatus,
+  confirmTeleconsultation,
+  rejectTeleconsultation,
 };
 
 export default AppointmentsService;
