@@ -3,7 +3,7 @@ import { Endpoints } from '../enums/endpoints';
 import { api } from './api';
 import { toDomainError } from '../errors';
 
-export type DoctorAppointmentsFilter = 'Today' | 'Tomorrow' | 'Week';
+export type DoctorAppointmentsFilter = 'Today' | 'Tomorrow' | 'Week' | 'PendingConfirmation' | 'ToComplete';
 
 export type AppointmentStatus =
   | 'Scheduled'
@@ -50,8 +50,38 @@ async function getDoctorAppointments(filter: DoctorAppointmentsFilter): Promise<
   }
 }
 
+/** Confirma a teleconsulta paga: o valor reservado no cartão do paciente é cobrado. */
+async function confirmAppointment(appointmentId: number): Promise<void> {
+  try {
+    await api.post(`/appointments/${appointmentId}/confirm`);
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao confirmar a consulta.');
+  }
+}
+
+/** Recusa a teleconsulta paga: a reserva no cartão do paciente é liberada, sem cobrança. */
+async function rejectAppointment(appointmentId: number): Promise<void> {
+  try {
+    await api.post(`/appointments/${appointmentId}/reject`);
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao recusar a consulta.');
+  }
+}
+
+/** Conclui a consulta ou registra que o paciente faltou (nesse caso o paciente é reembolsado). */
+async function changeAppointmentStatus(appointmentId: number, status: 'Completed' | 'Absent'): Promise<void> {
+  try {
+    await api.patch(`/appointments/${appointmentId}/status`, { status });
+  } catch (error) {
+    throw toDomainError(error, 'Erro ao atualizar a consulta.');
+  }
+}
+
 const AppointmentsService = {
   getDoctorAppointments,
+  confirmAppointment,
+  rejectAppointment,
+  changeAppointmentStatus,
 };
 
 export default AppointmentsService;
