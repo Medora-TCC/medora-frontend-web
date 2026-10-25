@@ -103,6 +103,8 @@ export default function ConsultaModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isJoinable, setIsJoinable] = useState<boolean>(false);
+  // calculado ao abrir: Date.now() não pode ser chamado durante a renderização
+  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
     if (!appointment || !isOpen) return;
@@ -113,6 +115,7 @@ export default function ConsultaModal({
     try {
       setCurrentConsulta(appointment);
       setIsJoinable(canEnter(appointment))
+      setHasStarted(new Date(appointment.startDateTime).getTime() <= Date.now());
     } catch (error) {
       setError("Não foi possível carregar as informações da consulta")
     }
@@ -235,7 +238,7 @@ export default function ConsultaModal({
 
                     <DoctorActions
                       status={currentConsulta.status}
-                      startDateTime={currentConsulta.startDateTime}
+                      hasStarted={hasStarted}
                       disabled={acting}
                       error={actionError}
                       onAction={runAction}
@@ -312,21 +315,20 @@ export default function ConsultaModal({
 
 function DoctorActions({
   status,
-  startDateTime,
+  hasStarted,
   disabled,
   error,
   onAction,
 }: {
   status: IConsultaDetailed["status"];
-  startDateTime: string;
+  hasStarted: boolean;
   disabled: boolean;
   error: string | null;
   onAction: (action: DoctorAction) => void;
 }) {
   const awaiting = status === "esperando_confirmacao";
   // concluir ou registrar falta só depois do horário, em consulta ainda aberta
-  const started = new Date(startDateTime).getTime() <= Date.now();
-  const closable = started && ["agendado", "confirmado", "em_atendimento"].includes(status);
+  const closable = hasStarted && ["agendado", "confirmado", "em_atendimento"].includes(status);
 
   if (!awaiting && !closable) return null;
 

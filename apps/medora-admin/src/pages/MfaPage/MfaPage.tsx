@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { VerifyMfaScreen } from "@medora_web/shared";
 import { initMfa, verifyMfa } from "../../api/auth";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function MfaPage() {
   const navigate = useNavigate();

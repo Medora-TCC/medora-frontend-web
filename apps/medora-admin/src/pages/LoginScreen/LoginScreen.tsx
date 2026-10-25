@@ -4,7 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { login } from "../../api/auth";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function AdminLoginScreen() {
 
