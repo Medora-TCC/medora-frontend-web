@@ -24,10 +24,17 @@ export const Endpoints = {
     SCHEDULE_BLOCKS: '/doctors/availability/blocks',
     
     GET_DOCTOR_RQES: '/v1/Doctor/me/rqes',
+    UPDATE_RQE_PRIORITIES: `/v1/Doctor/me/rqes/priorities`,
+
+    DOCTOR_APPOINTMENTS: "/appointments/doctor/me",
     UPDATE_RQE_PRIORITIES: '/v1/Doctor/me/rqes/priorities',
     GET_DASHBOARD_DOCTOR: '/v1/Doctor/me/dashboard',
     GET_WEEK_FLOW: '/v1/Doctor/me/dashboard/weekly-flow',
     DOCTOR_APPOINTMENTS: '/appointments/doctor/me',
+
+    MEDICAL_RECORD_BY_APPOINTMENT: (appointmentId: number) => `/appointments/${appointmentId}/medical-record`,
+    FINALIZE_MEDICAL_RECORD: (id: number) => `/medical-records/${id}/finalize`,
+    MEDICAL_RECORD_PDF: (id: number) => `/medical-records/${id}/pdf`,
 
     MY_PAYOUTS: '/payouts/me',
     MY_PAYOUT_CLOSINGS: '/payouts/me/closings',
