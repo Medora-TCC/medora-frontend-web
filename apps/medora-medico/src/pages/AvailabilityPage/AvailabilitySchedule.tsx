@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Settings, Video, User, Clock, Loader2, Building2, Monitor, RefreshCw, CalendarDays, ExternalLink,
-  CheckCircle2, XCircle, UserX,
 } from 'lucide-react';
 import { Card, Button, toast, ToastProvider } from '@heroui/react';
 import type { AvailabilitySlotType } from '@medora_web/shared';
@@ -60,21 +59,7 @@ const FILTERS: { value: DoctorAppointmentsFilter; label: string }[] = [
   { value: 'Today',    label: 'Hoje' },
   { value: 'Tomorrow', label: 'Amanhã' },
   { value: 'Week',     label: 'Semana' },
-  { value: 'PendingConfirmation', label: 'Pendentes' },
-  { value: 'ToComplete',          label: 'A concluir' },
 ];
-
-// filtros que listam dias diferentes e por isso mostram o cabeçalho do dia
-const MULTI_DAY: DoctorAppointmentsFilter[] = ['Week', 'PendingConfirmation', 'ToComplete'];
-
-type AppointmentAction = 'confirm' | 'reject' | 'complete' | 'absent';
-
-const ACTION_CFG: Record<AppointmentAction, { confirm?: string; success: string }> = {
-  confirm:  { success: 'Consulta confirmada. O valor foi cobrado do paciente.' },
-  reject:   { confirm: 'Recusar esta consulta? A reserva no cartão do paciente será liberada, sem cobrança.', success: 'Consulta recusada. O paciente não foi cobrado.' },
-  complete: { success: 'Consulta concluída.' },
-  absent:   { confirm: 'Registrar que o paciente faltou? Se a consulta foi paga, o paciente é reembolsado.', success: 'Ausência registrada.' },
-};
 
 // localStartDateTime vem como "dd/MM/yyyy HH:mm" no fuso do médico
 const localDate = (a: DoctorAppointment) => a.localStartDateTime.slice(0, 10);
@@ -102,28 +87,6 @@ export function AvailabilityHistorical() {
   const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
   const [isLoading, setIsLoading]       = useState(false);
   const [activeId, setActiveId]         = useState<number | null>(null);
-  const [reloadKey, setReloadKey]       = useState(0);
-  const [acting, setActing]             = useState(false);
-
-  async function runAction(appointment: DoctorAppointment, action: AppointmentAction) {
-    const cfg = ACTION_CFG[action];
-    if (cfg.confirm && !window.confirm(cfg.confirm)) return;
-
-    setActing(true);
-    try {
-      const id = appointment.appointmentId;
-      if (action === 'confirm') await AppointmentsService.confirmAppointment(id);
-      if (action === 'reject') await AppointmentsService.rejectAppointment(id);
-      if (action === 'complete') await AppointmentsService.changeAppointmentStatus(id, 'Completed');
-      if (action === 'absent') await AppointmentsService.changeAppointmentStatus(id, 'Absent');
-      toast.success(cfg.success);
-      setReloadKey((key) => key + 1);
-    } catch (err) {
-      toast.danger(errorMessage(err, 'Não foi possível atualizar a consulta.'));
-    } finally {
-      setActing(false);
-    }
-  }
 
   useEffect(() => {
     let active = true;
@@ -147,7 +110,7 @@ export function AvailabilityHistorical() {
 
     load();
     return () => { active = false; };
-  }, [filter, reloadKey]);
+  }, [filter]);
 
   const activeAppointment = appointments.find((a) => a.appointmentId === activeId) ?? null;
   const activeCfg = TYPE_CFG[activeAppointment?.type ?? 'InPerson'];
@@ -213,7 +176,7 @@ export function AvailabilityHistorical() {
               ) : (
                 groupByDay(appointments).map(([day, dayAppointments]) => (
                   <div key={day}>
-                    {MULTI_DAY.includes(filter) && (
+                    {filter === 'Week' && (
                       <p className="px-4 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
                         {dayHeading(day)}
                       </p>
@@ -302,8 +265,6 @@ export function AvailabilityHistorical() {
                         Abrir sala {activeAppointment.platform ? `(${activeAppointment.platform})` : ''}
                       </a>
                     )}
-
-                    <AppointmentActions appointment={activeAppointment} disabled={acting} onAction={runAction} />
                   </div>
                 </Card>
 
@@ -314,57 +275,5 @@ export function AvailabilityHistorical() {
         </div>
       </div>
     </>
-  );
-}
-
-function AppointmentActions({
-  appointment,
-  disabled,
-  onAction,
-}: {
-  appointment: DoctorAppointment;
-  disabled: boolean;
-  onAction: (appointment: DoctorAppointment, action: AppointmentAction) => void;
-}) {
-  const started = new Date(appointment.startDateTime).getTime() <= Date.now();
-  const awaiting = appointment.status === 'AwaitingConfirmation';
-  // concluir ou registrar falta só depois do horário, em consulta ainda aberta
-  const closable = started && ['Scheduled', 'Confirmed', 'InProgress'].includes(appointment.status);
-
-  if (!awaiting && !closable) return null;
-
-  return (
-    <div className="pt-3 border-t border-border space-y-2">
-      {awaiting && (
-        <>
-          <p className="text-xs text-text-secondary">
-            O paciente já pagou. Ao confirmar, o valor é cobrado; ao recusar, a reserva é liberada sem cobrança.
-          </p>
-          <div className="flex gap-2">
-            <Button size="sm" className="flex items-center gap-1.5 bg-success text-white rounded-md" isDisabled={disabled}
-              onPress={() => onAction(appointment, 'confirm')}>
-              <CheckCircle2 size={15} /> Confirmar
-            </Button>
-            <Button size="sm" variant="outline" className="flex items-center gap-1.5 border-border text-danger-text rounded-md" isDisabled={disabled}
-              onPress={() => onAction(appointment, 'reject')}>
-              <XCircle size={15} /> Recusar
-            </Button>
-          </div>
-        </>
-      )}
-
-      {closable && (
-        <div className="flex gap-2">
-          <Button size="sm" className="flex items-center gap-1.5 bg-primary text-white rounded-md" isDisabled={disabled}
-            onPress={() => onAction(appointment, 'complete')}>
-            <CheckCircle2 size={15} /> Concluir consulta
-          </Button>
-          <Button size="sm" variant="outline" className="flex items-center gap-1.5 border-border text-text-secondary rounded-md" isDisabled={disabled}
-            onPress={() => onAction(appointment, 'absent')}>
-            <UserX size={15} /> Paciente faltou
-          </Button>
-        </div>
-      )}
-    </div>
   );
 }

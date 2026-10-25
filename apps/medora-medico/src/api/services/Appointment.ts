@@ -1,10 +1,8 @@
 import { isAxiosError } from "axios";
 import {
-  filterMapByCode,
-  statusMapByCode,
-  typeMapByCode,
-  type FiltroConsulta,
   type IConsultaDetailed,
+  type StatusConsulta,
+  type TypeConsulta,
 } from "@medora_web/shared";
 
 import { api } from "../services/api";
@@ -17,8 +15,9 @@ interface AppointmentDto {
   startDateTime: string;
   endDateTime: string;
   localStartDateTime: string;
-  status: number;
-  type: number;
+  // a API serializa os enums como texto ("Confirmed", "Online")
+  status: string;
+  type: string;
   timeZoneId: string;
   meetingUrl: string | null;
   platform: string | null;
@@ -34,8 +33,35 @@ interface PagedResponse<T> {
 
 const DEFAULT_PLATFORM = "Medora";
 
+/** Filtros do GET /appointments/doctor/me (enum DoctorAppointmentsFilter do backend). */
+export type DoctorAppointmentsApiFilter =
+  | "Today"
+  | "Tomorrow"
+  | "Week"
+  | "PendingConfirmation"
+  | "ToComplete"
+  | "Upcoming";
+
+const statusByApi: Record<string, StatusConsulta> = {
+  Scheduled: "agendado",
+  AwaitingPayment: "esperando_pagamento",
+  AwaitingConfirmation: "esperando_confirmacao",
+  Confirmed: "confirmado",
+  InProgress: "em_atendimento",
+  Completed: "finalizado",
+  Canceled: "cancelado",
+  Absent: "ausente",
+  // precisa de novo horário: na lista aparece como agendada
+  RescheduleNeeded: "agendado",
+};
+
+const typeByApi: Record<string, TypeConsulta> = {
+  InPerson: "presencial",
+  Online: "teleconsulta",
+};
+
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
-  const type = typeMapByCode[a.type] ?? "outro";
+  const type = typeByApi[a.type] ?? "outro";
 
   return {
     id: a.appointmentId,
@@ -44,7 +70,7 @@ function toConsulta(a: AppointmentDto): IConsultaDetailed {
     startDateTime: a.startDateTime,
     endDateTime: a.endDateTime,
     locationAdress: type === "teleconsulta" ? "Sala Virtual" : "", // a API não retorna endereço
-    status: statusMapByCode[a.status] ?? "agendado",
+    status: statusByApi[a.status] ?? "agendado",
     type,
     meetingUrl: a.meetingUrl ?? undefined, // API manda null, o tipo espera undefined
     platform: a.platform ?? DEFAULT_PLATFORM,
@@ -73,12 +99,12 @@ function toFriendlyError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-export async function fetchConsultas(filtro: FiltroConsulta): Promise<IConsultaDetailed[]> {
+export async function fetchConsultas(filter: DoctorAppointmentsApiFilter): Promise<IConsultaDetailed[]> {
   try {
     const all: AppointmentDto[] = [];
     const pageSize = 100;
     let page = 1;
-    const filterValue = filterMapByCode[filtro]
+    const filterValue = filter;
 
     while (true) {
       const { data } = await api.get<PagedResponse<AppointmentDto>>(
