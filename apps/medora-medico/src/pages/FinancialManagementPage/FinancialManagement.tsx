@@ -1,27 +1,68 @@
+import { useEffect, useState } from "react";
 import { useOverlayState } from "@heroui/react";
 import {
   Wallet,
   TrendingUp,
-  Users,
+  Lock,
   Building2,
   CheckCircle2,
   Clock,
   ArrowDownRight,
+  MinusCircle,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
 } from "lucide-react";
-import { BankAccountModal } from "./BankModal"; 
+import { BankAccountModal } from "./BankModal";
+import { getMyPayoutClosing, getMyPayoutStatement } from "../../api/services/PayoutService";
+import { errorMessage } from "../../api/errors";
+import type {
+  PayoutClosingDetailDto,
+  PayoutClosingStatus,
+  PayoutClosingSummaryDto,
+  PayoutLineStatus,
+  PayoutStatementDto,
+  PayoutStatementLineDto,
+} from "../../api/dtos/Payouts/PayoutDto";
 
+const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const formatMoney = (value: number) => currency.format(value);
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
+const formatMonth = (isoDate: string) => {
+  const [year, month] = isoDate.split("-").map(Number);
+  const label = new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+};
 
-const transactions = [
-  { id: "1", patient: "Carlos Mendes",  date: "18/06/2026", value: 280, status: "Confirmado" },
-  { id: "2", patient: "Mariana Costa",  date: "17/06/2026", value: 350, status: "Confirmado" },
-  { id: "3", patient: "Arnaldo Vieira", date: "17/06/2026", value: 280, status: "Pendente"   },
-  { id: "4", patient: "Julia Mattos",   date: "16/06/2026", value: 420, status: "Confirmado" },
-  { id: "5", patient: "Ricardo Souza",  date: "15/06/2026", value: 280, status: "Pendente"   },
-];
+const lineStatus: Record<PayoutLineStatus, { label: string; color: string; bg: string; border: string }> = {
+  ToReceive: { label: "Aguardando conclusão", color: "#3B82F6", bg: "#EFF6FF", border: "#BFDBFE" },
+  Eligible:  { label: "Próximo repasse",      color: "#8B5CF6", bg: "#F5F3FF", border: "#DDD6FE" },
+  Held:      { label: "Retido",               color: "#F97316", bg: "#FFF7ED", border: "#FED7AA" },
+  InClosing: { label: "Em fechamento",        color: "#0EA5E9", bg: "#F0F9FF", border: "#BAE6FD" },
+  Paid:      { label: "Pago",                 color: "#059669", bg: "#ECFDF5", border: "#D1FAE5" },
+  Canceled:  { label: "Estornado",            color: "#6B7280", bg: "#F3F4F6", border: "#E5E7EB" },
+};
 
+const closingStatus: Record<PayoutClosingStatus, string> = {
+  PendingApproval: "Em análise",
+  Approved: "Aprovado",
+  Paid: "Pago",
+};
 
 export default function FinancialManagement() {
   const modal = useOverlayState({ defaultOpen: false });
+  const [statement, setStatement] = useState<PayoutStatementDto | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getMyPayoutStatement()
+      .then(setStatement)
+      .catch((e) => setError(errorMessage(e, "Erro ao carregar seus ganhos.")));
+  }, []);
+
+  const toReceive = statement
+    ? statement.toReceiveAmount + statement.eligibleAmount + statement.inClosingAmount
+    : 0;
 
   return (
     <div className="min-h-screen bg-surface font-[Inter,system-ui,sans-serif]">
@@ -32,6 +73,9 @@ export default function FinancialManagement() {
             <h1 className="m-0 text-[22px] font-bold text-text-primary">
               Gestão Financeira
             </h1>
+            <p className="mt-1 mb-0 text-xs text-text-secondary">
+              Repasses das teleconsultas, fechados mensalmente até o 5º dia útil do mês seguinte.
+            </p>
           </div>
 
           <div className="flex gap-2 items-center">
@@ -42,63 +86,77 @@ export default function FinancialManagement() {
               <Building2 size={15} />
               Vincular Conta Bancária
             </button>
-
           </div>
         </header>
 
-        <div className="grid gap-3 mb-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-          <StatBox
-            icon={<Wallet size={20} color="#10B981" />}
-            label="Saldo Recebido"
-            value="R$ 1.230,00"
-            subtext="Esse mês"
-            iconBg="#ECFDF5"
-            iconBorder="#D1FAE5"
-          />
-          <StatBox
-            icon={<TrendingUp size={20} color="#3B82F6" />}
-            label="Total a Receber"
-            value="R$ 1.610,00"
-            subtext="Próximos 30 dias"
-            iconBg="#EFF6FF"
-            iconBorder="#BFDBFE"
-          />
-          <StatBox
-            icon={<Users size={20} color="#8B5CF6" />}
-            label="Consultas Realizadas"
-            value="42"
-            subtext="Neste mês"
-            iconBg="#F5F3FF"
-            iconBorder="#DDD6FE"
-          />
-        </div>
+        {error && (
+          <p className="mb-4 px-4 py-3 rounded-lg text-[13px] bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]">
+            {error}
+          </p>
+        )}
 
-        <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "1fr" }}>
+        {!statement && !error && (
+          <div className="flex items-center gap-2 text-text-secondary text-[13px]">
+            <Loader2 size={16} className="animate-spin" /> Carregando seus ganhos…
+          </div>
+        )}
 
-          <div className="bg-surface-alt rounded-xl border border-ring overflow-hidden shadow-sm">
-            <div className="px-4 py-3.5 border-b border-ring flex justify-between items-center">
-              <div>
-                <p className="m-0 text-[15px] font-bold text-text-primary">
-                  Histórico de Transações
-                </p>
-                <p className="mt-0.5 mb-0 text-xs text-text-secondary">
-                  Últimos recebimentos de consultas
-                </p>
-              </div>
-              <button className="bg-transparent border-none text-accent text-xs font-semibold cursor-pointer px-2 py-1 rounded-md hover:bg-surface-alt transition-colors">
-                Ver todas
-              </button>
+        {statement && (
+          <>
+            <div className="grid gap-3 mb-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+              <StatBox
+                icon={<Wallet size={20} color="#10B981" />}
+                label="Total Recebido"
+                value={formatMoney(statement.paidAmount)}
+                subtext="Repasses já pagos"
+                iconBg="#ECFDF5"
+                iconBorder="#D1FAE5"
+              />
+              <StatBox
+                icon={<TrendingUp size={20} color="#3B82F6" />}
+                label="A Receber"
+                value={formatMoney(toReceive)}
+                subtext={`${formatMoney(statement.eligibleAmount + statement.inClosingAmount)} no próximo repasse`}
+                iconBg="#EFF6FF"
+                iconBorder="#BFDBFE"
+              />
+              <StatBox
+                icon={<Lock size={20} color="#F97316" />}
+                label="Retido"
+                value={formatMoney(statement.heldAmount)}
+                subtext="Em análise pela plataforma"
+                iconBg="#FFF7ED"
+                iconBorder="#FED7AA"
+              />
+              {statement.pendingDebitAmount > 0 && (
+                <StatBox
+                  icon={<MinusCircle size={20} color="#DC2626" />}
+                  label="Débito Pendente"
+                  value={formatMoney(statement.pendingDebitAmount)}
+                  subtext="Estornos descontados no próximo repasse"
+                  iconBg="#FEF2F2"
+                  iconBorder="#FECACA"
+                />
+              )}
             </div>
 
-            {transactions.map((t, i) => (
-              <TransactionItem
-                key={t.id}
-                transaction={t}
-                isLast={i === transactions.length - 1}
-              />
-            ))}
-          </div>
-        </div>
+            <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))" }}>
+              <Panel title="Teleconsultas" subtitle="Situação do repasse de cada consulta paga">
+                {statement.lines.length === 0 && <EmptyRow text="Nenhuma teleconsulta paga ainda." />}
+                {statement.lines.map((line, i) => (
+                  <LineItem key={line.appointmentId} line={line} isLast={i === statement.lines.length - 1} />
+                ))}
+              </Panel>
+
+              <Panel title="Fechamentos" subtitle="Repasses mensais">
+                {statement.closings.length === 0 && <EmptyRow text="Nenhum fechamento ainda." />}
+                {statement.closings.map((closing, i) => (
+                  <ClosingItem key={closing.id} closing={closing} isLast={i === statement.closings.length - 1} />
+                ))}
+              </Panel>
+            </div>
+          </>
+        )}
       </main>
 
       <BankAccountModal isOpen={modal.isOpen} onOpenChange={modal.setOpen} />
@@ -106,6 +164,21 @@ export default function FinancialManagement() {
   );
 }
 
+function Panel({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-surface-alt rounded-xl border border-ring overflow-hidden shadow-sm">
+      <div className="px-4 py-3.5 border-b border-ring">
+        <p className="m-0 text-[15px] font-bold text-text-primary">{title}</p>
+        <p className="mt-0.5 mb-0 text-xs text-text-secondary">{subtitle}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function EmptyRow({ text }: { text: string }) {
+  return <p className="m-0 px-4 py-6 text-center text-[13px] text-text-secondary">{text}</p>;
+}
 
 function StatBox({
   icon,
@@ -143,66 +216,96 @@ function StatBox({
   );
 }
 
-function TransactionItem({
-  transaction,
-  isLast,
-}: {
-  transaction: { patient: string; date: string; value: number; status: string };
-  isLast: boolean;
-}) {
-  const { patient, date, value, status } = transaction;
-  const ok = status === "Confirmado";
+function LineItem({ line, isLast }: { line: PayoutStatementLineDto; isLast: boolean }) {
+  const style = lineStatus[line.status];
+  const paid = line.status === "Paid";
 
   return (
-    <div
-      className={[
-        "flex items-center justify-between px-4 py-3",
-        isLast ? "" : "border-b border-ring",
-      ].join(" ")}
-    >
+    <div className={["flex items-center justify-between px-4 py-3", isLast ? "" : "border-b border-ring"].join(" ")}>
       <div className="flex items-center gap-3">
         <div
           className="w-9 h-9 rounded-[9px] shrink-0 flex items-center justify-center"
-          style={{
-            background: ok ? "#ECFDF5" : "#FFF7ED",
-            border: `1px solid ${ok ? "#D1FAE5" : "#FED7AA"}`,
-          }}
+          style={{ background: style.bg, border: `1px solid ${style.border}` }}
         >
-          {ok
-            ? <ArrowDownRight size={16} color="#10B981" />
-            : <Clock size={16} color="#F97316" />
-          }
+          {paid ? <ArrowDownRight size={16} color={style.color} /> : <Clock size={16} color={style.color} />}
         </div>
         <div>
-          <p className="m-0 text-[13px] font-semibold text-text-primary">{patient}</p>
-          <p className="mt-0.5 mb-0 text-[11px] text-text-secondary">{date}</p>
+          {/* Sem nome do paciente de propósito: o extrato traz só o necessário para o repasse (LGPD). */}
+          <p className="m-0 text-[13px] font-semibold text-text-primary">Teleconsulta #{line.appointmentId}</p>
+          <p className="mt-0.5 mb-0 text-[11px] text-text-secondary">
+            {formatDate(line.appointmentStartDateTime)}
+            {line.refundedAfterCredit && " · estornada depois do repasse"}
+          </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2.5">
         <span
           className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em] flex items-center gap-0.5"
-          style={{
-            background: ok ? "#ECFDF5" : "#FFF7ED",
-            color: ok ? "#059669" : "#F97316",
-          }}
+          style={{ background: style.bg, color: style.color }}
         >
-          {ok && <CheckCircle2 size={10} />}
-          {status}
+          {paid && <CheckCircle2 size={10} />}
+          {style.label}
         </span>
         <span className="text-[13px] font-bold text-text-primary min-w-19 text-right">
-          R$ {value.toFixed(2).replace(".", ",")}
+          {formatMoney(line.amount)}
         </span>
       </div>
     </div>
   );
 }
 
-// function FeeRow({ label, value }: { label: string; value: string }) {
-//   return (
-//     <li className="flex justify-between items-center">
-//       <span className="text-xs text-text-secondary">{label}</span>
-//       <span className="text-[13px] font-semibold text-text-secondary">{value}</span>
-//     </li>
-//   );
-// }
+function ClosingItem({ closing, isLast }: { closing: PayoutClosingSummaryDto; isLast: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<PayoutClosingDetailDto | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function toggle() {
+    setOpen((value) => !value);
+
+    if (!detail) {
+      getMyPayoutClosing(closing.id)
+        .then(setDetail)
+        .catch((e) => setError(errorMessage(e, "Erro ao carregar o fechamento.")));
+    }
+  }
+
+  return (
+    <div className={isLast ? "" : "border-b border-ring"}>
+      <button
+        onClick={toggle}
+        className="w-full flex items-center justify-between px-4 py-3 bg-transparent border-none cursor-pointer text-left"
+      >
+        <div>
+          <p className="m-0 text-[13px] font-semibold text-text-primary">{formatMonth(closing.referenceMonth)}</p>
+          <p className="mt-0.5 mb-0 text-[11px] text-text-secondary">
+            {closingStatus[closing.status]}
+            {closing.paidAt && ` em ${formatDate(closing.paidAt)}`}
+            {closing.paymentReference && ` · ref. ${closing.paymentReference}`}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-bold text-text-primary">{formatMoney(closing.totalAmount)}</span>
+          {open ? <ChevronUp size={16} className="text-text-secondary" /> : <ChevronDown size={16} className="text-text-secondary" />}
+        </div>
+      </button>
+
+      {open && (
+        <div className="px-4 pb-3">
+          {error && <p className="m-0 text-[12px] text-[#B91C1C]">{error}</p>}
+          {!detail && !error && <p className="m-0 text-[12px] text-text-secondary">Carregando…</p>}
+          {detail?.items.map((item) => (
+            <div key={`${item.paymentId}-${item.type}`} className="flex justify-between py-1 text-[12px] text-text-secondary">
+              <span>
+                {item.type === "Debit" ? "Estorno · " : ""}Teleconsulta #{item.appointmentId} · {formatDate(item.appointmentStartDateTime)}
+              </span>
+              <span className={item.type === "Debit" ? "text-[#DC2626] font-semibold" : "font-semibold"}>
+                {item.type === "Debit" ? "−" : ""}{formatMoney(item.amount)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

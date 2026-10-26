@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router";
-import { Activity, FolderCog, Settings, UserPen, UserRoundCog } from "lucide-react";
+import { Activity, Banknote, FolderCog, Settings, UserPen, UserRoundCog } from "lucide-react";
 import { useState } from "react";
 import { Sidebar, SidebarToggle } from "@medora_web/shared";
 
@@ -55,6 +55,13 @@ export default function MainLayout() {
                 label="Gerenciar Usuarios"
                 isActive={location.pathname.startsWith('/admin/manage-users')}
                 href="/admin/manage-users" />
+
+              <Sidebar.Item
+                icon={Banknote}
+                label="Repasses"
+                isActive={location.pathname.startsWith('/admin/payouts')}
+                href="/admin/payouts" />
+
               <Sidebar.Item
                 icon={UserPen}
                 label="Perfil"

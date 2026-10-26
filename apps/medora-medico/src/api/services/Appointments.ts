@@ -3,7 +3,7 @@ import { Endpoints } from '../enums/endpoints';
 import { api } from './api';
 import { toDomainError } from '../errors';
 
-export type DoctorAppointmentsFilter = 'Today' | 'Tomorrow' | 'Week';
+export type DoctorAppointmentsFilter = 'Today' | 'Tomorrow' | 'Week' | 'PendingConfirmation' | 'ToComplete';
 
 // O backend só aceita cancelamento do médico com 72h de antecedência (ChangeAppointmentStatusUseCase)
 const DOCTOR_CANCEL_NOTICE_MS = 72 * 60 * 60 * 1000;

@@ -12,21 +12,34 @@ import {
   CheckCircle2,
   X,
   House,
+  XCircle,
+  UserX,
 } from "lucide-react";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
 import { canEnter } from "../../pages/ConsultaScreen/ConsultaHelpers";
 import EnterReceitaButton from "../Receita/EnterReceitaButton";
 import EnterMedicalRecordButton from "../Prontuario/EnterMedicalRecordButton";
 import AppointmentsService, { canDoctorCancel } from "../../api/services/Appointments";
+import { errorMessage } from "../../api/errors";
 
 // Mesmas regras do domínio (Appointment.cs): estes status ainda podem ser cancelados
 const CANCELAVEIS = ["agendado", "confirmado", "esperando_pagamento", "esperando_confirmacao"];
+
+type DoctorAction = "confirm" | "reject" | "complete" | "absent";
+
+const actionCfg: Record<DoctorAction, { confirm?: string }> = {
+  confirm: {},
+  reject: { confirm: "Recusar esta consulta? A reserva no cartão do paciente será liberada, sem cobrança." },
+  complete: {},
+  absent: { confirm: "Registrar que o paciente faltou? Se a consulta foi paga, o paciente é reembolsado." },
+};
 
 interface ConsultaModalProps {
   appointment: IConsultaDetailed | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onCanceled: () => void;
+  /** Chamado depois que o médico confirma, recusa, conclui, registra falta ou cancela. */
+  onChanged?: () => void;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -57,13 +70,45 @@ export default function ConsultaModal({
   appointment,
   isOpen,
   onOpenChange,
-  onCanceled,
+  onChanged,
 }: ConsultaModalProps) {
+  const [acting, setActing] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) setActionError(null);
+  }, [isOpen, appointment]);
+
+  async function runAction(action: DoctorAction) {
+    if (!currentConsulta) return;
+    const question = actionCfg[action].confirm;
+    if (question && !window.confirm(question)) return;
+
+    setActing(true);
+    setActionError(null);
+    try {
+      const id = currentConsulta.id;
+      if (action === "confirm") await AppointmentsService.confirmTeleconsultation(id);
+      if (action === "reject") await AppointmentsService.rejectTeleconsultation(id);
+      if (action === "complete") await AppointmentsService.changeAppointmentStatus(id, "Completed");
+      if (action === "absent") await AppointmentsService.changeAppointmentStatus(id, "Absent");
+      onChanged?.();
+      onOpenChange(false);
+    } catch (err) {
+      setActionError(errorMessage(err, "Não foi possível atualizar a consulta."));
+    } finally {
+      setActing(false);
+    }
+  }
+
   const [currentConsulta, setCurrentConsulta] =
     useState<IConsultaDetailed | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isJoinable, setIsJoinable] = useState<boolean>(false);
+  // calculado ao abrir: Date.now() não pode ser chamado durante a renderização
+  const [hasStarted, setHasStarted] = useState(false);
+
   const [cancelando, setCancelando] = useState(false);
 
   const podeCancelar = !!currentConsulta
@@ -78,7 +123,7 @@ export default function ConsultaModal({
     try {
       await AppointmentsService.changeAppointmentStatus(currentConsulta.id, "Canceled");
       onOpenChange(false);
-      onCanceled();
+      onChanged?.();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erro ao cancelar a consulta.");
     } finally {
@@ -95,6 +140,7 @@ export default function ConsultaModal({
     try {
       setCurrentConsulta(appointment);
       setIsJoinable(canEnter(appointment))
+      setHasStarted(new Date(appointment.startDateTime).getTime() <= Date.now());
     } catch {
       setError("Não foi possível carregar as informações da consulta")
     }
@@ -215,6 +261,14 @@ export default function ConsultaModal({
                       </InfoCard>
                     </div>
 
+                    <DoctorActions
+                      status={currentConsulta.status}
+                      hasStarted={hasStarted}
+                      disabled={acting}
+                      error={actionError}
+                      onAction={runAction}
+                    />
+
                     <div className="flex flex-col gap-3">
                       {currentConsulta?.type != "teleconsulta" && (
                         <InfoCard>
@@ -286,5 +340,60 @@ export default function ConsultaModal({
         </Modal.Container>
       </Modal.Backdrop>
     </Modal>
+  );
+}
+
+function DoctorActions({
+  status,
+  hasStarted,
+  disabled,
+  error,
+  onAction,
+}: {
+  status: IConsultaDetailed["status"];
+  hasStarted: boolean;
+  disabled: boolean;
+  error: string | null;
+  onAction: (action: DoctorAction) => void;
+}) {
+  const awaiting = status === "esperando_confirmacao";
+  // concluir ou registrar falta só depois do horário, em consulta ainda aberta
+  const closable = hasStarted && ["agendado", "confirmado", "em_atendimento"].includes(status);
+
+  if (!awaiting && !closable) return null;
+
+  const base = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
+
+  return (
+    <InfoCard className="space-y-2">
+      <SectionLabel>{awaiting ? "Aguardando sua confirmação" : "Consulta já passou"}</SectionLabel>
+      <p className="text-xs text-text-secondary">
+        {awaiting
+          ? "O paciente já pagou. Ao confirmar, o valor é cobrado; ao recusar, a reserva é liberada sem cobrança."
+          : "Conclua para a consulta entrar no repasse, ou registre que o paciente faltou (ele é reembolsado)."}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {awaiting ? (
+          <>
+            <button className={`${base} bg-success text-white hover:opacity-90`} disabled={disabled} onClick={() => onAction("confirm")}>
+              <CheckCircle2 className="w-4 h-4" /> Confirmar
+            </button>
+            <button className={`${base} border border-ring text-danger-text hover:bg-danger/10`} disabled={disabled} onClick={() => onAction("reject")}>
+              <XCircle className="w-4 h-4" /> Recusar
+            </button>
+          </>
+        ) : (
+          <>
+            <button className={`${base} bg-accent text-white hover:opacity-90`} disabled={disabled} onClick={() => onAction("complete")}>
+              <CheckCircle2 className="w-4 h-4" /> Concluir consulta
+            </button>
+            <button className={`${base} border border-ring text-text-secondary hover:bg-surface-raised`} disabled={disabled} onClick={() => onAction("absent")}>
+              <UserX className="w-4 h-4" /> Paciente faltou
+            </button>
+          </>
+        )}
+      </div>
+      {error && <p className="text-xs text-danger-text">{error}</p>}
+    </InfoCard>
   );
 }

@@ -418,7 +418,7 @@ export function ConsultaHourlyGrid({
         appointment={selected}
         isOpen={consultaModal.isOpen}
         onOpenChange={consultaModal.setOpen}
-        onCanceled={onCanceled}
+        onChanged={onCanceled}
       />
     </div>
   );
