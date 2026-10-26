@@ -25,7 +25,7 @@ export function PrescriptionSidebar({ paciente, itensPrescritos, itemEmEdicao }:
             </p>
             <div className="flex flex-col gap-0.5">
               {[
-                ["Nasc.", new Date(paciente.dataNascimento).toLocaleDateString("pt-BR")],
+                paciente.dataNascimento ? ["Nasc.", new Date(paciente.dataNascimento).toLocaleDateString("pt-BR")] : null,
                 paciente.peso    ? ["Peso",     `${paciente.peso} kg`]   : null,
                 paciente.convenio ? ["Convênio", paciente.convenio]       : null,
               ]

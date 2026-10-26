@@ -20,7 +20,7 @@ import {
   FileUser,
 } from "lucide-react";
 import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
-import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
+import { PrescricaoDaConsulta } from "../PrescriptionPage/PrescriptionPage";
 import AppointmentsService from "../../api/services/Appointments";
 import { errorMessage } from "../../api/errors";
 
@@ -679,10 +679,16 @@ export default function SalaTeleConsulta() {
         )}
         {sidePanel === "receita" && (
           <div className="h-full border-r-2 border-ring flex justify-center items-center bg-surface-overlay">
-            <PrescricaoWizard
-              onConcluir={(rascunho) => console.log(rascunho)}
-              onCancelar={() => { }}
-            />
+            {state.appointmentId ? (
+              <PrescricaoDaConsulta
+                appointmentId={state.appointmentId}
+                patientName={state.patientName}
+                onAbrirProntuario={() => setSidePanel("prontuario")}
+                onCancelar={() => setSidePanel(null)}
+              />
+            ) : (
+              <p className="p-6 text-text-secondary">Abra a teleconsulta pelo painel para emitir a receita.</p>
+            )}
           </div>
         )}
       </div>

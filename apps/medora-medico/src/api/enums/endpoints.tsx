@@ -39,4 +39,7 @@ export const Endpoints = {
     MEDICAL_RECORD_BY_APPOINTMENT: (appointmentId: number) => `/appointments/${appointmentId}/medical-record`,
     FINALIZE_MEDICAL_RECORD: (id: number) => `/medical-records/${id}/finalize`,
     MEDICAL_RECORD_PDF: (id: number) => `/medical-records/${id}/pdf`,
+
+    ISSUE_PRESCRIPTION: (medicalRecordId: number) => `/medical-records/${medicalRecordId}/prescriptions`,
+    PRESCRIPTION_PDF: (publicId: string) => `/prescriptions/${publicId}/pdf`,
 } as const;
