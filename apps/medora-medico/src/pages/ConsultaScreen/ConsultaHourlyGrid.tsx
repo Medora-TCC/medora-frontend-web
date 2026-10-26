@@ -12,22 +12,28 @@ const STATUS_CHIP_CFG: Record<
   StatusConsulta,
   { label: string; color: "accent" | "success" | "default" | "danger" | "warning" }
 > = {
-  agendado:       { label: "Agendada",     color: "accent"   },
-  em_espera:      { label: "Em Espera",    color: "warning"  },
-  em_atendimento: { label: "Em andamento", color: "success"  },
-  finalizado:     { label: "Concluída",    color: "default"  },
-  cancelado:      { label: "Cancelada",    color: "danger"   },
+  agendado:              { label: "Agendada",               color: "accent"   },
+  esperando_pagamento:   { label: "Aguardando pagamento",   color: "warning"  },
+  esperando_confirmacao: { label: "Aguardando confirmação", color: "warning"  },
+  confirmado:            { label: "Confirmada",             color: "accent"   },
+  em_atendimento:        { label: "Em andamento",           color: "success"  },
+  finalizado:            { label: "Concluída",              color: "default"  },
+  cancelado:             { label: "Cancelada",              color: "danger"   },
+  ausente:               { label: "Ausente",                color: "danger"   },
 };
 
 const STATUS_BLOCK_CFG: Record<
   StatusConsulta,
   { bg: string; border: string; text: string; muted: string }
 > = {
-  agendado:       { bg: "bg-accent/10",         border: "border-accent/30",   text: "text-accent-fg",  muted: "text-accent/70"  },
-  em_espera:      { bg: "bg-warning/10",        border: "border-warning/30",  text: "text-warning-fg", muted: "text-warning/70" },
-  em_atendimento: { bg: "bg-success/10",        border: "border-success/30",  text: "text-success-fg", muted: "text-success/70" },
-  finalizado:     { bg: "bg-surface-secondary", border: "border-border",      text: "text-fg",         muted: "text-fg-muted"   },
-  cancelado:      { bg: "bg-danger/5",          border: "border-danger/20",   text: "text-danger",     muted: "text-danger/60"  },
+  agendado:              { bg: "bg-accent/10",         border: "border-accent/30",   text: "text-accent-fg",  muted: "text-accent/70"  },
+  esperando_pagamento:   { bg: "bg-warning/10",        border: "border-warning/30",  text: "text-warning-fg", muted: "text-warning/70" },
+  esperando_confirmacao: { bg: "bg-warning/10",        border: "border-warning/30",  text: "text-warning-fg", muted: "text-warning/70" },
+  confirmado:            { bg: "bg-accent/10",         border: "border-accent/30",   text: "text-accent-fg",  muted: "text-accent/70"  },
+  em_atendimento:        { bg: "bg-success/10",        border: "border-success/30",  text: "text-success-fg", muted: "text-success/70" },
+  finalizado:            { bg: "bg-surface-secondary", border: "border-border",      text: "text-fg",         muted: "text-fg-muted"   },
+  cancelado:             { bg: "bg-danger/5",          border: "border-danger/20",   text: "text-danger",     muted: "text-danger/60"  },
+  ausente:               { bg: "bg-danger/5",          border: "border-danger/20",   text: "text-danger",     muted: "text-danger/60"  },
 };
 
 // ─── Constantes de layout ─────────────────────────────────────────────────────
@@ -103,7 +109,7 @@ interface ConsultaCardProps {
   left: number;
   width: number;
   height: number;
-  onClick: (id: string) => void;
+  onClick: (id: number) => void;
 }
 
 function ConsultaCard({ consulta: c, top, left, width, height, onClick }: ConsultaCardProps) {
@@ -208,6 +214,8 @@ interface ConsultaHourlyGridProps {
   endDay?: number;
   /** Duração padrão em minutos quando não informada na consulta */
   defaultDuration?: number;
+  /** Chamado depois que uma consulta é cancelada pelo modal */
+  onCanceled: () => void;
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -219,9 +227,10 @@ export function ConsultaHourlyGrid({
   startDay      = 1,
   endDay        = 5,
   defaultDuration = DEFAULT_DURATION_MIN,
+  onCanceled,
 }: ConsultaHourlyGridProps) {
   const consultaModal = useOverlayState();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<IConsultaDetailed | null>(null);
 
   // ── Medição da largura disponível para os dias ─────────────────────────────
   // Usamos um ResizeObserver no container para calcular colW dinamicamente,
@@ -291,8 +300,8 @@ export function ConsultaHourlyGrid({
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  const handleCardClick = (id: string) => {
-    setSelectedId(id);
+  const handleCardClick = (id: number) => {
+    setSelected(consultas.find((c) => c.id === id) ?? null);
     consultaModal.open();
   };
 
@@ -406,9 +415,10 @@ export function ConsultaHourlyGrid({
 
       {/* Modal de detalhes */}
       <ConsultaModal
-        id={selectedId}
+        appointment={selected}
         isOpen={consultaModal.isOpen}
         onOpenChange={consultaModal.setOpen}
+        onCanceled={onCanceled}
       />
     </div>
   );
