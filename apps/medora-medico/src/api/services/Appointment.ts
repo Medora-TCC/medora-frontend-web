@@ -37,9 +37,7 @@ export type DoctorAppointmentsApiFilter =
   | "Today"
   | "Tomorrow"
   | "Week"
-  | "PendingConfirmation"
-  | "ToComplete"
-  | "Upcoming";
+  | "None"
 
 
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
@@ -86,7 +84,7 @@ export async function fetchConsultas(filter: DoctorAppointmentsApiFilter): Promi
     const all: AppointmentDto[] = [];
     const pageSize = 100;
     let page = 1;
-    const filterValue = filter;
+    const filterValue = filter && filter !== "None" ? filter : undefined;
 
     while (true) {
       const { data } = await api.get<PagedResponse<AppointmentDto>>(

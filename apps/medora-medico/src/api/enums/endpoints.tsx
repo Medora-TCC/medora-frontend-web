@@ -25,7 +25,10 @@ export const Endpoints = {
     DAILY_SCHEDULE: '/doctors/availability/daily',
     RECURRING_SCHEDULE: '/doctors/availability/recurring',
     SPECIFIC_AVAILABILITY: '/doctors/availability/specific',
-    SCHEDULE_BLOCKS: '/doctors/availability/blocks',
+    SCHEDULE_BLOCKS: '/doctors/availability/blocks',  
+
+    ICE_SERVERS: '/api/telemedicine/ice-servers',
+    TELEMEDICINE_HUB: '/hubs/telemedicine',
     
     GET_DOCTOR_RQES: '/v1/Doctor/me/rqes',
     UPDATE_RQE_PRIORITIES: '/v1/Doctor/me/rqes/priorities',

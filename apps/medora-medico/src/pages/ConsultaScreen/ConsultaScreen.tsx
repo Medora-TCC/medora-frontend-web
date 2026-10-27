@@ -26,17 +26,12 @@ import { ConsultaCard } from "./ConsultaCard";
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Filtro = "todas" | StatusConsulta | "a_concluir";
 
-// Filtros de status que o backend resolve em qualquer data (o resto filtra só o período carregado)
-const filtroNoBackend: Partial<Record<Filtro, DoctorAppointmentsApiFilter>> = {
-  esperando_confirmacao: "PendingConfirmation",
-  a_concluir: "ToComplete",
-};
 
 const filtroDataNoBackend: Record<FiltroConsulta, DoctorAppointmentsApiFilter> = {
   hoje: "Today",
   amanha: "Tomorrow",
   semana: "Week",
-  nenhum: "Upcoming",
+  nenhum: "None",
 };
 
 // ─── Status config → Chip color + label ───────────────────────────────────────
@@ -127,14 +122,14 @@ export function ConsultaScreen() {
     consultaModal.open();
   };
 
-  // "Aguard. confirmação" e "A concluir" vão para o backend e valem para qualquer data
-  const statusNoBackend = filtroNoBackend[filtro];
-  const filtroApi = statusNoBackend ?? filtroDataNoBackend[filtroData];
+    const filtroApi = filtroDataNoBackend[filtroData];
 
   async function carregar(filtroAtual: DoctorAppointmentsApiFilter = filtroApi) {
     const id = ++requestId.current;
     setLoading(true);
     setError(null);
+    console.log("filtro atual: " + filtroAtual);
+    
     try {
       const data = await fetchConsultas(filtroAtual);
       if (id !== requestId.current) return; // chegou uma chamada mais nova
@@ -191,9 +186,7 @@ export function ConsultaScreen() {
             <p className="text-sm text-fg-muted mt-0.5">
               {loading
                 ? "Carregando…"
-                : `${consultas.length} consulta${consultas.length !== 1 ? "s" : ""}${
-                    statusNoBackend ? " (qualquer data)" : filtroData === "nenhum" ? " nos próximos 30 dias" : ""
-                  }`}
+                : `${consultas.length} consulta${consultas.length !== 1 ? "s" : ""}`}
             </p>
           </div>
 
@@ -244,7 +237,6 @@ export function ConsultaScreen() {
           <ToggleButtonGroup
             selectionMode="single"
             selectedKeys={new Set([filtroData])}
-            isDisabled={!!statusNoBackend}
             onSelectionChange={(keys) => {
               const val = [...keys][0] as FiltroConsulta | undefined;
               setFiltroData(val ?? "nenhum");
