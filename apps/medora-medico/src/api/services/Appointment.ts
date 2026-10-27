@@ -1,9 +1,7 @@
 import { isAxiosError } from "axios";
 import {
-  filterMapByCode,
   statusMapByCode,
   typeMapByCode,
-  type FiltroConsulta,
   type IConsultaDetailed,
 } from "@medora_web/shared";
 
@@ -17,8 +15,8 @@ interface AppointmentDto {
   startDateTime: string;
   endDateTime: string;
   localStartDateTime: string;
-  status: number;
-  type: number;
+  status: string;
+  type: string;
   timeZoneId: string;
   meetingUrl: string | null;
   platform: string | null;
@@ -33,6 +31,16 @@ interface PagedResponse<T> {
 }
 
 const DEFAULT_PLATFORM = "Medora";
+
+/** Filtros do GET /appointments/doctor/me (enum DoctorAppointmentsFilter do backend). */
+export type DoctorAppointmentsApiFilter =
+  | "Today"
+  | "Tomorrow"
+  | "Week"
+  | "PendingConfirmation"
+  | "ToComplete"
+  | "Upcoming";
+
 
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
   const type = typeMapByCode[a.type] ?? "outro";
@@ -73,12 +81,12 @@ function toFriendlyError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-export async function fetchConsultas(filtro: FiltroConsulta): Promise<IConsultaDetailed[]> {
+export async function fetchConsultas(filter: DoctorAppointmentsApiFilter): Promise<IConsultaDetailed[]> {
   try {
     const all: AppointmentDto[] = [];
     const pageSize = 100;
     let page = 1;
-    const filterValue = filterMapByCode[filtro]
+    const filterValue = filter;
 
     while (true) {
       const { data } = await api.get<PagedResponse<AppointmentDto>>(

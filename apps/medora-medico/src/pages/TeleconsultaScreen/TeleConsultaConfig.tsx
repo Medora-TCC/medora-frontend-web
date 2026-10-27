@@ -146,13 +146,11 @@ export default function TeleConsultaConfig() {
   const consultaState = (useLocation().state ?? {}) as { appointmentId?: number; patientName?: string };
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  // Refs espelhando os streams atuais, para o cleanup de desmontagem sempre
-  // liberar o stream mais recente (closures de useEffect([]) ficam presas
-  // ao valor do primeiro render, por isso não dá pra usar o state direto ali).
+  // Refs com o stream atual: os cleanups abaixo rodam com closures antigas e
+  // veriam o valor inicial (null), deixando a câmera ligada ao sair da tela
   const videoStreamRef = useRef<MediaStream | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [camPerm, setCamPerm] = useState<PermissionState>("idle");
   const [micPerm, setMicPerm] = useState<PermissionState>("idle");
@@ -242,7 +240,7 @@ export default function TeleConsultaConfig() {
   useEffect(() => {
     if (!selectedCam || camPerm !== "granted") return;
     let active = true;
-    videoStream?.getTracks().forEach((t) => t.stop());
+    videoStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (!camOn) {
       setVideoStream(null);
       return;
@@ -267,7 +265,7 @@ export default function TeleConsultaConfig() {
   useEffect(() => {
     if (!selectedMic || micPerm !== "granted") return;
     let active = true;
-    audioStream?.getTracks().forEach((t) => t.stop());
+    audioStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (!micOn) {
       setAudioStream(null);
       return;

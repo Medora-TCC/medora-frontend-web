@@ -2,10 +2,11 @@ export type StatusConsulta = 'agendado' | 'esperando_pagamento' | 'esperando_con
 export type TypeConsulta = 'presencial' | 'teleconsulta' | 'outro';
 export type FiltroConsulta = 'hoje' | 'amanha' | 'semana' | 'nenhum';
 
-export const typeMapByCode: Record<number, TypeConsulta> = {
-  1: "presencial",
-  2: "teleconsulta",
-  3: "outro"
+// O backend serializa os enums como texto (JsonStringEnumConverter)
+export const typeMapByCode: Record<string, TypeConsulta> = {
+  InPerson: "presencial",
+  Online: "teleconsulta",
+  Any: "outro"
 };
 
 export const filterMapByCode: Record<FiltroConsulta, number | undefined> = {
@@ -16,15 +17,16 @@ export const filterMapByCode: Record<FiltroConsulta, number | undefined> = {
 };
 
 
-export const statusMapByCode: Record<number, StatusConsulta> = {
-  1: "agendado",
-  2: "esperando_pagamento",
-  3: "esperando_confirmacao",
-  4: "confirmado",
-  5: "em_atendimento",
-  6: "finalizado",
-  7: "cancelado",
-  8: "ausente",
+export const statusMapByCode: Record<string, StatusConsulta> = {
+  Scheduled: "agendado",
+  AwaitingPayment: "esperando_pagamento",
+  AwaitingConfirmation: "esperando_confirmacao",
+  Confirmed: "confirmado",
+  InProgress: "em_atendimento",
+  Completed: "finalizado",
+  RescheduleNeeded: "agendado",
+  Canceled: "cancelado",
+  Absent: "ausente",
 };  
 
 export interface IConsultaDetailed {

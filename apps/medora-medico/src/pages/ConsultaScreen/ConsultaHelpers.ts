@@ -11,7 +11,8 @@ export function PatientInitials(nome: string) {
 // verifica botao visivel
 export function canEnter(c: IConsultaDetailed): boolean {
   if (!c) return false;
-  if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
+  // só teleconsulta confirmada (paga e aceita pelo médico) pode começar
+  if (c.status !== "confirmado" && c.status !== "em_atendimento") return false;
 
   const horario = new Date(c.startDateTime).getTime();
   const agora = Date.now();
@@ -25,7 +26,7 @@ export function enterConsulta(id: number, navigate: any) {
   // Exemplo: await api.post(`/consultas/${id}/entrar`);
 
   // Agora usamos o navigate que veio do componente
-  navigate(`../teleconsulta/${id}/pre-sala`);
+  navigate(`../teleconsulta/${id}/pre-sala`, { state: { appointmentId: id } });
 }
 
 export function isTeleConsulta(consulta: IConsultaDetailed ) {

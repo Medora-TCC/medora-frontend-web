@@ -17,14 +17,27 @@ import type {
   StatusConsulta,
 } from "@medora_web/shared";
 
-import { fetchConsultas } from "../../api/services/Appointment";
+import { fetchConsultas, type DoctorAppointmentsApiFilter } from "../../api/services/Appointment";
 import { CalendarDays, CircleAlert, RotateCcw } from "lucide-react";
 import { ConsultaHourlyGrid } from "./ConsultaHourlyGrid";
 import ConsultaModal from "../../components/Consulta/ConsultaModal";
 import { ConsultaCard } from "./ConsultaCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Filtro = "todas" | StatusConsulta;
+type Filtro = "todas" | StatusConsulta | "a_concluir";
+
+// Filtros de status que o backend resolve em qualquer data (o resto filtra só o período carregado)
+const filtroNoBackend: Partial<Record<Filtro, DoctorAppointmentsApiFilter>> = {
+  esperando_confirmacao: "PendingConfirmation",
+  a_concluir: "ToComplete",
+};
+
+const filtroDataNoBackend: Record<FiltroConsulta, DoctorAppointmentsApiFilter> = {
+  hoje: "Today",
+  amanha: "Tomorrow",
+  semana: "Week",
+  nenhum: "Upcoming",
+};
 
 // ─── Status config → Chip color + label ───────────────────────────────────────
 const statusCfg: Record<
@@ -48,6 +61,7 @@ const filtroOpcoes: { key: Filtro; label: string }[] = [
   { key: "esperando_pagamento", label: "Aguard. pagamento" },
   { key: "esperando_confirmacao", label: "Aguard. confirmação" },
   { key: "confirmado", label: "Confirmadas" },
+  { key: "a_concluir", label: "A concluir" },
   { key: "em_atendimento", label: "Em andamento" },
   { key: "finalizado", label: "Concluídas" },
   { key: "cancelado", label: "Canceladas" },
@@ -84,7 +98,9 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
       <p className="text-sm text-fg-muted">
         {filtro === "todas"
           ? "Nenhuma consulta encontrada"
-          : `Nenhuma consulta com status "${statusCfg[filtro as StatusConsulta]?.label}"`}
+          : filtro === "a_concluir"
+            ? "Nenhuma consulta passada esperando conclusão"
+            : `Nenhuma consulta com status "${statusCfg[filtro as StatusConsulta]?.label}"`}
       </p>
     </div>
   );
@@ -111,7 +127,11 @@ export function ConsultaScreen() {
     consultaModal.open();
   };
 
-  async function carregar(filtroAtual: FiltroConsulta = filtroData) {
+  // "Aguard. confirmação" e "A concluir" vão para o backend e valem para qualquer data
+  const statusNoBackend = filtroNoBackend[filtro];
+  const filtroApi = statusNoBackend ?? filtroDataNoBackend[filtroData];
+
+  async function carregar(filtroAtual: DoctorAppointmentsApiFilter = filtroApi) {
     const id = ++requestId.current;
     setLoading(true);
     setError(null);
@@ -128,17 +148,17 @@ export function ConsultaScreen() {
     }
   }
 
-  // Refaz a chamada sempre que o filtro de data muda (inclui a carga inicial)
+  // Refaz a chamada sempre que o filtro enviado ao backend muda (inclui a carga inicial)
   useEffect(() => {
-    carregar(filtroData);
+    carregar(filtroApi);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtroData]);
+  }, [filtroApi]);
 
   // O filtro de data é feito no backend; aqui só status, busca e ordenação
   const filtradas = useMemo(
     () =>
       consultas
-        .filter((c) => filtro === "todas" || c.status === filtro)
+        .filter((c) => filtro === "todas" || filtro === "a_concluir" || c.status === filtro)
         .filter(
           (c) =>
             busca.trim() === "" ||
@@ -171,7 +191,9 @@ export function ConsultaScreen() {
             <p className="text-sm text-fg-muted mt-0.5">
               {loading
                 ? "Carregando…"
-                : `${consultas.length} consulta${consultas.length !== 1 ? "s" : ""} no total`}
+                : `${consultas.length} consulta${consultas.length !== 1 ? "s" : ""}${
+                    statusNoBackend ? " (qualquer data)" : filtroData === "nenhum" ? " nos próximos 30 dias" : ""
+                  }`}
             </p>
           </div>
 
@@ -222,6 +244,7 @@ export function ConsultaScreen() {
           <ToggleButtonGroup
             selectionMode="single"
             selectedKeys={new Set([filtroData])}
+            isDisabled={!!statusNoBackend}
             onSelectionChange={(keys) => {
               const val = [...keys][0] as FiltroConsulta | undefined;
               setFiltroData(val ?? "nenhum");
@@ -249,7 +272,7 @@ export function ConsultaScreen() {
         {/* ── Lista ─────────────────────────────────────── */}
         {view === "grid" ? (
           <div className="w-full overflow-x-hidden">
-            <ConsultaHourlyGrid consultas={filtradas} />
+            <ConsultaHourlyGrid consultas={filtradas} onCanceled={() => carregar()} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -278,6 +301,7 @@ export function ConsultaScreen() {
               appointment={selectedAppointment}
               isOpen={consultaModal.isOpen}
               onOpenChange={consultaModal.setOpen}
+              onChanged={() => carregar()}
             />
           </div>
         )}

@@ -19,8 +19,8 @@ function SecaoPaciente({ paciente }: { paciente: PrescricaoRascunho["paciente"] 
         {[
           ["Nome", paciente.nome],
           ["CPF", paciente.cpf],
-          ["Convênio", paciente.convenio ?? "Particular"],
-        ].map(([label, val]) => (
+          ["Convênio", paciente.convenio],
+        ].filter(([, val]) => val).map(([label, val]) => (
           <div key={label} className="flex flex-col">
             <span className="text-xs text-text-muted">{label}</span>
             <span className="text-sm text-text-primary">{val}</span>
@@ -34,13 +34,14 @@ function SecaoPaciente({ paciente }: { paciente: PrescricaoRascunho["paciente"] 
 
 interface Props {
   rascunho: PrescricaoRascunho;
-  medico: { nome: string; crm: string; especialidade: string; uf: string };
+  medico: { nome: string; especialidade?: string };
   onEmitir: () => void;
   onVoltar: () => void;
   emitindo?: boolean;
+  erro?: string | null;
 }
 
-export function StepRevision({ rascunho, medico, onEmitir, onVoltar, emitindo }: Props) {
+export function StepRevision({ rascunho, medico, onEmitir, onVoltar, emitindo, erro }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
@@ -127,17 +128,19 @@ export function StepRevision({ rascunho, medico, onEmitir, onVoltar, emitindo }:
         <div
           className="bg-primary-color w-9 h-9 rounded-full text-sm text-text-inverse font-semibold flex items-center justify-center shrink-0"
         >
-          {medico.nome.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+          {medico.nome.replace(/^Dra?\.\s*/, "").split(" ").slice(0, 2).map((n) => n[0]).join("")}
         </div>
         <div>
           <p className="text-sm font-medium text-text-primary">
-            Dr. {medico.nome}
+            {medico.nome}
           </p>
-          <p className="text-xs text-text-muted" >
-            CRM/{medico.uf} {medico.crm} · {medico.especialidade}
-          </p>
+          {medico.especialidade && (
+            <p className="text-xs text-text-muted">{medico.especialidade}</p>
+          )}
         </div>
       </div>
+
+      {erro && <p className="text-sm text-danger">{erro}</p>}
 
       <div className="flex gap-3 pt-1">
         <button

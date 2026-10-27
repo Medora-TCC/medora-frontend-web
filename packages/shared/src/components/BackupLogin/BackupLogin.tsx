@@ -1,6 +1,6 @@
 import { Alert, Button, Form, Input, Spinner } from "@heroui/react";
 import { CircleCheckBig, MailQuestionMark } from "lucide-react";
-import { JSX, useState } from "react";
+import { useState, type JSX } from "react";
 
 interface BackupLoginProps {
   handleVerify: (code: string) => Promise<{ accessToken: string }>;
