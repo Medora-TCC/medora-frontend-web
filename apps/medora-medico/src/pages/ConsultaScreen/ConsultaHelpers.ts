@@ -8,7 +8,8 @@ export function PatientInitials(nome: string) {
     .map((n) => n[0].toUpperCase())
     .join("");
 }
-// verifica botao visivel
+
+
 export function canEnter(c: IConsultaDetailed): boolean {
   if (!c) return false;
   // só teleconsulta confirmada (paga e aceita pelo médico) pode começar
