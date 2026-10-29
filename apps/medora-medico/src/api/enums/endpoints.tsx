@@ -15,9 +15,6 @@ export const Endpoints = {
 
     REGISTER_DOCTOR: '/v1/Doctor',
 
-    GET_DOCTOR_PROFILE: '/doctors/profile',
-    UPDATE_DOCTOR_PROFILE: '/doctors/profile',
-
     DAILY_SCHEDULE: '/doctors/availability/daily',
     RECURRING_SCHEDULE: '/doctors/availability/recurring',
     SPECIFIC_AVAILABILITY: '/doctors/availability/specific',
@@ -28,4 +25,10 @@ export const Endpoints = {
     GET_DASHBOARD_DOCTOR: '/v1/Doctor/me/dashboard',
     GET_WEEK_FLOW: '/v1/Doctor/me/dashboard/weekly-flow',
     DOCTOR_APPOINTMENTS: '/appointments/doctor/me',
+    GET_PROFESSIONAL_DATA: '/v1/Doctor/me/professional-data',
+    GET_PERSONAL_DATA: '/v1/Doctor/me/personal-data',
+
+    UPDATE_DOCTOR_CONTACTS: '/v1/Doctor/me/personal-data/contact',
+    UPDATE_DOCTOR_COMPLEMENTARY: '/v1/Doctor/me/personal-data/complementary',
+    UPDATE_DOCTOR_PASSPORT: '/v1/Doctor/me/personal-data/passport',
 } as const;
