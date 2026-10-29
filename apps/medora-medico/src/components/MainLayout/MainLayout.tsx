@@ -9,6 +9,7 @@ import { getDoctorRqes } from "../../api/services/DoctorService";
 import type { DoctorRqesDto } from "../../api/dtos/Doctors/DoctorRqesDto";
 import MainSpecialtiesModal from "../../modals/MainSpecialtiesModal/MainSpecialtiesModal";
 import type { RqeItemDto } from "../../api/dtos/Doctors/DoctorRqesDto";
+import type { MainLayoutContext } from "./mainLayoutContext";
 
 const EMPTY_RQES: RqeItemDto[] = [];
 
@@ -58,7 +59,8 @@ export default function MainLayout() {
   const extraSpecialtiesCount = Math.max(rankedRqes.length - 1, 0); 
   // Liste os caminhos completos como eles aparecem na URL
   const locationsSidebar = ['/', '/home', '/medico/teleconsulta'];
-  const locationsFooter = ['/medico/prontuario', '/medico/consulta', '/medico/prescricao', '/medico/agenda', '/medico/assinatura'];
+  const locationsFooter = ['/medico/prontuario', '/medico/consulta', '/medico/prescricao', '/medico/agenda',
+     '/medico/assinatura','/medico/conta/dados-profissionais', '/medico/conta/seguranca', '/medico/conta/dados-pessoais'];
 
   const isPreSala = /\/medico\/teleconsulta\/.*\/pre-sala/.test(location.pathname);
   const isSala = /\/medico\/teleconsulta\/.*\/sala/.test(location.pathname);
@@ -167,7 +169,7 @@ export default function MainLayout() {
           onSaved={loadRqes}
         />
         <main className="flex-1 w-full">
-          <Outlet />
+          <Outlet context={{ doctorRqes, openSpecialtiesModal } satisfies MainLayoutContext} />
         </main>
 
         {!hideFooter && <Footer />}
