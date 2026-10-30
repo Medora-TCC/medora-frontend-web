@@ -1,6 +1,7 @@
 import { Button, Input } from "@heroui/react";
 import { Check, TriangleAlert } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { AuthenticatorSetup, BackupCodesGenerator } from "./TwoFactorSettings";
 
 interface SelectOption {
   value: string;
@@ -16,10 +17,6 @@ interface NotifTypesState {
   cancellation: boolean;
   newAppointment: boolean;
   upcomingConsult: boolean;
-}
-
-interface PrivacyState {
-  twoFactor: boolean;
 }
 
 interface SectionProps {
@@ -128,10 +125,6 @@ export default function ConfigPage() {
     cancellation: true,
     newAppointment: true,
     upcomingConsult: false,
-  });
-
-  const [privacy, setPrivacy] = useState<PrivacyState>({
-    twoFactor: false,
   });
 
   const handleSave = (): void => {
@@ -296,21 +289,17 @@ export default function ConfigPage() {
         >
           <Field
             horizontal
-            label="Autenticação em dois fatores (2FA)"
-            description="Adicionar uma camada extra de segurança no login da conta."
+            label="Aplicativo autenticador"
+            description="Use um app como Google Authenticator para gerar o código de login, em vez de recebê-lo por e-mail."
           >
-            <div className="flex items-center gap-2">
-              {!privacy.twoFactor && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-amber-700 dark:text-amber-300 bg-warning-subtle">
-                  Recomendado
-                </span>
-              )}
-              <Toggle
-                checked={privacy.twoFactor}
-                onChange={(v) => setPrivacy((p) => ({ ...p, twoFactor: v }))}
-                label="2FA"
-              />
-            </div>
+            <AuthenticatorSetup />
+          </Field>
+          <Field
+            horizontal
+            label="Códigos de backup"
+            description="Códigos de uso único para entrar quando não tiver acesso ao app ou ao e-mail. Gerar novos não invalida os antigos."
+          >
+            <BackupCodesGenerator />
           </Field>
         </Section>
 

@@ -9,8 +9,7 @@ export const mockConsultaList: Array<
 > = [
     // 1. Teleconsulta - Agendada para o futuro (Termos pendentes do paciente)
     {
-      id: "V1StGXR8_Z5",
-      doctorName: "Dra. Camila Moraes",
+      id: 1,
       patientNome: "João Guilherme",
       healthInsurance: "Unimed Curitiba",
       startDateTime: "2026-06-23T09:00:00.000-03:00",
@@ -19,6 +18,7 @@ export const mockConsultaList: Array<
       status: "agendado",
       type: "teleconsulta",
       tags: ["primeira-consulta", "psiquiatria"],
+      meetingCode: "gXGmWTbxjkIR",
       meetingUrl: "V1StGXR8_Z5",
       platform: "Medora",
       doctorTermsAccepted: true,
@@ -27,8 +27,7 @@ export const mockConsultaList: Array<
 
     // 2. Presencial - Em Atendimento (acontecendo agora)
     {
-      id: "x9K2mPq4_A1",
-      doctorName: "Dr. Roberto Silva",
+      id: 2,
       patientNome: "Maria Souza",
       healthInsurance: "Particular",
       startDateTime: "2026-06-20T16:30:00.000-03:00",
@@ -36,20 +35,22 @@ export const mockConsultaList: Array<
       locationAdress: "Rua Vicente Machado, 1234 - Curitiba, PR",
       status: "em_atendimento",
       type: "presencial",
+      platform: "Medora",
+      patientTermsAccepted: true,
       tags: ["retorno", "exames-prontos"],
     },
 
     // 3. Teleconsulta - Em Espera (Ambos aceitaram os termos, paciente aguardando)
     {
-      id: "bL4x9T_Qp2",
-      doctorName: "Dr. Fernando Santos",
+      id: 3,
       patientNome: "Carlos Mendes",
       healthInsurance: "MedSenior",
-      startDateTime: "2026-06-20T17:30:00.000-03:00",
-      endDateTime: "2026-06-20T18:15:00.000-03:00",
+      startDateTime: "2026-10-10T17:00:00.000-03:00",
+      endDateTime: "2026-10-10T18:00:00.000-03:00",
       locationAdress: "Sala Virtual",
-      status: "em_espera",
+      status: "agendado",
       type: "teleconsulta",
+      meetingCode: "gXGmWTbxjkIR",
       tags: ["geriatria", "acompanhamento"],
       meetingUrl: "bL4x9T_Qp2",
       platform: "Medora",
@@ -59,14 +60,14 @@ export const mockConsultaList: Array<
 
     // 4. Teleconsulta - Finalizada
     {
-      id: "zP9_mK2xT1",
-      doctorName: "Dra. Camila Moraes",
+      id: 4,
       patientNome: "Ana Pereira",
       healthInsurance: "Amil",
       startDateTime: "2026-06-18T10:00:00.000-03:00",
       endDateTime: "2026-06-18T10:45:00.000-03:00",
       locationAdress: "Sala Virtual",
       status: "finalizado",
+      meetingCode: "gXGmWTbxjkIR",
       type: "teleconsulta",
       tags: ["receita-renovada"],
       platform: "Medora",
@@ -76,8 +77,7 @@ export const mockConsultaList: Array<
 
     // 5. Presencial - Cancelada
     {
-      id: "qW1_8mVcR",
-      doctorName: "Dra. Aline Franco",
+      id: 5,
       patientNome: "Pedro Pedroso",
       healthInsurance: "Bradesco Saúde",
       startDateTime: "2026-06-19T11:00:00.000-03:00",
@@ -85,12 +85,13 @@ export const mockConsultaList: Array<
       locationAdress: "Av. República Argentina, 500 - Curitiba, PR",
       status: "cancelado",
       type: "presencial",
+      platform: "Medora",
+      patientTermsAccepted: true,
     },
 
     // 6. Teleconsulta - Cancelada (Paciente não aceitou termos / No-show)
     {
-      id: "tC_9xLp4Z",
-      doctorName: "Dr. Fernando Santos",
+      id: 6,
       patientNome: "Lucia Oliveira",
       healthInsurance: "Particular",
       startDateTime: "2026-06-17T08:00:00.000-03:00",
@@ -98,6 +99,7 @@ export const mockConsultaList: Array<
       locationAdress: "Sala Virtual",
       status: "cancelado",
       type: "teleconsulta",
+      meetingCode: "gXGmWTbxjkIR",
       tags: ["falta-paciente"],
       platform: "Medora",
       doctorTermsAccepted: true,
@@ -106,22 +108,22 @@ export const mockConsultaList: Array<
 
     // 7. Presencial - Agendada
     {
-      id: "pS_3bN8mX",
-      doctorName: "Dr. Roberto Silva",
+      id: 7,
       patientNome: "Marcos Antônio",
       healthInsurance: "SulAmérica",
-      startDateTime: "2026-06-25T13:00:00.000-03:00",
-      endDateTime: "2026-06-25T14:00:00.000-03:00",
+      startDateTime: "2026-10-10T17:00:00.000-03:00",
+      endDateTime: "2026-10-10T18:00:00.000-03:00",
       locationAdress: "Rua Vicente Machado, 1234 - Curitiba, PR",
       status: "agendado",
       type: "presencial",
+      platform: "Medora",
+      patientTermsAccepted: true,
       tags: ["risco-cirurgico"],
     },
 
     // 8. Teleconsulta - Em Atendimento (Ambos na sala virtual, acontecendo agora)
     {
-      id: "yT_1mV8xQ",
-      doctorName: "Dra. Camila Moraes",
+      id: 8,
       patientNome: "Beatriz Lima",
       healthInsurance: "Unimed Curitiba",
       startDateTime: "2026-06-23T00:00:00.000-03:00",
@@ -129,6 +131,7 @@ export const mockConsultaList: Array<
       locationAdress: "Sala Virtual",
       status: "em_atendimento",
       type: "teleconsulta",
+      meetingCode: "gXGmWTbxjkIR",
       tags: ["urgencia", "triagem"],
       meetingUrl: "yT_1mV8xQ",
       platform: "Medora",
@@ -138,8 +141,7 @@ export const mockConsultaList: Array<
 
     // 9. Presencial - Finalizada
     {
-      id: "kL_5nP2xR",
-      doctorName: "Dra. Aline Franco",
+      id: 9,
       patientNome: "Rafael Costa",
       healthInsurance: "Cassi",
       startDateTime: "2026-06-15T09:00:00.000-03:00",
@@ -147,13 +149,14 @@ export const mockConsultaList: Array<
       locationAdress: "Av. República Argentina, 500 - Curitiba, PR",
       status: "finalizado",
       type: "presencial",
+      platform: "Medora",
+      patientTermsAccepted: true,
       tags: ["leitura-exames"],
     },
 
     // 10. Teleconsulta - Agendada (Médico ainda não aceitou os termos)
     {
-      id: "wR_8xP9mB",
-      doctorName: "Dr. Fernando Santos",
+      id: 10,
       patientNome: "Juliana Dias",
       healthInsurance: "Particular",
       startDateTime: "2026-06-22T15:00:00.000-03:00",
@@ -163,6 +166,7 @@ export const mockConsultaList: Array<
       type: "teleconsulta",
       tags: ["terapia-semanal"],
       meetingUrl: "wR_8xP9mB",
+      meetingCode: "gXGmWTbxjkIR",
       platform: "Medora",
       doctorTermsAccepted: false,
       patientTermsAccepted: true,
@@ -177,7 +181,7 @@ export const consultaHandlers = [
 
   // GET /api/consultas/:id — busca por id
   http.get("/api/consultas/:id", ({ params }) => {
-    const consulta = mockConsultaList.find((tc) => tc.id === params.id);
+    const consulta = mockConsultaList.find((tc) => tc.id === Number(params.id));
 
     if (!consulta) {
       return HttpResponse.json(
@@ -190,7 +194,7 @@ export const consultaHandlers = [
   }),
 
   http.get("/api/consultas/details/:id", ({ params }) => {
-    const consulta = mockConsultaList.find((tc) => tc.id === params.id);
+    const consulta = mockConsultaList.find((tc) => tc.id === Number(params.id));
 
     if (!consulta) {
       return HttpResponse.json(
@@ -208,7 +212,7 @@ export const consultaHandlers = [
 
     const nova: IConsultaDetailed = {
       ...body,
-      id: `tc-${Date.now()}`,
+      id: Date.now(),
     };
 
     return HttpResponse.json(nova, { status: 201 });
@@ -216,7 +220,7 @@ export const consultaHandlers = [
 
   // PATCH /api/consultas/:id — atualiza parcialmente
   http.patch("/api/consultas/:id", async ({ params, request }) => {
-    const consulta = mockConsultaList.find((tc) => tc.id === params.id);
+    const consulta = mockConsultaList.find((tc) => tc.id === Number(params.id));
 
     if (!consulta) {
       return HttpResponse.json(
@@ -233,7 +237,7 @@ export const consultaHandlers = [
 
   // DELETE /api/consultas/:id — cancela/remove
   http.delete("/api/consultas/:id", ({ params }) => {
-    const existe = mockConsultaList.some((tc) => tc.id === params.id);
+    const existe = mockConsultaList.some((tc) => tc.id === Number(params.id));
 
     if (!existe) {
       return HttpResponse.json(

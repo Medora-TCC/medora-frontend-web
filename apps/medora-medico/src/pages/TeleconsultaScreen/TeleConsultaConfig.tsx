@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { Button, Card, Chip, Spinner } from "@heroui/react";
 import {
   Camera,
@@ -142,8 +142,14 @@ export default function TeleConsultaConfig() {
   );
 
   // ── 2. Estado local ───────────────────────────────────────────────────────
+  // O painel manda qual é a consulta; repassamos para a sala, onde o prontuário precisa dela.
+  const consultaState = (useLocation().state ?? {}) as { appointmentId?: number; patientName?: string };
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  // Refs com o stream atual: os cleanups abaixo rodam com closures antigas e
+  // veriam o valor inicial (null), deixando a câmera ligada ao sair da tela
+  const videoStreamRef = useRef<MediaStream | null>(null);
+  const audioStreamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [camPerm, setCamPerm] = useState<PermissionState>("idle");
@@ -157,62 +163,73 @@ export default function TeleConsultaConfig() {
 
   const guardIniciado = useRef(false);
 
+    //REMINDER: BUG ESTRANHO, ATUALMENTE FUNIONA SE CONECTAR AMBOS E DAI ENTRAR NA SALA
+    //CASO CONTRARIO DA ERRO [17:09:58] ❌ Erro ao processar sinal: Unknown ufrag (08f4771d)
+
+  // ── 3. Dispara o guard uma única vez ao montar ────────────────────────────
   useEffect(() => {
     if (id && !guardIniciado.current) {
       guardIniciado.current = true;
       tentar(id);
     }
-
-    if (state.fase !== "termos_pendentes") {
-      setTermoAceitoGuard(true);
-    }
   }, []);
 
+  // ── 4. Sincroniza o botão de termos com a fase do guard ───────────────────
   useEffect(() => {
-    console.log("fase: " + state.fase);
-
-    if (state.fase === "termos_pendentes" || state.fase === "idle") {
-      setTermoAceitoGuard(false);
-    } else {
-      setTermoAceitoGuard(true);
-    }
+    setTermoAceitoGuard(
+      state.fase === "termos_pendentes" || state.fase === "idle" ? false : true,
+    );
   }, [state.fase]);
 
   useEffect(() => {
     return () => {
       teleconsultaGuard.reset();
-      guardIniciado.current = false;
     };
   }, []);
 
-  // ── 5. Solicitar permissões de mídia ──────────────────────────────────────
+  // ── 5. Solicitar permissões de mídia (câmera e microfone separadamente) ──
   async function requestPermissions() {
     setCamPerm("requesting");
     setMicPerm("requesting");
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      stream.getTracks().forEach((t) => t.stop());
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const cams = devices
-        .filter((d) => d.kind === "videoinput")
-        .map((d) => ({ deviceId: d.deviceId, label: d.label }));
-      const micsArr = devices
-        .filter((d) => d.kind === "audioinput")
-        .map((d) => ({ deviceId: d.deviceId, label: d.label }));
-      setCameras(cams);
-      setMics(micsArr);
-      setSelectedCam(cams[0]?.deviceId ?? "");
-      setSelectedMic(micsArr[0]?.deviceId ?? "");
+
+    const [camResult, micResult] = await Promise.allSettled([
+      navigator.mediaDevices.getUserMedia({ video: true }),
+      navigator.mediaDevices.getUserMedia({ audio: true }),
+    ]);
+
+    if (camResult.status === "fulfilled") {
+      camResult.value.getTracks().forEach((t) => t.stop());
       setCamPerm("granted");
-      setMicPerm("granted");
-    } catch (e: unknown) {
-      const denied = e instanceof Error && e.name === "NotAllowedError";
+    } else {
+      const denied =
+        camResult.reason instanceof Error &&
+        camResult.reason.name === "NotAllowedError";
       setCamPerm(denied ? "denied" : "error");
+    }
+
+    if (micResult.status === "fulfilled") {
+      micResult.value.getTracks().forEach((t) => t.stop());
+      setMicPerm("granted");
+    } else {
+      const denied =
+        micResult.reason instanceof Error &&
+        micResult.reason.name === "NotAllowedError";
       setMicPerm(denied ? "denied" : "error");
     }
+
+    // A label dos dispositivos só vem preenchida depois de pelo menos uma
+    // permissão concedida.
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices
+      .filter((d) => d.kind === "videoinput")
+      .map((d) => ({ deviceId: d.deviceId, label: d.label }));
+    const micsArr = devices
+      .filter((d) => d.kind === "audioinput")
+      .map((d) => ({ deviceId: d.deviceId, label: d.label }));
+    setCameras(cams);
+    setMics(micsArr);
+    setSelectedCam(cams[0]?.deviceId ?? "");
+    setSelectedMic(micsArr[0]?.deviceId ?? "");
   }
 
   useEffect(() => {
@@ -223,7 +240,7 @@ export default function TeleConsultaConfig() {
   useEffect(() => {
     if (!selectedCam || camPerm !== "granted") return;
     let active = true;
-    videoStream?.getTracks().forEach((t) => t.stop());
+    videoStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (!camOn) {
       setVideoStream(null);
       return;
@@ -241,13 +258,14 @@ export default function TeleConsultaConfig() {
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCam, camOn, camPerm]);
 
   // ── 7. Stream de áudio ────────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedMic || micPerm !== "granted") return;
     let active = true;
-    audioStream?.getTracks().forEach((t) => t.stop());
+    audioStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (!micOn) {
       setAudioStream(null);
       return;
@@ -265,6 +283,7 @@ export default function TeleConsultaConfig() {
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMic, micOn, micPerm]);
 
   // ── 8. Bind vídeo ao elemento <video> ─────────────────────────────────────
@@ -272,15 +291,24 @@ export default function TeleConsultaConfig() {
     if (videoRef.current) videoRef.current.srcObject = videoStream;
   }, [videoStream]);
 
-  // ── 9. Cleanup de streams ao desmontar ───────────────────────────────────
+  // ── 9. Mantém as refs sincronizadas com o stream atual ────────────────────
+  useEffect(() => {
+    videoStreamRef.current = videoStream;
+  }, [videoStream]);
+
+  useEffect(() => {
+    audioStreamRef.current = audioStream;
+  }, [audioStream]);
+
+  // ── 10. Cleanup de streams ao desmontar ───────────────────────────────────
   useEffect(() => {
     return () => {
-      videoStream?.getTracks().forEach((t) => t.stop());
-      audioStream?.getTracks().forEach((t) => t.stop());
+      videoStreamRef.current?.getTracks().forEach((t) => t.stop());
+      audioStreamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
 
-  // ── 10. Early returns do guard — SEMPRE após todos os hooks ───────────────
+  // ── 11. Early returns do guard — SEMPRE após todos os hooks ───────────────
 
   if (state.fase === "acesso_negado") {
     return (
@@ -303,6 +331,8 @@ export default function TeleConsultaConfig() {
 
   // ── Render principal ──────────────────────────────────────────────────────
   const prontoPeloGuard = state.fase === "liberado";
+  // Permite entrar com apenas áudio ou apenas vídeo (consulta parcial),
+  // desde que ao menos um dos dois tenha sido liberado.
   const pronto =
     prontoPeloGuard && (camPerm === "granted" || micPerm === "granted");
 
@@ -311,7 +341,7 @@ export default function TeleConsultaConfig() {
     videoStream?.getTracks().forEach((t) => t.stop());
     audioStream?.getTracks().forEach((t) => t.stop());
     navigate(`../${id}/sala`, {
-      state: { camOn, micOn, selectedCam, selectedMic },
+      state: { ...consultaState, camOn, micOn, selectedCam, selectedMic },
     });
   }
 
@@ -332,7 +362,7 @@ export default function TeleConsultaConfig() {
             Verifique câmera e microfone antes de entrar na teleconsulta
           </p>
           {(camPerm === "denied" || micPerm === "denied") && (
-            <Card className="border-warning/30 bg-warning/5 ">
+            <Card className="border-warning/30 bg-warning/5">
               <Card.Content className="flex flex-row items-center justify-center gap-5 p-1">
                 <AlertTriangle
                   size={24}
@@ -416,7 +446,7 @@ export default function TeleConsultaConfig() {
           </Card>
 
           {/* Microfone */}
-          <Card className=" border border-ring shadow-2xl">
+          <Card className="border border-ring shadow-2xl">
             <Card.Content className="flex flex-col gap-4 p-4 h-full">
               <div className="flex-1 flex flex-col items-center justify-center gap-3 py-6">
                 <div

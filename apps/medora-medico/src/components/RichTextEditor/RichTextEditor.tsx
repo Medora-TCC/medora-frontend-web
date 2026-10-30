@@ -121,14 +121,11 @@ function ClearPlugin({ editorRef }: { editorRef: React.RefObject<RichTextEditorR
 }
 
 function LoadContentPlugin({ json: content }: { json: string | null }): null {
-
-  if(!content) {
-    return null;
-  }
-
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
+    if (!content) return;
+
     const editorState = editor.parseEditorState(content);
     editor.setEditorState(editorState);
   }, [editor, content]);

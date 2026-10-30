@@ -1,4 +1,4 @@
-import type { IConsultaDetailed, ITeleConsultaDetailed } from "@medora_web/shared";
+import type { IConsultaDetailed } from "@medora_web/shared";
 
 export function PatientInitials(nome: string) {
   return nome
@@ -11,7 +11,8 @@ export function PatientInitials(nome: string) {
 // verifica botao visivel
 export function canEnter(c: IConsultaDetailed): boolean {
   if (!c) return false;
-  if (c.status !== "agendado" && c.status !== "em_atendimento") return false;
+  // só teleconsulta confirmada (paga e aceita pelo médico) pode começar
+  if (c.status !== "confirmado" && c.status !== "em_atendimento") return false;
 
   const horario = new Date(c.startDateTime).getTime();
   const agora = Date.now();
@@ -20,15 +21,15 @@ export function canEnter(c: IConsultaDetailed): boolean {
 }
 
 // dispara para o back a ação de tentar entrar na consulta
-export function enterConsulta(id: string, navigate: any) {
+export function enterConsulta(id: number, navigate: any) {
   // **LOGICA DE VALIDACAO COM O BACK (Seus fetchs/axios continuam aqui normais)**
   // Exemplo: await api.post(`/consultas/${id}/entrar`);
 
   // Agora usamos o navigate que veio do componente
-  navigate(`../teleconsulta/${id}/pre-sala`);
+  navigate(`../teleconsulta/${id}/pre-sala`, { state: { appointmentId: id } });
 }
 
-export function isTeleConsulta(consulta: IConsultaDetailed | ITeleConsultaDetailed): consulta is ITeleConsultaDetailed {
+export function isTeleConsulta(consulta: IConsultaDetailed ) {
   return consulta.type === 'teleconsulta' && 'meetingUrl' in consulta;
 }
 

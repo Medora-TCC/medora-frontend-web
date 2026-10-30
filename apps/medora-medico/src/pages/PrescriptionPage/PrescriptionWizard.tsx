@@ -1,5 +1,9 @@
 import { ArrowRight } from "lucide-react";
 import type { Paciente } from "../../types/Prescritpion";
+import PrescriptionsService, { type IssuedPrescription } from "../../api/services/Prescriptions";
+import { errorMessage } from "../../api/errors";
+import { textoDaReceita } from "./prescriptionText";
+import { ReceitaEmitida } from "./ReceitaEmitida";
 import { WizardProgressBar } from "./WizardProgressBar";
 import { StepMedication } from "./Steps/StepMedication";
 import { StepDosage } from "./Steps/StepDosage";
@@ -9,62 +13,82 @@ import { usePrescriptionWizard } from "../../hooks/usePrescriptionWizard";
 import { useState } from "react";
 import { ModalCarregamento } from "@medora_web/shared";
 
+function iniciais(nome: string): string {
+  return nome.replace(/^Dra?\.\s*/, "").split(" ").slice(0, 2).map((n) => n[0]).join("");
+}
 
-const MEDICO_MOCK = {
-  id: "doc1",
-  nome: "Carlos Eduardo Menezes",
-  crm: "52840",
-  especialidade: "Clínica Geral",
-  uf: "PR",
-};
+// A consulta só traz o nome do paciente; os demais dados ficam vazios
+function pacienteDaConsulta(nome: string): Paciente {
+  return { id: "", nome, dataNascimento: "", cpf: "", medicamentosEmUso: [] };
+}
 
-const PACIENTE_MOCK: Paciente = {
-  id: "pac1",
-  nome: "Ana Paula Rodrigues",
-  dataNascimento: "1980-03-14",
-  cpf: "***.456.789-**",
-  peso: 68,
-  altura: 165,
-  convenio: "Unimed Gold",
-  medicamentosEmUso: [],
-};
+
+export interface MedicoPrescritor {
+  nome: string;
+  especialidade?: string;
+}
+
+// A receita simples vale 30 dias
+const VALIDADE_DIAS = 30;
 
 interface Props {
-  onConcluir?: (rascunho: ReturnType<typeof usePrescriptionWizard>["state"]["rascunho"]) => void;
+  medicalRecordId: number;
+  medico: MedicoPrescritor;
+  patientName?: string;
   onCancelar?: () => void;
 }
 
-export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
+export function PrescricaoWizard({ medicalRecordId, medico, patientName, onCancelar }: Props) {
   const wizard = usePrescriptionWizard();
   const { state } = wizard;
-  // const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [emitida, setEmitida] = useState<{ receita: IssuedPrescription; pdfUrl: string | null } | null>(null);
 
-  const[isFeito, setIsFeito] = useState<boolean>(false);
-
-  // Injeta o paciente mock — em produção vem de props ou contexto
   const rascunhoComPaciente = {
     ...state.rascunho,
-    paciente: state.rascunho.paciente ?? PACIENTE_MOCK,
+    paciente: state.rascunho.paciente ?? (patientName ? pacienteDaConsulta(patientName) : null),
   };
 
   async function handleEmitir() {
     setIsLoading(true);
-    onConcluir?.(rascunhoComPaciente);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsLoading(false);
-    setIsFeito(true);
-    // navigate("/medico/assinatura");
+    setErro(null);
+    try {
+      const receita = await PrescriptionsService.issue(medicalRecordId, textoDaReceita(state.rascunho), VALIDADE_DIAS);
+      const pdf = await PrescriptionsService.getPdf(receita.publicId).catch(() => null);
+      setEmitida({ receita, pdfUrl: pdf?.downloadUrl ?? null });
+    } catch (err) {
+      setErro(errorMessage(err, "Erro ao emitir a receita."));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function abrirPdf() {
+    if (!emitida) return;
+    // o link do MinIO expira em 5 minutos, então busca um novo a cada clique
+    const pdf = await PrescriptionsService.getPdf(emitida.receita.publicId).catch(() => null);
+    const url = pdf?.downloadUrl ?? emitida.pdfUrl;
+    if (url) window.open(url, "_blank", "noopener");
+  }
+
+  if (emitida) {
+    return (
+      <ReceitaEmitida
+        secretCode={emitida.receita.secretCode}
+        temPdf={emitida.pdfUrl !== null}
+        onAbrirPdf={abrirPdf}
+        onVoltar={onCancelar}
+      />
+    );
   }
 
   const ETAPA_IDX = ["medicamentos", "posologia", "revisao"].indexOf(state.etapaAtual) + 1;
 
   return (
     <div
-      className={`bg-surface my-auto flex flex-col w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-border ${
-        isFeito ? "pointer-events-none opacity-50" : ""
-      }`}
+      className="bg-surface my-auto flex flex-col w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-border"
     >
       <header
         className="flex items-center justify-between px-6 py-3 border-b border-border"
@@ -73,15 +97,15 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
           <div
             className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center bg-primary-color text-text-inverse"
           >
-            {MEDICO_MOCK.nome.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+            {iniciais(medico.nome)}
           </div>
           <div>
             <p className="text-sm font-medium leading-none text-text-primary">
-              Dr. {MEDICO_MOCK.nome}
+              {medico.nome}
             </p>
-            <p className="text-xs text-text-muted">
-              CRM/{MEDICO_MOCK.uf} {MEDICO_MOCK.crm} · {MEDICO_MOCK.especialidade}
-            </p>
+            {medico.especialidade && (
+              <p className="text-xs text-text-muted">{medico.especialidade}</p>
+            )}
           </div>
         </div>
 
@@ -127,8 +151,10 @@ export function PrescricaoWizard({ onConcluir, onCancelar }: Props) {
           {state.etapaAtual === "revisao" && (
             <StepRevision
               rascunho={rascunhoComPaciente}
-              medico={MEDICO_MOCK}
+              medico={medico}
               onEmitir={handleEmitir}
+              emitindo={isLoading}
+              erro={erro}
               onVoltar={wizard.voltarInicio}
             />
           )}

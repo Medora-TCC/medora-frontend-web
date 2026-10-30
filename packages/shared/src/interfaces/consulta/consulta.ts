@@ -1,9 +1,36 @@
-export type StatusConsulta = 'agendado' | 'em_espera' | 'em_atendimento' | 'finalizado' | 'cancelado';
-export type TypeConsulta = 'presencial' | 'teleconsulta'
+export type StatusConsulta = 'agendado' | 'esperando_pagamento' | 'esperando_confirmacao' |'confirmado'| 'em_atendimento' | 'finalizado' | 'cancelado' | 'ausente';
+export type TypeConsulta = 'presencial' | 'teleconsulta' | 'outro';
+export type FiltroConsulta = 'hoje' | 'amanha' | 'semana' | 'nenhum';
+
+// O backend serializa os enums como texto (JsonStringEnumConverter)
+export const typeMapByCode: Record<string, TypeConsulta> = {
+  InPerson: "presencial",
+  Online: "teleconsulta",
+  Any: "outro"
+};
+
+export const filterMapByCode: Record<FiltroConsulta, number | undefined> = {
+  hoje: 0,
+  amanha: 1,
+  semana: 2,
+  nenhum: undefined,
+};
+
+
+export const statusMapByCode: Record<string, StatusConsulta> = {
+  Scheduled: "agendado",
+  AwaitingPayment: "esperando_pagamento",
+  AwaitingConfirmation: "esperando_confirmacao",
+  Confirmed: "confirmado",
+  InProgress: "em_atendimento",
+  Completed: "finalizado",
+  RescheduleNeeded: "agendado",
+  Canceled: "cancelado",
+  Absent: "ausente",
+};  
 
 export interface IConsultaDetailed {
-  id: string;
-  doctorName: string;
+  id: number;
   patientNome: string;
   healthInsurance: string; //Ex. Unimed, MedSenior e etc
   startDateTime: string; //Ex. Formato 2026-05-21T08:00:00.000-03:00
@@ -12,11 +39,13 @@ export interface IConsultaDetailed {
   status: StatusConsulta;
   type: TypeConsulta;
   tags?: string[];
+  meetingUrl?: string; //EX. Medora.com/nanoID
+  platform: string; //EX. fixo -> Medora
+  patientTermsAccepted: boolean; 
 }
 
 export interface IConsultaSimplified{
   id: string;
-  doctorName: string;
   patientNome: string;
   healthInsurance: string; //Ex. Unimed, MedSenior e etc
   status: StatusConsulta;
@@ -25,6 +54,7 @@ export interface IConsultaSimplified{
 
 
 export interface ITeleConsultaDetailed extends IConsultaDetailed {
+   meetingCode: string;
    meetingUrl?: string; //EX. Medora.com/nanoID
    platform: string; //EX. fixo -> Medora
    doctorTermsAccepted: boolean; 
@@ -38,4 +68,8 @@ export interface AcceptTermsDTO{
   userResponse: boolean;
   consultaId: string;
   userIp: string;
+}
+
+export function toConsulta() {
+  
 }

@@ -10,8 +10,9 @@ export default function BackupLoginPage() {
   const { signIn } = useAuth();
 
   const handleVerify = async (code: string) => {
-    const response = await api.post(Endpoints.USE_BACKUP_CODE, { code });
-    return response.data;
+    // o backend devolve "acessToken" (com um "c" só)
+    const response = await api.post<{ acessToken: string }>(Endpoints.USE_BACKUP_CODE, { backupCode: code });
+    return { accessToken: response.data.acessToken };
   }
 
 

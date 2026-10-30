@@ -3,7 +3,6 @@ import { Input, Button, toast, ToastProvider } from "@heroui/react";
 import { FloatingCard, FormStepper, PasswordInput, FieldWrapper } from "@medora_web/shared";
 import doctorImage from '../../assets/medicoSegurandoTable.png';
 import type { RegisterDoctorDto, ForeignerDto } from "../../api/dtos/Doctors/RegisterDoctorDto";
-import { Endpoints } from "../../api/enums/endpoints";
 import { registerDoctor } from "../../api/services/DoctorService";
 import { Activity, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -100,7 +99,7 @@ export function RegisterPage() {
     const [currentStep, setCurrentStep] = useState(1);
 
     const [isRejectedOpen, setIsRejectedOpen] = useState(false);
-    const [rejectionReason, setRejectionReason] = useState("");
+    const [rejectionReason] = useState("");
 
     const navigate = useNavigate();
 
