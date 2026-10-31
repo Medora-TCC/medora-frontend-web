@@ -13,7 +13,7 @@ interface ConsultaCardProps {
   muted?: boolean;
 }
 
-const SEM_BOTAO_ENTRAR = ["finalizado", "cancelado", "ausente"];
+const COM_BOTAO_ENTRAR = ["confirmado", "em_atendimento"];
 
 export function ConsultaCard({ consulta, onCardClick, muted = false }: ConsultaCardProps) {
   const hoje = isHoje(consulta.startDateTime);
@@ -46,7 +46,7 @@ export function ConsultaCard({ consulta, onCardClick, muted = false }: ConsultaC
       ? "font-semibold text-accent"
       : "text-text-secondary";
 
-  const mostrarEntrar = isTele && !SEM_BOTAO_ENTRAR.includes(consulta.status);
+  const mostrarEntrar = isTele && COM_BOTAO_ENTRAR.includes(consulta.status);
 
   const faixa = isJoinable ? "bg-success" : isTele ? "bg-violet-500" : "bg-teal-500";
 
@@ -62,7 +62,7 @@ export function ConsultaCard({ consulta, onCardClick, muted = false }: ConsultaC
         }
       }}
       className={`
-        relative flex min-h-56 md:h-56 md:min-w-78 md:w-89 md:min-h-0 md:aspect-square overflow-hidden gap-0 p-0 cursor-pointer
+        relative flex min-h-56 h-52 w-full min-w-0 md:min-h-0 md:aspect-square overflow-hidden gap-0 p-0 cursor-pointer
         rounded-lg border border-ring bg-surface-raised shadow-md transition-all duration-200 hover:shadow-lg
         ${
           isJoinable
