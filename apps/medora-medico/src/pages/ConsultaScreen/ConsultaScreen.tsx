@@ -93,7 +93,9 @@ const STATUS_ABERTOS: StatusConsulta[] = ["agendado", "confirmado", "em_atendime
 function isMuted(c: IConsultaDetailed, now: number) {
   if (c.status === "cancelado") return true;
   if (c.status === "em_atendimento") return false;
-  return new Date(c.startDateTime).getTime() < now;
+  
+  const fifteenMinutesAgo = now - 15 * 60 * 1000;
+  return new Date(c.startDateTime).getTime() < fifteenMinutesAgo;
 }
 
 // ─── Skeleton card ────────────────────────────────────────────────────────────

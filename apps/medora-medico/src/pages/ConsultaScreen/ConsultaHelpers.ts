@@ -12,26 +12,23 @@ export function PatientInitials(nome: string) {
 
 export function canEnter(c: IConsultaDetailed): boolean {
   if (!c) return false;
-  // só teleconsulta confirmada (paga e aceita pelo médico) pode começar
   if (c.status !== "confirmado" && c.status !== "em_atendimento") return false;
 
-  const horario = new Date(c.startDateTime).getTime();
+  const inicio = new Date(c.startDateTime).getTime() - 15 * 60 * 1000;
+  const fim = new Date(c.endDateTime).getTime();
   const agora = Date.now();
-  const res = agora >= horario - 15 * 60 * 1000 && agora <= horario + 50 * 60 * 1000; //REMIDNER AJUSTAR JANELA DE ENTRAR
-  return res
+
+  return agora >= inicio && agora <= fim;
 }
 
 // dispara para o back a ação de tentar entrar na consulta
-export function enterConsulta(id: number, navigate: any) {
-  // **LOGICA DE VALIDACAO COM O BACK (Seus fetchs/axios continuam aqui normais)**
-  // Exemplo: await api.post(`/consultas/${id}/entrar`);
+export function enterConsulta(meetingCode: string, navigate: any) {
 
-  // Agora usamos o navigate que veio do componente
-  navigate(`../teleconsulta/${id}/pre-sala`, { state: { appointmentId: id } });
+  navigate(`../teleconsulta/${meetingCode}/pre-sala`, { state: { appointmentId: meetingCode } });
 }
 
 export function isTeleConsulta(consulta: IConsultaDetailed ) {
-  return consulta.type === 'teleconsulta' && 'meetingUrl' in consulta;
+  return consulta.type === 'teleconsulta' && 'meetingCode' in consulta;
 }
 
 export function formatConsultaHorario(iso: string) {

@@ -52,7 +52,7 @@ function toConsulta(a: AppointmentDto): IConsultaDetailed {
     locationAdress: type === "teleconsulta" ? "Sala Virtual" : "", // a API não retorna endereço
     status: statusMapByCode[a.status] ?? "agendado",
     type,
-    meetingUrl: a.meetingUrl ?? undefined, // API manda null, o tipo espera undefined
+    meetingCode: a.meetingCode ?? undefined, // API manda null, o tipo espera undefined
     platform: a.platform ?? DEFAULT_PLATFORM,
     patientTermsAccepted: false, // a API ainda não retorna o aceite dos termos
   };

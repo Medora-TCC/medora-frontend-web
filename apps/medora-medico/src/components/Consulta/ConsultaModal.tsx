@@ -486,7 +486,7 @@ export default function ConsultaModal({
                     // ficando desabilitado.
                     <EnterConsultaButton
                       isJoinable={isJoinable}
-                      id={currentConsulta?.id ?? null}
+                      meetingCode={currentConsulta?.meetingCode ?? null}
                     />
                   )}
 

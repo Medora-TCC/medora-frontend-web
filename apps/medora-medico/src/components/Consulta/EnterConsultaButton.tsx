@@ -6,17 +6,17 @@ import { useNavigate } from "react-router";
 
 interface EnterButtonProps {
   isJoinable: boolean;
-  id: number | null | undefined;
+  meetingCode: string | null | undefined;
 }
 
-export default function EnterConsultaButton({ isJoinable, id }: EnterButtonProps) {
+export default function EnterConsultaButton({ isJoinable, meetingCode }: EnterButtonProps) {
   const navigate = useNavigate();
 
-  const disabled = !isJoinable || id == null;
+  const disabled = !isJoinable || meetingCode == null;
 
   function handleEnter() {
-    if (id == null) return;
-    enterConsulta(id, navigate);
+    if (meetingCode == null) return;
+    enterConsulta(meetingCode, navigate);
   }
   return (
     <span
