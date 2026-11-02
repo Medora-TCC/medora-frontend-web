@@ -96,6 +96,8 @@ function AppointmentActions({ appointment, onChanged }: { appointment: DoctorApp
       onChanged();
     } catch (err) {
       toast.danger(errorMessage(err, 'Erro ao atualizar a consulta.'));
+      // a consulta pode ter mudado no servidor (ex.: o prazo de confirmação venceu e ela foi cancelada)
+      onChanged();
     } finally {
       setIsSaving(false);
     }

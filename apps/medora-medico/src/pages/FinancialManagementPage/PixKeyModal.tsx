@@ -66,8 +66,8 @@ export function PixKeyModal({ isOpen, onOpenChange, current, onSaved }: PixKeyMo
 
             <Modal.Body className="px-5 py-4 flex flex-col gap-4">
               <p className="m-0 text-xs text-text-secondary">
-                Seus repasses são enviados para esta chave, que precisa estar em seu nome.
-                Aceitamos só chave aleatória ou CNPJ, para não expor seus dados pessoais.
+                Esta é a chave dos seus repasses e precisa estar em seu nome. Nesta versão, o pagamento
+                do repasse é simulado. Aceitamos só chave aleatória ou CNPJ, para não expor seus dados pessoais.
               </p>
 
               {current && (
