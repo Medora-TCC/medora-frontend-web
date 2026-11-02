@@ -61,7 +61,12 @@ const FILTERS: { value: DoctorAppointmentsFilter; label: string }[] = [
   { value: 'Today',    label: 'Hoje' },
   { value: 'Tomorrow', label: 'Amanhã' },
   { value: 'Week',     label: 'Semana' },
+  { value: 'PendingConfirmation', label: 'Pendentes' },
+  { value: 'ToComplete',          label: 'A concluir' },
 ];
+
+// filtros que listam dias diferentes e por isso mostram o cabeçalho do dia
+const MULTI_DAY: DoctorAppointmentsFilter[] = ['Week', 'PendingConfirmation', 'ToComplete'];
 
 // localStartDateTime vem como "dd/MM/yyyy HH:mm" no fuso do médico
 const localDate = (a: DoctorAppointment) => a.localStartDateTime.slice(0, 10);
@@ -261,7 +266,7 @@ export function AvailabilityHistorical() {
               ) : (
                 groupByDay(appointments).map(([day, dayAppointments]) => (
                   <div key={day}>
-                    {filter === 'Week' && (
+                    {MULTI_DAY.includes(filter) && (
                       <p className="px-4 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
                         {dayHeading(day)}
                       </p>
