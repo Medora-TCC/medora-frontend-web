@@ -3,6 +3,14 @@ import { request } from "./api";
 export type PayoutClosingStatus = "PendingApproval" | "Approved" | "Paid";
 export type PayoutItemType = "Credit" | "Debit";
 
+export type PixKeyType = "Cnpj" | "Random";
+
+export interface PayoutPreviewConsultation {
+  appointmentId: number;
+  appointmentStartDateTime: string;
+  amount: number;
+}
+
 export interface PayoutPreviewItem {
   doctorId: string;
   doctorName: string;
@@ -12,6 +20,7 @@ export interface PayoutPreviewItem {
   debitAmount: number;
   totalAmount: number;
   alreadyClosed: boolean;
+  consultations: PayoutPreviewConsultation[];
 }
 
 export interface PayoutClosingSummary {
@@ -25,6 +34,8 @@ export interface PayoutClosingSummary {
   approvedAt: string | null;
   paidAt: string | null;
   paymentReference: string | null;
+  pixKeyType: PixKeyType | null;
+  pixKey: string | null;
 }
 
 export interface PayoutClosingItem {

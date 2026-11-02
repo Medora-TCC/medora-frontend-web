@@ -37,6 +37,13 @@ export interface PayoutStatementDto {
   closings: PayoutClosingSummaryDto[];
 }
 
+export type PixKeyType = "Cnpj" | "Random";
+
+export interface PixKeyDto {
+  type: PixKeyType;
+  maskedKey: string;
+}
+
 export interface PayoutClosingItemDto {
   paymentId: number;
   appointmentId: number;
