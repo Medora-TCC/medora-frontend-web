@@ -2,14 +2,12 @@ import { useState, type JSX } from "react";
 import { Button, Spinner } from "@heroui/react";
 import { ModalConfirmacao } from "@medora_web/shared";
 import {
-  CircleHelp,
   Eye,
   EyeOff,
   FileDown,
   PanelLeftClose,
   PanelLeftOpen,
   Save,
-  TriangleAlert,
 } from "lucide-react";
 import type { SignatureStatus } from "../../api/services/MedicalRecords";
 import type { MedicalRecordController, SaveState } from "../../hooks/useMedicalRecord";
@@ -94,7 +92,7 @@ export function PatientHeader({
         </Button>
 
         <div className="flex min-w-0 flex-1 items-baseline gap-x-4 overflow-hidden">
-          <h1 className="truncate text-base font-bold text-text-primary">{patient.name}</h1>
+          <h1 className="truncate text-base font-bold text-text-primary">Paciente: {patient.name}</h1>
 
           <dl className="hidden items-baseline gap-x-4 whitespace-nowrap text-sm text-text-secondary tabular-nums md:flex">
             {(age || birth) && (
@@ -151,9 +149,6 @@ export function PatientHeader({
           )}
         </div>
       </div>
-
-      {/* Linha 2: alertas clínicos (sempre visível, nunca rola) */}
-      <ClinicalAlerts patient={patient} />
     </header>
   );
 }
@@ -163,55 +158,6 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
     <div className="flex items-baseline gap-1">
       <dt className="sr-only">{label}</dt>
       <dd>{children}</dd>
-    </div>
-  );
-}
-
-function ClinicalAlerts({ patient }: { patient: PatientSummary }): JSX.Element {
-  const { allergies, conditions = [], riskFlags = [] } = patient;
-
-  return (
-    <div
-      role="region"
-      aria-label="Alertas clínicos"
-      className="flex min-h-8 flex-wrap items-center gap-1.5 border-t border-border bg-surface-alt px-3 py-1 text-xs"
-    >
-      {allergies === null || allergies === undefined ? (
-        <span className="inline-flex items-center gap-1 rounded-md border border-warning bg-warning-subtle px-2 py-0.5 font-semibold text-warning-text">
-          <CircleHelp className="size-3.5" aria-hidden />
-          Alergias não registradas
-        </span>
-      ) : allergies.length === 0 ? (
-        <span className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 font-medium text-text-secondary">
-          Sem alergias conhecidas
-        </span>
-      ) : (
-        allergies.map((a) => (
-          <span
-            key={a}
-            className="inline-flex items-center gap-1 rounded-md border border-danger bg-danger-subtle px-2 py-0.5 font-bold text-danger-text"
-          >
-            <TriangleAlert className="size-3.5" aria-hidden />
-            Alergia: {a}
-          </span>
-        ))
-      )}
-
-      {riskFlags.map((r) => (
-        <span
-          key={r}
-          className="inline-flex items-center gap-1 rounded-md border border-warning bg-warning-subtle px-2 py-0.5 font-semibold text-warning-text"
-        >
-          <TriangleAlert className="size-3.5" aria-hidden />
-          {r}
-        </span>
-      ))}
-
-      {conditions.map((c) => (
-        <span key={c} className="rounded-md border border-border bg-surface px-2 py-0.5 text-text-secondary">
-          {c}
-        </span>
-      ))}
     </div>
   );
 }

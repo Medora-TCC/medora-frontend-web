@@ -2,27 +2,16 @@ import { useEffect, useMemo, useState, type JSX } from "react";
 import { Button, Spinner } from "@heroui/react";
 import { useNavigate } from "react-router";
 import { MedicalRecordModal } from "./MedicalRecordModal";
-import type { MedicalRecordDTO, MedicalRecordStatus } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
-import { fetchProntuarios as fetchMedicalRecords } from "./MedicalRecord";
+import type { MedicalRecordDTO } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
+import { getByPatient as fetchMedicalRecords } from "../../api/services/MedicalRecords";
 
 interface MedicalRecordHistoryProps {
   /** Muda quando é preciso recarregar a lista (ex.: após finalizar o atendimento atual). */
+  patientId: string;
   reloadKey?: unknown;
 }
 
-const BadgeStatus: Record<MedicalRecordStatus, string> = {
-  Inativado: "bg-danger-subtle text-danger-text border border-danger",
-  "Não finalizado": "bg-primary-subtle text-primary-text border border-primary-color",
-  Finalizado: "bg-success-subtle text-success border border-success",
-};
-
-const DotStatus: Record<MedicalRecordStatus, string> = {
-  Inativado: "bg-danger",
-  "Não finalizado": "bg-primary-color",
-  Finalizado: "bg-success",
-};
-
-export function MedicalRecordHistory({ reloadKey }: MedicalRecordHistoryProps): JSX.Element {
+export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHistoryProps): JSX.Element {
   const navigate = useNavigate();
 
   const [items, setItems] = useState<MedicalRecordDTO[]>([]);
@@ -36,7 +25,7 @@ export function MedicalRecordHistory({ reloadKey }: MedicalRecordHistoryProps): 
     setIsLoading(true);
     setError(null);
 
-    fetchMedicalRecords()
+    fetchMedicalRecords(patientId)
       .then((data) => active && setItems(data))
       .catch((e: unknown) => {
         console.error(e);
@@ -51,7 +40,7 @@ export function MedicalRecordHistory({ reloadKey }: MedicalRecordHistoryProps): 
 
   // Derivado direto: não precisa de um segundo estado + useEffect para sincronizar.
   const visible = useMemo(
-    () => (onlyPending ? items.filter((p) => p.status === "Não finalizado") : items),
+    () => (onlyPending ? items.filter((p) => !p.isFinalized) : items),
     [items, onlyPending],
   );
 
@@ -95,14 +84,14 @@ export function MedicalRecordHistory({ reloadKey }: MedicalRecordHistoryProps): 
             <li key={item.id} className="relative pl-2">
               <span
                 aria-hidden
-                className={`absolute -left-[5px] top-4 size-2.5 rounded-full ring-2 ring-surface ${DotStatus[item.status]}`}
+                className={`absolute -left-1.25 top-4 size-2.5 rounded-full ring-2 ring-surface`}
               />
-              {item.status === "Não finalizado" ? (
+              {!item.isFinalized ? (
                 <Button
                   variant="ghost"
                   className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
                   onPress={() => navigate("/medico/prontuario", { state: { prontuario: item } })}
-                  aria-label={`Continuar ${item.tipoConsulta} de ${item.date}`}
+                  aria-label={`Continuar prontuário de ${item.date}`}
                 >
                   <Entry item={item} />
                 </Button>
@@ -122,11 +111,10 @@ export function MedicalRecordHistory({ reloadKey }: MedicalRecordHistoryProps): 
 function Entry({ item }: { item: MedicalRecordDTO }): JSX.Element {
   return (
     <span className="flex w-full min-w-0 flex-col items-start gap-0.5">
-      <span className="w-full truncate text-sm font-semibold text-text-primary">{item.tipoConsulta}</span>
       <span className="flex items-center gap-2 text-xs tabular-nums text-text-secondary">
-        {item.date}
-        <span className={`rounded-full px-2 py-px font-semibold ${BadgeStatus[item.status]}`}>
-          {item.status}
+        {item.date.toLocaleDateString('pt-BR')}
+        <span className={`rounded-full px-2 py-px font-semibold`}>
+          {item.isDeleted ? "Inativado" : item.isFinalized ? "Finalizado" : "Não finalizado"}
         </span>
       </span>
     </span>

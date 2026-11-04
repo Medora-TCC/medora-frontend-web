@@ -9,7 +9,6 @@ import { useMedicalRecord } from "../../hooks/useMedicalRecord";
 export interface MedicalRecordNavigationState {
   patientName?: string;
   appointmentDate?: string;
-  /** Ideal: enviar o resumo completo (ou buscá-lo pela API a partir do appointmentId). */
   patient?: PatientSummary;
 }
 

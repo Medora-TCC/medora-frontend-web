@@ -15,7 +15,7 @@ export function MedicalRecordModal({ medicalRecord, children }: MedicalRecordMod
       <Button
         variant="ghost"
         className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
-        aria-label={`Abrir ${medicalRecord.tipoConsulta} de ${medicalRecord.date}`}
+        aria-label={`Abrir consulta de ${medicalRecord.date}`}
       >
         {children}
       </Button>
@@ -25,12 +25,11 @@ export function MedicalRecordModal({ medicalRecord, children }: MedicalRecordMod
             <Modal.CloseTrigger />
             <Modal.Header>
               <Modal.Heading className="w-full text-center">
-                <h2 className="text-[20px] font-semibold">{medicalRecord.tipoConsulta}</h2>
-                <p className="font-semibold text-muted">{medicalRecord.date}</p>
+                <p className="font-semibold text-muted">{medicalRecord.date.toLocaleDateString("pt-BR")}</p>
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body>
-              <MedicalRecordViewer json={medicalRecord.medicalRecord} />
+              <MedicalRecordViewer json={medicalRecord.jsonContent} />
             </Modal.Body>
           </Modal.Dialog>
         </Modal.Container>

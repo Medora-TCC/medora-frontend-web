@@ -4,7 +4,7 @@ import { ClipboardList } from "lucide-react";
 import { MedicalRecordViewer, RichTextEditor } from "../../components/RichTextEditor/RichTextEditor";
 import type { AppointmentStatus } from "../../api/services/Appointments";
 import type { MedicalRecordController } from "../../hooks/useMedicalRecord";
-import { SOAP_TEMPLATE } from "./SoapTemplate.ts";
+import { SOAP_TEMPLATE } from "./SoapTemplate";
 
 const appointmentStatusLabel: Record<AppointmentStatus, string> = {
   Scheduled: "agendada",
@@ -29,12 +29,18 @@ interface MedicalRecordComponentProps {
   controller: MedicalRecordController;
 }
 
+/**
+ * Só a área de trabalho: título, cabeçalho e ações moram em PatientHeader.
+ * Estrutura: coluna flex com `min-h-0` → o editor ocupa o resto da altura e rola por dentro,
+ * sem os antigos `h-[78%]` / `max-h-[78%]`.
+ */
 export function MedicalRecordComponent({ controller }: MedicalRecordComponentProps): JSX.Element {
   const {
     mode,
     record,
     initialContent,
     editorKey,
+    editorRef,
     loadError,
     appointmentStatus,
     isEmpty,
@@ -100,10 +106,11 @@ export function MedicalRecordComponent({ controller }: MedicalRecordComponentPro
             )}
           </div>
 
-          {/* O RichTextEditor precisa ocupar 100% deste contêiner e rolar internamente (ver notas) */}
+          {/* O RichTextEditor ocupa 100% deste contêiner e rola por dentro da área de escrita */}
           <div className="min-h-0 flex-1 overflow-hidden px-2 pb-2">
             <RichTextEditor
               key={editorKey}
+              ref={editorRef}
               setText={handleChange}
               setIsEmpty={setIsEmpty}
               content={initialContent}

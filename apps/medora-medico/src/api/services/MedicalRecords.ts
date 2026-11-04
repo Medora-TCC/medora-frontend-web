@@ -2,6 +2,7 @@ import { Endpoints } from '../enums/endpoints';
 import { api } from './api';
 import { toDomainError } from '../errors';
 import type { AppointmentStatus } from './Appointments';
+import type { MedicalRecordDTO } from '../dtos/MedicalRecord/MedicalRecordDTO';
 
 export interface MedicalRecord {
   id: number;
@@ -49,6 +50,15 @@ async function finalize(id: number): Promise<void> {
     await api.post(Endpoints.FINALIZE_MEDICAL_RECORD(id));
   } catch (error) {
     throw toDomainError(error, 'Erro ao finalizar o prontuário.');
+  }
+}
+
+export async function getByPatient(patientId: string): Promise<MedicalRecordDTO[]> {
+  try {
+    const res = await api.get<MedicalRecordDTO[]>(Endpoints.MEDICAL_RECORD_BY_PATIENT(patientId));
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, "Erro ao buscar prontuários")
   }
 }
 

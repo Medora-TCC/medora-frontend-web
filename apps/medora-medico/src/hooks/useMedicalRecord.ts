@@ -6,6 +6,7 @@ import MedicalRecordsService, {
 } from "../api/services/MedicalRecords";
 import type { AppointmentStatus } from "../api/services/Appointments";
 import { errorMessage } from "../api/errors";
+import type { RichTextEditorRef } from "../components/RichTextEditor/RichTextEditor";
 
 export type SaveState =
   | { kind: "idle" }
@@ -38,6 +39,7 @@ export function useMedicalRecord(appointmentId: number) {
   const pendingRef = useRef<string | null>(null);
   const latestRef = useRef<string | null>(null);
   const inFlightRef = useRef<Promise<boolean> | null>(null);
+  const editorRef = useRef<RichTextEditorRef>(null);
 
   // ---- carga ----------------------------------------------------------------
   useEffect(() => {
@@ -135,8 +137,13 @@ export function useMedicalRecord(appointmentId: number) {
     [isLoading, save],
   );
 
-  /** Garante que tudo que está na tela já foi persistido. */
+  /**
+   * Garante que tudo que está na tela já foi persistido.
+   * O editor tem debounce de 1s: sem forçar a emissão aqui, "Salvar rascunho" e "Finalizar"
+   * deixariam de fora o que foi digitado no último segundo.
+   */
   const flush = useCallback(async (): Promise<boolean> => {
+    editorRef.current?.flush();
     const latest = latestRef.current;
     if (latest !== null && latest !== lastSavedRef.current) return save(latest);
     return inFlightRef.current ? await inFlightRef.current : true;
@@ -203,6 +210,7 @@ export function useMedicalRecord(appointmentId: number) {
     record,
     initialContent,
     editorKey,
+    editorRef,
     loadError,
     appointmentStatus,
     signatureStatus,

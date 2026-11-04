@@ -1,44 +1,23 @@
 import { useState, type JSX } from "react";
 import { Button } from "@heroui/react";
-import { CalendarClock, FlaskConical, Stethoscope, type LucideIcon } from "lucide-react";
+import { CalendarClock, type LucideIcon } from "lucide-react";
 import { MedicalRecordHistory } from "./MedicalRecordHistory";
-
-/** Ainda não há API para exames e diagnósticos nos arquivos enviados: tipos prontos para ligar. */
-export interface ExamItem {
-  id: string | number;
-  name: string;
-  date: string;
-  url?: string;
-}
-
-export interface DiagnosisItem {
-  id: string | number;
-  cid?: string;
-  description: string;
-  date: string;
-}
 
 interface ClinicalSidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  exams?: ExamItem[];
-  diagnoses?: DiagnosisItem[];
   historyReloadKey?: unknown;
 }
 
-type TabId = "consultas" | "exames" | "diagnosticos";
+type TabId = "consultas";
 
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "consultas", label: "Consultas", icon: CalendarClock },
-  { id: "exames", label: "Exames", icon: FlaskConical },
-  { id: "diagnosticos", label: "Diagnósticos", icon: Stethoscope },
 ];
 
 export function ClinicalSidebar({
   open,
   onOpenChange,
-  exams = [],
-  diagnoses = [],
   historyReloadKey,
 }: ClinicalSidebarProps): JSX.Element {
   const [tab, setTab] = useState<TabId>("consultas");
@@ -109,64 +88,11 @@ export function ClinicalSidebar({
           {/* Scroll independente: só esta área rola */}
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div id="panel-consultas" role="tabpanel" aria-labelledby="tab-consultas" hidden={tab !== "consultas"}>
-              <MedicalRecordHistory reloadKey={historyReloadKey} />
-            </div>
-
-            <div id="panel-exames" role="tabpanel" aria-labelledby="tab-exames" hidden={tab !== "exames"}>
-              {exams.length === 0 ? (
-                <Empty>Nenhum exame anexado</Empty>
-              ) : (
-                <ul className="divide-y divide-border">
-                  {exams.map((e) => (
-                    <li key={e.id} className="px-3 py-2">
-                      {e.url ? (
-                        <a
-                          href={e.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-semibold text-primary-text underline-offset-2 hover:underline"
-                        >
-                          {e.name}
-                        </a>
-                      ) : (
-                        <span className="text-sm font-semibold text-text-primary">{e.name}</span>
-                      )}
-                      <p className="text-xs tabular-nums text-text-secondary">{e.date}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div
-              id="panel-diagnosticos"
-              role="tabpanel"
-              aria-labelledby="tab-diagnosticos"
-              hidden={tab !== "diagnosticos"}
-            >
-              {diagnoses.length === 0 ? (
-                <Empty>Nenhum diagnóstico anterior</Empty>
-              ) : (
-                <ul className="divide-y divide-border">
-                  {diagnoses.map((d) => (
-                    <li key={d.id} className="px-3 py-2">
-                      <p className="text-sm font-semibold text-text-primary">
-                        {d.cid && <span className="mr-1.5 tabular-nums text-text-secondary">{d.cid}</span>}
-                        {d.description}
-                      </p>
-                      <p className="text-xs tabular-nums text-text-secondary">{d.date}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <MedicalRecordHistory reloadKey={historyReloadKey} patientId=""/>
             </div>
           </div>
         </div>
       </aside>
     </>
   );
-}
-
-function Empty({ children }: { children: React.ReactNode }): JSX.Element {
-  return <p className="p-4 text-center text-sm text-text-muted">{children}</p>;
 }
