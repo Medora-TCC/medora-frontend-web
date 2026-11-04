@@ -1,135 +1,134 @@
-import { Button, Checkbox, Label, Spinner } from "@heroui/react";
 import { useEffect, useMemo, useState, type JSX } from "react";
+import { Button, Spinner } from "@heroui/react";
+import { useNavigate } from "react-router";
 import { MedicalRecordModal } from "./MedicalRecordModal";
 import type { MedicalRecordDTO, MedicalRecordStatus } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
 import { fetchProntuarios as fetchMedicalRecords } from "./MedicalRecord";
-import { useNavigate } from "react-router";
-import { ArrowRight } from "lucide-react";
 
 interface MedicalRecordHistoryProps {
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
+  /** Muda quando é preciso recarregar a lista (ex.: após finalizar o atendimento atual). */
+  reloadKey?: unknown;
 }
 
 const BadgeStatus: Record<MedicalRecordStatus, string> = {
-  "Inativado": "bg-danger-subtle text-danger-text border border-danger",
+  Inativado: "bg-danger-subtle text-danger-text border border-danger",
   "Não finalizado": "bg-primary-subtle text-primary-text border border-primary-color",
-  "Finalizado": "bg-success-subtle text-success border border-success"
-}
+  Finalizado: "bg-success-subtle text-success border border-success",
+};
 
-export function MedicalRecordHistory({
-  setError,
-}: MedicalRecordHistoryProps): JSX.Element {
+const DotStatus: Record<MedicalRecordStatus, string> = {
+  Inativado: "bg-danger",
+  "Não finalizado": "bg-primary-color",
+  Finalizado: "bg-success",
+};
 
+export function MedicalRecordHistory({ reloadKey }: MedicalRecordHistoryProps): JSX.Element {
   const navigate = useNavigate();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [apenasNaoFinalizados, setApenasNaoFinalizados] = useState<boolean>(false)
+  const [items, setItems] = useState<MedicalRecordDTO[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [onlyPending, setOnlyPending] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
-  const [prontuariosAnteriores, setProntuariosAnteriores] = useState<
-    MedicalRecordDTO[]
-  >([]);
-
-  const [prontuariosAnterioresFiltrado, setProntuariosAnterioresFiltrado] = useState<
-    MedicalRecordDTO[]
-  >([]);
-
-  const load = async () => {
+  useEffect(() => {
+    let active = true;
     setIsLoading(true);
-    try {
-      setProntuariosAnteriores(await fetchMedicalRecords());
-    } catch (e: unknown) {
-      setError("Ocorreu um erro ao buscar os prontuários anteriores");
-      console.log(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setError(null);
 
-  const filtrar = useMemo(() => {
+    fetchMedicalRecords()
+      .then((data) => active && setItems(data))
+      .catch((e: unknown) => {
+        console.error(e);
+        if (active) setError("Não foi possível carregar as consultas anteriores.");
+      })
+      .finally(() => active && setIsLoading(false));
 
-    if(apenasNaoFinalizados) {
-      return prontuariosAnteriores.filter(p => p.status === "Não finalizado")
-    }
+    return () => {
+      active = false;
+    };
+  }, [reloadKey, attempt]);
 
-    return prontuariosAnteriores;
-
-  }, [prontuariosAnteriores, apenasNaoFinalizados])
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  useEffect(() => {
-    setProntuariosAnterioresFiltrado(filtrar);
-  }, [apenasNaoFinalizados, prontuariosAnteriores]);
+  // Derivado direto: não precisa de um segundo estado + useEffect para sincronizar.
+  const visible = useMemo(
+    () => (onlyPending ? items.filter((p) => p.status === "Não finalizado") : items),
+    [items, onlyPending],
+  );
 
   return (
-    <section className="px-2 border-r-4 border-border">
-      <div className="px-6 py-5 border-b border-border sticky top-0 bg-surface">
-        <h2 className="text-2xl font-bold text-text-primary text-center">
-          Histórico
-        </h2>
-        <div className="w-fit mx-auto">
-          <Checkbox id="buscar-nao-finalizados" className="w-fit cursor-pointer" onChange={(e) => {
-            setApenasNaoFinalizados(e);
-          }}>
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-            <Checkbox.Content>
-              <Label htmlFor="buscar-nao-finalizados" className="cursor-pointer">Listar apenas não finalizados</Label>
-            </Checkbox.Content>
-          </Checkbox>
-        </div>
+    <div className="flex flex-col">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface px-3 py-2">
+        <span className="text-xs text-text-secondary tabular-nums">
+          {visible.length} {visible.length === 1 ? "consulta" : "consultas"}
+        </span>
+        <button
+          type="button"
+          aria-pressed={onlyPending}
+          onClick={() => setOnlyPending((v) => !v)}
+          className={`rounded-full border px-2.5 py-0.5 text-xs font-medium focus-visible:outline-2 ${
+            onlyPending
+              ? "border-primary-color bg-primary-subtle text-primary-text"
+              : "border-border text-text-secondary hover:bg-surface-alt"
+          }`}
+        >
+          Só não finalizados
+        </button>
       </div>
 
       {isLoading ? (
-        <div className="w-20 flex flex-col mx-auto mt-10">
-          <p className="text-text-muted">Carregando</p>
-          <div className="flex justify-around mt-4">
-            <div className="animate-spin w-8">
-              <Spinner className="w-fit mx-auto" />
-            </div>
-          </div>
+        <div className="flex items-center justify-center gap-2 py-8 text-sm text-text-muted" role="status">
+          <Spinner size="sm" />
+          Carregando
         </div>
+      ) : error ? (
+        <div className="flex flex-col items-start gap-2 p-3 text-sm" role="alert">
+          <p className="text-danger">{error}</p>
+          <Button size="sm" variant="secondary" onPress={() => setAttempt((n) => n + 1)}>
+            Tentar de novo
+          </Button>
+        </div>
+      ) : visible.length === 0 ? (
+        <p className="p-4 text-center text-sm text-text-muted">Nenhum prontuário encontrado</p>
       ) : (
-        <div className="flex flex-col gap-4 p-2 overflow-y-auto w-full md:w-80">
-          {prontuariosAnterioresFiltrado.length < 1 ? (
-            <p className="w-full text-center text-muted mt-5">
-              Nenhum prontuário encontrado
-            </p>
-          ) : (
-            <>
-              {prontuariosAnterioresFiltrado.map((prontuario) => (
-                <div
-                  key={prontuario.id}
-                  className="p-3 grid grid-cols-[1fr_auto] grid-rows-3 gap-x-4 w-full bg-surface-alt rounded-sm shadow font-semibold focus-visible:outline-2 focus-visible:ring-offset-1"
+        <ol className="relative my-2 ml-4 mr-2 border-l border-border">
+          {visible.map((item) => (
+            <li key={item.id} className="relative pl-2">
+              <span
+                aria-hidden
+                className={`absolute -left-[5px] top-4 size-2.5 rounded-full ring-2 ring-surface ${DotStatus[item.status]}`}
+              />
+              {item.status === "Não finalizado" ? (
+                <Button
+                  variant="ghost"
+                  className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
+                  onPress={() => navigate("/medico/prontuario", { state: { prontuario: item } })}
+                  aria-label={`Continuar ${item.tipoConsulta} de ${item.date}`}
                 >
-                  <span className="col-start-1 row-start-1 text-[18px] self-center">
-                    {prontuario.tipoConsulta}
-                  </span>
-
-                  <div className="col-start-2 row-span-2 flex items-center">
-                    {prontuario.status !== "Não finalizado" ?
-                      <MedicalRecordModal medicalRecord={prontuario} /> :
-                      <div>
-                        <Button className="col-span-1 row-span-2 my-auto hover:scale-105 transition-transform justify-self-end rounded-lg" type="button" onClick={() => navigate("/medico/prontuario", { state: { prontuario } })}>
-                          <ArrowRight />
-                        </Button>
-                      </div>}
-                  </div>
-
-                  <span className="col-start-1 row-start-2 text-text-secondary self-center">
-                    Data: {prontuario.date}
-                  </span>
-
-                  <span className={`col-start-1 row-start-3 w-[60%] text-center rounded-2xl ${BadgeStatus[prontuario.status]}`}>{prontuario.status}</span>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
+                  <Entry item={item} />
+                </Button>
+              ) : (
+                <MedicalRecordModal medicalRecord={item}>
+                  <Entry item={item} />
+                </MedicalRecordModal>
+              )}
+            </li>
+          ))}
+        </ol>
       )}
-    </section>
+    </div>
+  );
+}
+
+function Entry({ item }: { item: MedicalRecordDTO }): JSX.Element {
+  return (
+    <span className="flex w-full min-w-0 flex-col items-start gap-0.5">
+      <span className="w-full truncate text-sm font-semibold text-text-primary">{item.tipoConsulta}</span>
+      <span className="flex items-center gap-2 text-xs tabular-nums text-text-secondary">
+        {item.date}
+        <span className={`rounded-full px-2 py-px font-semibold ${BadgeStatus[item.status]}`}>
+          {item.status}
+        </span>
+      </span>
+    </span>
   );
 }
