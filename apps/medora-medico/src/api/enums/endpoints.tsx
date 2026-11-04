@@ -45,12 +45,13 @@ export const Endpoints = {
 
     MY_PAYOUTS: '/payouts/me',
     MY_PAYOUT_CLOSINGS: '/payouts/me/closings',
-  
+    MY_PIX_KEY: '/payouts/me/pix-key',
+
     GET_PROFESSIONAL_DATA: '/v1/Doctor/me/professional-data',
     GET_PERSONAL_DATA: '/v1/Doctor/me/personal-data',
 
     UPDATE_DOCTOR_CONTACTS: '/v1/Doctor/me/personal-data/contact',
     UPDATE_DOCTOR_COMPLEMENTARY: '/v1/Doctor/me/personal-data/complementary',
     UPDATE_DOCTOR_PASSPORT: '/v1/Doctor/me/personal-data/passport',
-    
+
 } as const;
