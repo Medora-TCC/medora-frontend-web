@@ -4,7 +4,7 @@ import Footer from "../Footer/Footer";
 import {
   Sidebar,
   SidebarToggle,
-} from "../../../../../packages/shared/src/components/components";
+} from "@medora_web/shared";
 import {
   Activity,
   Calendar,
