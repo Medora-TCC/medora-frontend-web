@@ -11,22 +11,19 @@ import {
 } from "lucide-react";
 import type { SignatureStatus } from "../../api/services/MedicalRecords";
 import type { MedicalRecordController, SaveState } from "../../hooks/useMedicalRecord";
-
-
 export interface PatientSummary {
+  id?: string;
   name: string;
   birthDate?: string; // ISO "yyyy-mm-dd"
-  sex?: "Feminino" | "Masculino" | "Intersexo";
+  gender?: "Feminino" | "Masculino" | "Intersexo";
   cpf?: string;
   recordNumber?: string | number;
   appointmentNumber?: string | number;
-  allergies?: string[] | null;
-  conditions?: string[];
-  riskFlags?: string[];
 }
 
 interface PatientHeaderProps {
-  patient: PatientSummary;
+  patient: PatientSummary | null;
+  fallbackName?: string;
   appointmentDate?: string;
   controller: MedicalRecordController;
   sidebarOpen: boolean;
@@ -62,13 +59,16 @@ function formatCpf(cpf: string): string {
 }
 
 export function PatientHeader({
-  patient,
+  patient: patientProp,
+  fallbackName,
   appointmentDate,
   controller,
   sidebarOpen,
   onToggleSidebar,
 }: PatientHeaderProps): JSX.Element {
   const [showCpf, setShowCpf] = useState(false);
+  const isLoading = patientProp === null;
+  const patient: PatientSummary = patientProp ?? { name: fallbackName ?? "" };
   const { mode, saveState, canFinalize, finalize, saveDraft, openPdf, isOpeningPdf, signatureStatus } =
     controller;
 
@@ -92,7 +92,12 @@ export function PatientHeader({
         </Button>
 
         <div className="flex min-w-0 flex-1 items-baseline gap-x-4 overflow-hidden">
-          <h1 className="truncate text-base font-bold text-text-primary">Paciente: {patient.name}</h1>
+          {patient.name ? (
+            <h1 className="truncate text-base font-bold text-text-primary">{patient.name}</h1>
+          ) : (
+            <Skeleton className="h-5 w-48" />
+          )}
+          {isLoading && <Skeleton className="hidden h-4 w-64 md:block" />}
 
           <dl className="hidden items-baseline gap-x-4 whitespace-nowrap text-sm text-text-secondary tabular-nums md:flex">
             {(age || birth) && (
@@ -101,7 +106,7 @@ export function PatientHeader({
                 {birth && <span className="text-text-muted"> ({birth})</span>}
               </Meta>
             )}
-            {patient.sex && <Meta label="Sexo biológico">{patient.sex}</Meta>}
+            {patient.gender && <Meta label="Sexo biológico">{patient.gender}</Meta>}
             {patient.cpf && (
               <Meta label="CPF">
                 <span className="inline-flex items-center gap-1">
@@ -149,6 +154,7 @@ export function PatientHeader({
           )}
         </div>
       </div>
+
     </header>
   );
 }
@@ -162,8 +168,11 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
+function Skeleton({ className = "" }: { className?: string }): JSX.Element {
+  return <span aria-hidden className={`block animate-pulse rounded bg-border motion-reduce:animate-none ${className}`} />;
+}
+
 function SaveIndicator({ state }: { state: SaveState }): JSX.Element {
-  // aria-live fica sempre montado para que leitores de tela anunciem as mudanças.
   let content: React.ReactNode = null;
   switch (state.kind) {
     case "saving":

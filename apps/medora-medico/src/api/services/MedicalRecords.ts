@@ -3,6 +3,7 @@ import { api } from './api';
 import { toDomainError } from '../errors';
 import type { AppointmentStatus } from './Appointments';
 import type { MedicalRecordDTO } from '../dtos/MedicalRecord/MedicalRecordDTO';
+import type { PatientSummary } from '../../pages/MedicalRecordPage/PatientHeader';
 
 export interface MedicalRecord {
   id: number;
@@ -19,6 +20,7 @@ export interface AppointmentMedicalRecord {
   record: MedicalRecord | null;
   appointmentStatus: AppointmentStatus;
   isWritable: boolean;
+  patient: PatientSummary;
 }
 
 export interface MedicalRecordPdf {

@@ -7,7 +7,7 @@ import { getByPatient as fetchMedicalRecords } from "../../api/services/MedicalR
 
 interface MedicalRecordHistoryProps {
   /** Muda quando é preciso recarregar a lista (ex.: após finalizar o atendimento atual). */
-  patientId: string;
+  patientId: string | undefined;
   reloadKey?: unknown;
 }
 
@@ -21,6 +21,7 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    if (patientId === undefined) return;
     let active = true;
     setIsLoading(true);
     setError(null);

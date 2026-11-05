@@ -7,6 +7,7 @@ interface ClinicalSidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   historyReloadKey?: unknown;
+  patientId: string | undefined;
 }
 
 type TabId = "consultas";
@@ -19,6 +20,7 @@ export function ClinicalSidebar({
   open,
   onOpenChange,
   historyReloadKey,
+  patientId
 }: ClinicalSidebarProps): JSX.Element {
   const [tab, setTab] = useState<TabId>("consultas");
 
@@ -88,7 +90,7 @@ export function ClinicalSidebar({
           {/* Scroll independente: só esta área rola */}
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div id="panel-consultas" role="tabpanel" aria-labelledby="tab-consultas" hidden={tab !== "consultas"}>
-              <MedicalRecordHistory reloadKey={historyReloadKey} patientId=""/>
+              <MedicalRecordHistory reloadKey={historyReloadKey} patientId={patientId}/>
             </div>
           </div>
         </div>

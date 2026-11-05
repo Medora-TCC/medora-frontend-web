@@ -7,6 +7,7 @@ import MedicalRecordsService, {
 import type { AppointmentStatus } from "../api/services/Appointments";
 import { errorMessage } from "../api/errors";
 import type { RichTextEditorRef } from "../components/RichTextEditor/RichTextEditor";
+import type { PatientSummary } from "../pages/MedicalRecordPage/PatientHeader";
 
 export type SaveState =
   | { kind: "idle" }
@@ -34,6 +35,7 @@ export function useMedicalRecord(appointmentId: number) {
   const [isWritable, setIsWritable] = useState(true);
   const [appointmentStatus, setAppointmentStatus] = useState<AppointmentStatus | null>(null);
   const [signatureStatus, setSignatureStatus] = useState<SignatureStatus | null>(null);
+  const [patient, setPatient] = useState<PatientSummary | null>(null);
 
   const lastSavedRef = useRef<string | null>(null);
   const pendingRef = useRef<string | null>(null);
@@ -48,7 +50,8 @@ export function useMedicalRecord(appointmentId: number) {
     setLoadError(null);
 
     MedicalRecordsService.getByAppointment(appointmentId)
-      .then(({ record: loaded, appointmentStatus: status, isWritable: writable }) => {
+      .then(({ record: loaded, appointmentStatus: status, isWritable: writable, patient }) => {
+        setPatient(patient);
         if (!active) return;
         setRecord(loaded);
         setInitialContent(loaded?.contentJson ?? null);
@@ -225,6 +228,7 @@ export function useMedicalRecord(appointmentId: number) {
     finalize,
     openPdf,
     applyTemplate,
+    patient
   };
 }
 

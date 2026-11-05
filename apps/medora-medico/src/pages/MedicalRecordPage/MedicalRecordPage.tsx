@@ -9,6 +9,7 @@ import { useMedicalRecord } from "../../hooks/useMedicalRecord";
 export interface MedicalRecordNavigationState {
   patientName?: string;
   appointmentDate?: string;
+  /** Ideal: enviar o resumo completo (ou buscá-lo pela API a partir do appointmentId). */
   patient?: PatientSummary;
 }
 
@@ -22,13 +23,20 @@ export function MedicalRecordPage(): JSX.Element {
   const id = Number(appointmentId);
   const hasAppointment = Number.isInteger(id) && id > 0;
 
-  const patient: PatientSummary = nav.patient ?? { name: nav.patientName ?? "Paciente" };
+  // null = ainda não temos o resumo do paciente; o cabeçalho mostra esqueleto.
+  const patient: PatientSummary | null = nav.patient ?? null;
 
   return (
     <>
       <ToastProvider maxVisibleToasts={1} placement="bottom end" aria-live="assertive" />
       {hasAppointment ? (
-        <Workspace key={id} appointmentId={id} patient={patient} appointmentDate={nav.appointmentDate} />
+        <Workspace
+          key={id}
+          appointmentId={id}
+          patient={patient}
+          fallbackName={nav.patientName}
+          appointmentDate={nav.appointmentDate}
+        />
       ) : (
         <NoAppointment />
       )}
@@ -39,10 +47,12 @@ export function MedicalRecordPage(): JSX.Element {
 function Workspace({
   appointmentId,
   patient,
+  fallbackName,
   appointmentDate,
 }: {
   appointmentId: number;
-  patient: PatientSummary;
+  patient: PatientSummary | null;
+  fallbackName?: string;
   appointmentDate?: string;
 }): JSX.Element {
   const controller = useMedicalRecord(appointmentId);
@@ -50,6 +60,7 @@ function Workspace({
 
   const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), []);
 
+  // Atalhos: Ctrl/Cmd+S salva o rascunho · Ctrl/Cmd+\ recolhe o histórico (modo foco)
   const { mode, saveDraft } = controller;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,9 +78,11 @@ function Workspace({
   }, [mode, saveDraft, toggleSidebar]);
 
   return (
+    // h-dvh: usa a viewport inteira (e acompanha a barra do navegador no mobile).
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-surface text-text-primary">
       <PatientHeader
         patient={patient}
+        fallbackName={fallbackName}
         appointmentDate={appointmentDate}
         controller={controller}
         sidebarOpen={sidebarOpen}
@@ -80,9 +93,9 @@ function Workspace({
         <ClinicalSidebar
           open={sidebarOpen}
           onOpenChange={setSidebarOpen}
-          historyReloadKey={controller.record?.isFinalized}
-          // exams={...} diagnoses={...}  ← ligar quando houver endpoints
-        />
+          historyReloadKey={controller.record?.isFinalized} 
+          patientId={patient?.id}        
+          />
         <MedicalRecordComponent controller={controller} />
       </div>
     </div>
@@ -93,7 +106,7 @@ function NoAppointment(): JSX.Element {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-surface">
-      <ClinicalSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
+      <ClinicalSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} patientId={undefined} />
       <main className="flex flex-1 items-center justify-center bg-surface-alt p-6">
         <p className="text-center text-text-secondary">Abra o prontuário a partir de uma consulta no painel.</p>
       </main>
