@@ -30,7 +30,7 @@ export function SessionLoading() {
     >
       <div
         aria-hidden="true"
-        className="mb-4 size-11 animate-spin rounded-full border-[3px] border-border border-t-primary-color motion-reduce:[animation-duration:3s]"
+        className="mb-4 size-11 animate-spin rounded-full border-[3px] border-border border-t-primary-color motion-reduce:animation-duration-[3s]"
       />
       <p className="text-base font-semibold">Verificando sua sessão</p>
       <p className="text-sm text-text-muted">Só um instante.</p>

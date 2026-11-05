@@ -19,7 +19,7 @@ export default function AccountHeader() {
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-divider bg-surface-alt">
-      <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-primary-subtle to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-16 bg-linear-to-r from-primary-subtle to-transparent" />
 
       <div className="relative flex items-center gap-4 p-5">
         <div className="h-16 w-16 shrink-0 rounded-full bg-primary-color text-text-inverse flex items-center justify-center text-xl font-bold ring-4 ring-surface-alt">
