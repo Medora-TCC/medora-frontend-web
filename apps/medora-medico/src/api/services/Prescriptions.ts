@@ -1,7 +1,7 @@
 import { Endpoints } from '../enums/endpoints';
 import { api } from './api';
 import { toDomainError } from '../errors';
-import type { SignatureStatus } from './MedicalRecords';
+import type { SignatureStatus, SigningMode } from './MedicalRecords';
 
 export interface IssuedPrescription {
   publicId: string;
@@ -17,9 +17,9 @@ export interface PrescriptionPdf {
   expiresAt: string | null;
 }
 
-async function issue(medicalRecordId: number, contentText: string, validForDays: number): Promise<IssuedPrescription> {
+async function issue(medicalRecordId: number, contentText: string, validForDays: number, mode: SigningMode = 'Automatic'): Promise<IssuedPrescription> {
   try {
-    const res = await api.post<IssuedPrescription>(Endpoints.ISSUE_PRESCRIPTION(medicalRecordId), { contentText, validForDays });
+    const res = await api.post<IssuedPrescription>(Endpoints.ISSUE_PRESCRIPTION(medicalRecordId), { contentText, validForDays, mode });
     return res.data;
   } catch (error) {
     throw toDomainError(error, 'Erro ao emitir a receita.');

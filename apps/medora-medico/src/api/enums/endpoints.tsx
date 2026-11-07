@@ -43,6 +43,11 @@ export const Endpoints = {
     ISSUE_PRESCRIPTION: (medicalRecordId: number) => `/medical-records/${medicalRecordId}/prescriptions`,
     PRESCRIPTION_PDF: (publicId: string) => `/prescriptions/${publicId}/pdf`,
 
+    MY_SIGNATURES: '/signatures/me',
+    AUTHORIZE_SIGNATURE: (id: number) => `/signatures/${id}/authorize`,
+    RETRY_SIGNATURE: (id: number) => `/signatures/${id}/retry`,
+    SIGNATURE_HEALTH: '/signatures/health',
+
     MY_PAYOUTS: '/payouts/me',
     MY_PAYOUT_CLOSINGS: '/payouts/me/closings',
     MY_PIX_KEY: '/payouts/me/pix-key',

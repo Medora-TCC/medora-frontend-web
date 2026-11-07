@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import { Button, Spinner, toast } from "@heroui/react";
-import { ModalConfirmacao } from "@medora_web/shared";
+import { SigningModeModal } from "../../components/SigningModeModal/SigningModeModal";
 import { FileDown } from "lucide-react";
 import {
   MedicalRecordViewer,
@@ -9,6 +9,7 @@ import {
 import MedicalRecordsService, {
   type MedicalRecord,
   type SignatureStatus,
+  type SigningMode,
 } from "../../api/services/MedicalRecords";
 import type { AppointmentStatus } from "../../api/services/Appointments";
 import { errorMessage } from "../../api/errors";
@@ -49,6 +50,7 @@ export function MedicalRecordComponent({
   const [isEmpty, setIsEmpty] = useState(true);
   const [saveState, setSaveState] = useState<SaveState>({ kind: "idle" });
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isSigningModalOpen, setIsSigningModalOpen] = useState(false);
   const [isOpeningPdf, setIsOpeningPdf] = useState(false);
   const [isWritable, setIsWritable] = useState(true);
   const [appointmentStatus, setAppointmentStatus] = useState<AppointmentStatus | null>(null);
@@ -95,7 +97,7 @@ export function MedicalRecordComponent({
         const pdf = await MedicalRecordsService.getPdf(recordId);
         if (!active) return;
         setSignatureStatus(pdf.signatureStatus);
-        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed") {
+        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed" && pdf.signatureStatus !== "AwaitingDoctor") {
           timer = setTimeout(check, SIGNATURE_POLL_MS);
         }
       } catch {
@@ -155,7 +157,8 @@ export function MedicalRecordComponent({
     [isLoading, save],
   );
 
-  const finalize = async () => {
+  const finalize = async (mode: SigningMode) => {
+    setIsSigningModalOpen(false);
     if (!record) return;
 
     setIsFinalizing(true);
@@ -164,10 +167,10 @@ export function MedicalRecordComponent({
         throw new Error("O último trecho não foi salvo. Tente de novo em instantes.");
       }
 
-      await MedicalRecordsService.finalize(record.id);
+      await MedicalRecordsService.finalize(record.id, mode);
       setInitialContent(lastSavedRef.current);
       setRecord({ ...record, isFinalized: true, finalizedAt: new Date().toISOString() });
-      toast.success("Prontuário finalizado.");
+      toast.success(mode === "Manual" ? "Prontuário finalizado. Assine em Assinar Documentos." : "Prontuário finalizado.");
     } catch (err) {
       toast.danger(errorMessage(err, "Erro ao finalizar o prontuário."));
     } finally {
@@ -253,11 +256,14 @@ export function MedicalRecordComponent({
         />
       </div>
       <div className="mt-4 p-4 w-full flex justify-end">
-        <ModalConfirmacao
+        <Button isDisabled={isEmpty || !record || isFinalizing} onPress={() => setIsSigningModalOpen(true)}>
+          Finalizar
+        </Button>
+        <SigningModeModal
+          isOpen={isSigningModalOpen}
           onConfirm={finalize}
-          disabled={isEmpty || !record || isFinalizing}
+          onCancel={() => setIsSigningModalOpen(false)}
           texto="Deseja finalizar o prontuário? Depois de finalizado ele não pode mais ser alterado."
-          textoBotao="Finalizar"
         />
       </div>
     </section>
@@ -275,6 +281,7 @@ function PdfButton({
 }): JSX.Element {
   const note =
     status === "Signed" ? null
+    : status === "AwaitingDoctor" ? <span className="text-sm text-text-secondary">Aguardando sua assinatura em Assinar Documentos</span>
     : status === "Failed" ? <span className="text-sm text-danger">A assinatura falhou; o PDF sai sem assinatura.</span>
     : status === null ? null
     : (
