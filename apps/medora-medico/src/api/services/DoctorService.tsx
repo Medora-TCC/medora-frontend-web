@@ -8,6 +8,7 @@ import type { WeekFlowDto, WeekFlowPeriod } from "../dtos/Doctors/WeekFlowDto";
 import { Endpoints } from "../enums/endpoints";
 import { api } from "./api";
 import { isAxiosError } from "axios";
+import type { DoctorPublicPageDto, EducationRequestDto, ExperienceRequestDto, UpdateAboutDto } from "../dtos/Doctors/DoctorPublicPageDto";
 
 interface RegisterResponse {
   userId: string;
@@ -127,5 +128,85 @@ export async function updatePassport(body: UpdatePassportDto): Promise<void> {
       throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Não foi possível salvar o passaporte.");
     }
     throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+
+export async function getMyPublicPage(): Promise<DoctorPublicPageDto> {
+  try {
+    const response = await api.get<DoctorPublicPageDto>(Endpoints.GET_MY_PUBLIC_PAGE);
+    return response.data;
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Erro ao carregar o perfil público.");
+    }
+    throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+
+export async function updateAbout(body: UpdateAboutDto): Promise<void> {
+  try {
+    await api.patch(Endpoints.UPDATE_ABOUT, body);
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Não foi possível salvar.");
+    }
+    throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+
+function toServiceError(error: unknown, fallback: string): Error {
+  if (isAxiosError(error) && error.response) {
+    return new Error(error.response.data?.detail ?? error.response.data?.title ?? fallback);
+  }
+  return new Error("Erro de conexão. Tente novamente.");
+}
+
+export async function addEducation(body: EducationRequestDto): Promise<number> {
+  try {
+    const response = await api.post<{ id: number }>(Endpoints.EDUCATIONS, body);
+    return response.data.id;
+  } catch (error) {
+    throw toServiceError(error, "Não foi possível adicionar a formação.");
+  }
+}
+
+export async function updateEducation(id: number, body: EducationRequestDto): Promise<void> {
+  try {
+    await api.put(`${Endpoints.EDUCATIONS}/${id}`, body);
+  } catch (error) {
+    throw toServiceError(error, "Não foi possível salvar a formação.");
+  }
+}
+
+export async function removeEducation(id: number): Promise<void> {
+  try {
+    await api.delete(`${Endpoints.EDUCATIONS}/${id}`);
+  } catch (error) {
+    throw toServiceError(error, "Não foi possível remover a formação.");
+  }
+}
+
+export async function addExperience(body: ExperienceRequestDto): Promise<number> {
+  try {
+    const response = await api.post<{ id: number }>(Endpoints.EXPERIENCES, body);
+    return response.data.id;
+  } catch (error) {
+    throw toServiceError(error, "Não foi possível adicionar a experiência.");
+  }
+}
+
+export async function updateExperience(id: number, body: ExperienceRequestDto): Promise<void> {
+  try {
+    await api.put(`${Endpoints.EXPERIENCES}/${id}`, body);
+  } catch (error) {
+    throw toServiceError(error, "Não foi possível salvar a experiência.");
+  }
+}
+
+export async function removeExperience(id: number): Promise<void> {
+  try {
+    await api.delete(`${Endpoints.EXPERIENCES}/${id}`);
+  } catch (error) {
+    throw toServiceError(error, "Não foi possível remover a experiência.");
   }
 }
