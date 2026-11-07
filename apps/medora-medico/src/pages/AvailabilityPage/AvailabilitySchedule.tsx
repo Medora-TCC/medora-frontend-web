@@ -107,7 +107,7 @@ function AppointmentActions({ appointment, onChanged }: { appointment: DoctorApp
     run(() => AppointmentsService.changeAppointmentStatus(appointmentId, change), success);
 
   const awaitingConfirmation = appointment.type === 'Online' && status === 'AwaitingConfirmation';
-  const cancelable = CANCELABLE.includes(status) && canDoctorCancel(appointment.startDateTime);
+  const cancelable = !awaitingConfirmation && CANCELABLE.includes(status) && canDoctorCancel(appointment.startDateTime);
 
   if (!awaitingConfirmation && !OPEN.includes(status) && !cancelable) return null;
 
