@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { Button, Spinner } from "@heroui/react";
 import { useNavigate } from "react-router";
 import { MedicalRecordModal } from "./MedicalRecordModal";
@@ -17,10 +17,10 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
   const [items, setItems] = useState<MedicalRecordDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [onlyPending, setOnlyPending] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    console.log(patientId)
     if (patientId === undefined) return;
     let active = true;
     setIsLoading(true);
@@ -39,30 +39,13 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
     };
   }, [reloadKey, attempt]);
 
-  // Derivado direto: não precisa de um segundo estado + useEffect para sincronizar.
-  const visible = useMemo(
-    () => (onlyPending ? items.filter((p) => !p.isFinalized) : items),
-    [items, onlyPending],
-  );
 
   return (
     <div className="flex flex-col">
       <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface px-3 py-2">
         <span className="text-xs text-text-secondary tabular-nums">
-          {visible.length} {visible.length === 1 ? "consulta" : "consultas"}
+          {items.length} {items.length === 1 ? "consulta" : "consultas"}
         </span>
-        <button
-          type="button"
-          aria-pressed={onlyPending}
-          onClick={() => setOnlyPending((v) => !v)}
-          className={`rounded-full border px-2.5 py-0.5 text-xs font-medium focus-visible:outline-2 ${
-            onlyPending
-              ? "border-primary-color bg-primary-subtle text-primary-text"
-              : "border-border text-text-secondary hover:bg-surface-alt"
-          }`}
-        >
-          Só não finalizados
-        </button>
       </div>
 
       {isLoading ? (
@@ -77,11 +60,11 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
             Tentar de novo
           </Button>
         </div>
-      ) : visible.length === 0 ? (
+      ) : items.length === 0 ? (
         <p className="p-4 text-center text-sm text-text-muted">Nenhum prontuário encontrado</p>
       ) : (
         <ol className="relative my-2 ml-4 mr-2 border-l border-border">
-          {visible.map((item) => (
+          {items.map((item) => (
             <li key={item.id} className="relative pl-2">
               <span
                 aria-hidden

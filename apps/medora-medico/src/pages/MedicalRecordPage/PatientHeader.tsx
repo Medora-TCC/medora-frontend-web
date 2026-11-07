@@ -17,8 +17,6 @@ export interface PatientSummary {
   birthDate?: string; // ISO "yyyy-mm-dd"
   gender?: "Feminino" | "Masculino" | "Intersexo";
   cpf?: string;
-  recordNumber?: string | number;
-  appointmentNumber?: string | number;
 }
 
 interface PatientHeaderProps {
@@ -32,19 +30,22 @@ interface PatientHeaderProps {
 
 const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-function ageFrom(iso?: string): string | null {
-  const m = iso?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+function ageFrom(dateStr?: string): string | null {
+  const m = dateStr?.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
   if (!m) return null;
-  const [, y, mo, d] = m.map(Number) as unknown as number[];
-  const now = new Date();
-  let years = now.getFullYear() - y;
-  if (now.getMonth() + 1 < mo || (now.getMonth() + 1 === mo && now.getDate() < d)) years -= 1;
-  return `${years} anos`;
-}
 
-function formatBirth(iso?: string): string | null {
-  const m = iso?.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : null;
+  const [, d, mo, y] = m.map(Number);
+  const now = new Date();
+  
+  let years = now.getFullYear() - y;
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+
+  if (currentMonth < mo || (currentMonth === mo && currentDay < d)) {
+    years -= 1;
+  }
+
+  return `${years} anos`;
 }
 
 function maskCpf(cpf: string): string {
@@ -72,7 +73,7 @@ export function PatientHeader({
   const { mode, saveState, canFinalize, finalize, saveDraft, openPdf, isOpeningPdf, signatureStatus } =
     controller;
 
-  const birth = formatBirth(patient.birthDate);
+  const birth = patient.birthDate;
   const age = ageFrom(patient.birthDate);
 
   return (
@@ -103,13 +104,14 @@ export function PatientHeader({
             {(age || birth) && (
               <Meta label="Idade e nascimento">
                 {age}
-                {birth && <span className="text-text-muted"> ({birth})</span>}
+                {birth && <span className="text-text-secondary ml-4">Data de nascimento: {birth}</span>}
               </Meta>
             )}
             {patient.gender && <Meta label="Sexo biológico">{patient.gender}</Meta>}
             {patient.cpf && (
               <Meta label="CPF">
                 <span className="inline-flex items-center gap-1">
+                  CPF: {" "}
                   {showCpf ? formatCpf(patient.cpf) : maskCpf(patient.cpf)}
                   <button
                     type="button"
@@ -122,10 +124,6 @@ export function PatientHeader({
                   </button>
                 </span>
               </Meta>
-            )}
-            {patient.recordNumber !== undefined && <Meta label="Prontuário">nº {patient.recordNumber}</Meta>}
-            {patient.appointmentNumber !== undefined && (
-              <Meta label="Atendimento">#{patient.appointmentNumber}</Meta>
             )}
             {appointmentDate && <Meta label="Consulta">{appointmentDate}</Meta>}
           </dl>

@@ -20,7 +20,7 @@ export interface AppointmentMedicalRecord {
   record: MedicalRecord | null;
   appointmentStatus: AppointmentStatus;
   isWritable: boolean;
-  patient: PatientSummary;
+  patientSummary: PatientSummary;
 }
 
 export interface MedicalRecordPdf {
@@ -56,8 +56,10 @@ async function finalize(id: number): Promise<void> {
 }
 
 export async function getByPatient(patientId: string): Promise<MedicalRecordDTO[]> {
+  console.log('req')
   try {
     const res = await api.get<MedicalRecordDTO[]>(Endpoints.MEDICAL_RECORD_BY_PATIENT(patientId));
+    console.log(res.data)
     return res.data;
   } catch (error) {
     throw toDomainError(error, "Erro ao buscar prontuários")

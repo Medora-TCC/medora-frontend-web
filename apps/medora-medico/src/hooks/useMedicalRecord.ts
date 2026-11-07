@@ -50,8 +50,8 @@ export function useMedicalRecord(appointmentId: number) {
     setLoadError(null);
 
     MedicalRecordsService.getByAppointment(appointmentId)
-      .then(({ record: loaded, appointmentStatus: status, isWritable: writable, patient }) => {
-        setPatient(patient);
+      .then(({ record: loaded, appointmentStatus: status, isWritable: writable, patientSummary }) => {
+        setPatient(patientSummary);
         if (!active) return;
         setRecord(loaded);
         setInitialContent(loaded?.contentJson ?? null);

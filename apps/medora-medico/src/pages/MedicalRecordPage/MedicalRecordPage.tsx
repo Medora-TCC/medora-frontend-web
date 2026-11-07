@@ -46,7 +46,7 @@ export function MedicalRecordPage(): JSX.Element {
 
 function Workspace({
   appointmentId,
-  patient,
+  patient: initialPatient,
   fallbackName,
   appointmentDate,
 }: {
@@ -57,6 +57,8 @@ function Workspace({
 }): JSX.Element {
   const controller = useMedicalRecord(appointmentId);
   const [sidebarOpen, setSidebarOpen] = useState(isDesktop);
+
+  const currentPatient = controller.patient ?? initialPatient;
 
   const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), []);
 
@@ -78,10 +80,9 @@ function Workspace({
   }, [mode, saveDraft, toggleSidebar]);
 
   return (
-    // h-dvh: usa a viewport inteira (e acompanha a barra do navegador no mobile).
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-surface text-text-primary">
       <PatientHeader
-        patient={patient}
+        patient={currentPatient}
         fallbackName={fallbackName}
         appointmentDate={appointmentDate}
         controller={controller}
@@ -94,8 +95,8 @@ function Workspace({
           open={sidebarOpen}
           onOpenChange={setSidebarOpen}
           historyReloadKey={controller.record?.isFinalized} 
-          patientId={patient?.id}        
-          />
+          patientId={currentPatient?.id}        
+        />
         <MedicalRecordComponent controller={controller} />
       </div>
     </div>
