@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import type { SignatureStatus } from "../../api/services/MedicalRecords";
 import type { MedicalRecordController, SaveState } from "../../hooks/useMedicalRecord";
+import { formatSex } from "../../types/Sex";
+import type { Sex } from "../../api/dtos/Doctors/PersonalDataDto";
 export interface PatientSummary {
   id?: string;
   name: string;
   birthDate?: string; // ISO "yyyy-mm-dd"
-  gender?: "Feminino" | "Masculino" | "Intersexo";
+  sex?: Sex;
   cpf?: string;
 }
 
@@ -107,7 +109,7 @@ export function PatientHeader({
                 {birth && <span className="text-text-secondary ml-4">Data de nascimento: {birth}</span>}
               </Meta>
             )}
-            {patient.gender && <Meta label="Sexo biológico">{patient.gender}</Meta>}
+            {patient.sex && <Meta label="Sexo biológico">Sexo: {formatSex(patient.sex)}</Meta>}
             {patient.cpf && (
               <Meta label="CPF">
                 <span className="inline-flex items-center gap-1">
