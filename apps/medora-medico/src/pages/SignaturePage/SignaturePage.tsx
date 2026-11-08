@@ -103,7 +103,7 @@ export function SignaturePage() {
     executar(SignaturesService.retry, "Documento reenviado para assinatura", "Erro ao tentar assinar de novo");
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       <header className="shrink-0 py-4 border-b border-divider">
         <h1 className="text-text-primary text-xl font-semibold text-center">
           Assinatura
