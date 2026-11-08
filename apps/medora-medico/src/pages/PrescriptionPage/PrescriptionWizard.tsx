@@ -1,9 +1,10 @@
+import type { SigningMode } from "../../api/services/MedicalRecords";
 import { ArrowRight } from "lucide-react";
 import type { Paciente } from "../../types/Prescritpion";
 import PrescriptionsService, { type IssuedPrescription } from "../../api/services/Prescriptions";
 import { errorMessage } from "../../api/errors";
 import { textoDaReceita } from "./prescriptionText";
-import { ReceitaEmitida } from "./ReceitaEmitida";
+import { PrescriptionIssued } from "./PrescriptionIssued";
 import { WizardProgressBar } from "./WizardProgressBar";
 import { StepMedication } from "./Steps/StepMedication";
 import { StepDosage } from "./Steps/StepDosage";
@@ -44,20 +45,20 @@ export function PrescricaoWizard({ medicalRecordId, medico, patientName, onCance
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [emitida, setEmitida] = useState<{ receita: IssuedPrescription; pdfUrl: string | null } | null>(null);
+  const [emitida, setEmitida] = useState<{ receita: IssuedPrescription; pdfUrl: string | null; mode: SigningMode } | null>(null);
 
   const rascunhoComPaciente = {
     ...state.rascunho,
     paciente: state.rascunho.paciente ?? (patientName ? pacienteDaConsulta(patientName) : null),
   };
 
-  async function handleEmitir() {
+  async function handleEmitir(mode: SigningMode) {
     setIsLoading(true);
     setErro(null);
     try {
-      const receita = await PrescriptionsService.issue(medicalRecordId, textoDaReceita(state.rascunho), VALIDADE_DIAS);
+      const receita = await PrescriptionsService.issue(medicalRecordId, textoDaReceita(state.rascunho), VALIDADE_DIAS, mode);
       const pdf = await PrescriptionsService.getPdf(receita.publicId).catch(() => null);
-      setEmitida({ receita, pdfUrl: pdf?.downloadUrl ?? null });
+      setEmitida({ receita, pdfUrl: pdf?.downloadUrl ?? null, mode });
     } catch (err) {
       setErro(errorMessage(err, "Erro ao emitir a receita."));
     } finally {
@@ -75,11 +76,12 @@ export function PrescricaoWizard({ medicalRecordId, medico, patientName, onCance
 
   if (emitida) {
     return (
-      <ReceitaEmitida
+      <PrescriptionIssued
         secretCode={emitida.receita.secretCode}
         temPdf={emitida.pdfUrl !== null}
         onAbrirPdf={abrirPdf}
         onVoltar={onCancelar}
+        mode={emitida.mode}
       />
     );
   }
