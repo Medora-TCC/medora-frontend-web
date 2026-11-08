@@ -225,7 +225,7 @@ export function AvailabilityHistorical() {
                 key={f.value}
                 onClick={() => { setAppointments([]); setActiveId(null); setFilter(f.value); }}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors
-                  ${filter === f.value ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-alt'}`}
+                  ${filter === f.value ? 'bg-primary text-text-primary shadow-sm' : 'text-text-secondary hover:bg-surface-alt'}`}
               >
                 {f.label}
               </button>
