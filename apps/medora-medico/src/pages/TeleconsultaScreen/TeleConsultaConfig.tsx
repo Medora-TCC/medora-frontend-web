@@ -212,6 +212,103 @@ function MicLevelBar({ stream }: { stream: MediaStream | null }) {
   );
 }
 
+// ─── Status da conexão ────────────────────────────────────────────────────────
+type CheckState = "pending" | "ok" | "warn" | "fail";
+
+interface StatusCheck {
+  label: string;
+  state: CheckState;
+  detail: string;
+}
+
+interface StatusSummary {
+  tone: CheckState;
+  title: string;
+  text: string;
+}
+
+const TONE_CLASSES: Record<CheckState, string> = {
+  pending: "border-ring",
+  ok: "border-success/30 bg-success/5",
+  warn: "border-warning/30 bg-warning/5",
+  fail: "border-danger/30 bg-danger/5",
+};
+
+function CheckIcon({ state, size = 16 }: { state: CheckState; size?: number }) {
+  if (state === "pending") return <Spinner size="sm" />;
+  if (state === "ok")
+    return <CheckCircle size={size} className="text-success shrink-0" />;
+  return (
+    <AlertTriangle
+      size={size}
+      className={`shrink-0 ${state === "warn" ? "text-warning" : "text-danger"}`}
+    />
+  );
+}
+
+function ConnectionStatus({
+  summary,
+  checks,
+}: {
+  summary: StatusSummary;
+  checks: StatusCheck[];
+}) {
+  return (
+    <Card className={`border ${TONE_CLASSES[summary.tone]}`}>
+      <Card.Content className="flex flex-col gap-3 p-4">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-3"
+        >
+          <CheckIcon state={summary.tone} size={22} />
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-fg">{summary.title}</p>
+            <p className="text-xs text-fg-muted">{summary.text}</p>
+          </div>
+        </div>
+
+        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {checks.map((c) => (
+            <li
+              key={c.label}
+              className="flex items-center gap-2 rounded border border-divider bg-surface-secondary px-3 py-2"
+            >
+              <CheckIcon state={c.state} />
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-medium text-fg truncate">
+                  {c.label}
+                </span>
+                <span className="text-[11px] text-fg-muted truncate">
+                  {c.detail}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card.Content>
+    </Card>
+  );
+}
+
+// Acompanha a conexão com a internet (eventos online/offline do navegador)
+function useOnlineStatus() {
+  const [online, setOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+  return online;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function TeleConsultaConfig() {
   const { id } = useParams<{ id: string }>();
@@ -365,6 +462,9 @@ export default function TeleConsultaConfig() {
     if (videoStream) el.play().catch(() => {});
   }, [videoStream]);
 
+  // ── 8b. Conexão com a internet ────────────────────────────────────────────
+  const online = useOnlineStatus();
+
   // ── 9. Early return do guard — SEMPRE após todos os hooks ─────────────────
   if (state.fase === "acesso_negado") {
     return (
@@ -390,7 +490,7 @@ export default function TeleConsultaConfig() {
   // Permite entrar com apenas áudio ou apenas vídeo (consulta parcial),
   // desde que ao menos um dos dois tenha sido liberado.
   const temMidia = camPerm === "granted" || micPerm === "granted";
-  const pronto = prontoPeloGuard && temMidia;
+  const pronto = prontoPeloGuard && temMidia && online;
   const permProblema = [camPerm, micPerm].some(
     (p) => p === "denied" || p === "error",
   );
@@ -412,11 +512,71 @@ export default function TeleConsultaConfig() {
     });
   }
 
-  let statusMsg: string | null = null;
-  if (!prontoPeloGuard) statusMsg = "Verificando acesso à consulta…";
-  else if (aguardandoPermissao) statusMsg = "Aguardando permissões.";
-  else if (!temMidia)
-    statusMsg = "Libere a câmera ou o microfone para entrar.";
+  // ── Status da conexão (aparece antes de entrar na sala) ───────────────────
+  function mediaCheck(
+    label: string,
+    perm: PermissionState,
+    on: boolean,
+    stream: MediaStream | null,
+  ): StatusCheck {
+    if (perm === "idle" || perm === "requesting")
+      return { label, state: "pending", detail: "Solicitando permissão…" };
+    if (perm === "denied") return { label, state: "warn", detail: "Bloqueado" };
+    if (perm === "error") return { label, state: "warn", detail: "Indisponível" };
+    if (!on) return { label, state: "ok", detail: "Desativado" };
+    // Só considera "ok" quando o stream realmente abriu
+    return stream
+      ? { label, state: "ok", detail: "Funcionando" }
+      : { label, state: "pending", detail: "Iniciando…" };
+  }
+
+  const checks: StatusCheck[] = [
+    {
+      label: "Internet",
+      state: online ? "ok" : "fail",
+      detail: online ? "Conectado" : "Sem conexão",
+    },
+    mediaCheck("Câmera", camPerm, camOn, videoStream),
+    mediaCheck("Microfone", micPerm, micOn, audioStream),
+  ];
+
+  // O guard não aparece como item (quem chegou aqui já tem acesso), mas o
+  // botão só libera quando ele termina; então conta como "verificando".
+  const algumPendente =
+    checks.some((c) => c.state === "pending") || !prontoPeloGuard;
+  const entraParcial =
+    temMidia && (camPerm !== "granted" || micPerm !== "granted");
+
+  let summary: StatusSummary;
+  if (!online) {
+    summary = {
+      tone: "fail",
+      title: "Sem conexão com a internet",
+      text: "Verifique sua rede para entrar na consulta.",
+    };
+  } else if (algumPendente) {
+    summary = {
+      tone: "pending",
+      title: "Verificando conexão…",
+      text: "Testando internet, câmera e microfone.",
+    };
+  } else if (!temMidia) {
+    summary = {
+      tone: "warn",
+      title: "Câmera e microfone indisponíveis",
+      text: "Libere ao menos um dos dois para entrar na consulta.",
+    };
+  } else {
+    summary = {
+      tone: entraParcial ? "warn" : "ok",
+      title: "Conexão estabelecida",
+      text: entraParcial
+        ? `Tudo certo para entrar, mas ${
+            camPerm !== "granted" ? "sem câmera" : "sem microfone"
+          }.`
+        : "Tudo certo para entrar na consulta.",
+    };
+  }
 
   return (
     <div className="min-h-full bg-surface flex items-start justify-center p-4">
@@ -576,6 +736,8 @@ export default function TeleConsultaConfig() {
           </Card>
         </div>
 
+        <ConnectionStatus summary={summary} checks={checks} />
+
         <div className="grid grid-cols-3 items-center">
           <div className="flex items-center justify-start">
             <Button
@@ -588,11 +750,6 @@ export default function TeleConsultaConfig() {
           </div>
 
           <div className="flex justify-center items-center flex-col gap-2">
-            {statusMsg && (
-              <p className="text-text-secondary text-sm text-center">
-                {statusMsg}
-              </p>
-            )}
             <Button size="lg" onPress={handleEntrar} isDisabled={!pronto}>
               <Video size={18} /> Entrar na consulta
             </Button>
