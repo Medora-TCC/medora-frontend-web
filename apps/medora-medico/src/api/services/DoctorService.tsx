@@ -1,6 +1,9 @@
 import type { DoctorDashboardDto } from "../dtos/Doctors/DoctorDashboardDto";
 import type { DoctorRqesDto, UpdateRqePrioritiesDto } from "../dtos/Doctors/DoctorRqesDto";
+import type { PersonalDataDto, UpdateComplementaryDto, UpdateContactDto } from "../dtos/Doctors/PersonalDataDto";
+import type { ProfessionalDataDto } from "../dtos/Doctors/ProfessionalRegistrationDto";
 import type { RegisterDoctorDto } from "../dtos/Doctors/RegisterDoctorDto";
+import type { UpdatePassportDto } from "../dtos/Doctors/PersonalDataDto";
 import type { WeekFlowDto, WeekFlowPeriod } from "../dtos/Doctors/WeekFlowDto";
 import { Endpoints } from "../enums/endpoints";
 import { api } from "./api";
@@ -66,6 +69,62 @@ export async function getWeekFlow(period: WeekFlowPeriod): Promise<WeekFlowDto> 
   } catch (error) {
     if (isAxiosError(error) && error.response) {
       throw new Error(error.response.data?.title ?? "Erro ao carregar o fluxo semanal.");
+    }
+    throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+
+export async function getProfessionalData(): Promise<ProfessionalDataDto> {
+  try {
+    const response = await api.get<ProfessionalDataDto>(Endpoints.GET_PROFESSIONAL_DATA);
+    return response.data;
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Erro ao carregar dados profissionais.");
+    }
+    throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+
+export async function getPersonalData(): Promise<PersonalDataDto> {
+  try {
+    const response = await api.get<PersonalDataDto>(Endpoints.GET_PERSONAL_DATA);
+    return response.data;
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Erro ao carregar dados pessoais.");
+    }
+    throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+export async function updateContact(body: UpdateContactDto): Promise<void> {
+  try {
+    await api.patch(Endpoints.UPDATE_DOCTOR_CONTACTS, body);
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Não foi possível salvar o contato.");
+    }
+    throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+
+export async function updateComplementary(body: UpdateComplementaryDto): Promise<void> {
+  try {
+    await api.patch(Endpoints.UPDATE_DOCTOR_COMPLEMENTARY, body);
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Não foi possível salvar as informações.");
+    }
+    throw new Error("Erro de conexão. Tente novamente.");
+  }
+}
+
+export async function updatePassport(body: UpdatePassportDto): Promise<void> {
+  try {
+    await api.patch(Endpoints.UPDATE_DOCTOR_PASSPORT, body);
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.detail ?? error.response.data?.title ?? "Não foi possível salvar o passaporte.");
     }
     throw new Error("Erro de conexão. Tente novamente.");
   }

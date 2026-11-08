@@ -7,6 +7,7 @@ export interface RqeItemDto {
 
 export interface DoctorRqesDto {
   doctorName: string;
+  email: string;
   rqes: RqeItemDto[];
 }
 

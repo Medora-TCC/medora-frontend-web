@@ -38,8 +38,8 @@ import ConsultaModal from "../../components/Consulta/ConsultaModal";
 import { ConsultaCard } from "./ConsultaCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Filtro = "todas" | StatusConsulta | "a_concluir";
-
+// "a_concluir" não é um status real do backend: é um filtro derivado (consulta aberta + horário passado).
+type Filtro = "todas" | "a_concluir" | StatusConsulta;
 
 const filtroDataNoBackend: Record<FiltroConsulta, DoctorAppointmentsApiFilter> = {
   hoje: "Today",
@@ -66,11 +66,11 @@ const statusCfg: Record<
 // ─── Opções de filtro (constantes, fora do componente) ────────────────────────
 const filtroOpcoes: { key: Filtro; label: string }[] = [
   { key: "todas", label: "Todas" },
+  { key: "a_concluir", label: "A concluir" },
   { key: "agendado", label: "Agendadas" },
   { key: "esperando_pagamento", label: "Aguard. pagamento" },
   { key: "esperando_confirmacao", label: "Aguard. confirmação" },
   { key: "confirmado", label: "Confirmadas" },
-  { key: "a_concluir", label: "A concluir" },
   { key: "em_atendimento", label: "Em andamento" },
   { key: "finalizado", label: "Concluídas" },
   { key: "cancelado", label: "Canceladas" },
@@ -93,7 +93,7 @@ const STATUS_ABERTOS: StatusConsulta[] = ["agendado", "confirmado", "em_atendime
 function isMuted(c: IConsultaDetailed, now: number) {
   if (c.status === "cancelado") return true;
   if (c.status === "em_atendimento") return false;
-  
+
   const fifteenMinutesAgo = now - 15 * 60 * 1000;
   return new Date(c.startDateTime).getTime() < fifteenMinutesAgo;
 }
@@ -125,7 +125,7 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
         {filtro === "todas"
           ? "Nenhuma consulta encontrada"
           : filtro === "a_concluir"
-            ? "Nenhuma consulta passada esperando conclusão"
+            ? "Nenhuma consulta a concluir"
             : `Nenhuma consulta com status "${statusCfg[filtro as StatusConsulta]?.label}"`}
       </p>
     </div>

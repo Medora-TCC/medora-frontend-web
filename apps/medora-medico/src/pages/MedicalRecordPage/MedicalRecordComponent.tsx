@@ -1,6 +1,7 @@
+import type { JSX } from "react";
 import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import { Button, Spinner, toast } from "@heroui/react";
-import { ModalConfirmacao } from "@medora_web/shared";
+import { SigningModeModal } from "../../components/SigningModeModal/SigningModeModal";
 import { FileDown } from "lucide-react";
 import {
   MedicalRecordViewer,
@@ -9,23 +10,11 @@ import {
 import MedicalRecordsService, {
   type MedicalRecord,
   type SignatureStatus,
+  type SigningMode,
 } from "../../api/services/MedicalRecords";
 import type { AppointmentStatus } from "../../api/services/Appointments";
-import { errorMessage } from "../../api/errors";
-
-interface MedicalRecordComponentProps {
-  appointmentId: number;
-}
-
-type SaveState =
-  | { kind: "idle" }
-  | { kind: "saving" }
-  | { kind: "saved"; at: Date }
-  | { kind: "error"; message: string };
-
-const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-const SIGNATURE_POLL_MS = 5000;
+import type { MedicalRecordController } from "../../hooks/useMedicalRecord";
+import { SOAP_TEMPLATE } from "./SoapTemplate";
 
 const appointmentStatusLabel: Record<AppointmentStatus, string> = {
   Scheduled: "agendada",
@@ -49,6 +38,7 @@ export function MedicalRecordComponent({
   const [isEmpty, setIsEmpty] = useState(true);
   const [saveState, setSaveState] = useState<SaveState>({ kind: "idle" });
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isSigningModalOpen, setIsSigningModalOpen] = useState(false);
   const [isOpeningPdf, setIsOpeningPdf] = useState(false);
   const [isWritable, setIsWritable] = useState(true);
   const [appointmentStatus, setAppointmentStatus] = useState<AppointmentStatus | null>(null);
@@ -95,7 +85,7 @@ export function MedicalRecordComponent({
         const pdf = await MedicalRecordsService.getPdf(recordId);
         if (!active) return;
         setSignatureStatus(pdf.signatureStatus);
-        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed") {
+        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed" && pdf.signatureStatus !== "AwaitingDoctor") {
           timer = setTimeout(check, SIGNATURE_POLL_MS);
         }
       } catch {
@@ -155,7 +145,8 @@ export function MedicalRecordComponent({
     [isLoading, save],
   );
 
-  const finalize = async () => {
+  const finalize = async (mode: SigningMode) => {
+    setIsSigningModalOpen(false);
     if (!record) return;
 
     setIsFinalizing(true);
@@ -164,10 +155,10 @@ export function MedicalRecordComponent({
         throw new Error("O último trecho não foi salvo. Tente de novo em instantes.");
       }
 
-      await MedicalRecordsService.finalize(record.id);
+      await MedicalRecordsService.finalize(record.id, mode);
       setInitialContent(lastSavedRef.current);
       setRecord({ ...record, isFinalized: true, finalizedAt: new Date().toISOString() });
-      toast.success("Prontuário finalizado.");
+      toast.success(mode === "Manual" ? "Prontuário finalizado. Assine em Assinar Documentos." : "Prontuário finalizado.");
     } catch (err) {
       toast.danger(errorMessage(err, "Erro ao finalizar o prontuário."));
     } finally {
@@ -190,49 +181,92 @@ export function MedicalRecordComponent({
       setIsOpeningPdf(false);
     }
   };
+const dateTimeFormat = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
-  if (isLoading) {
-    return (
-      <section className="flex-1 flex items-center justify-center bg-surface-alt">
-        <Spinner />
-      </section>
-    );
-  }
+interface MedicalRecordComponentProps {
+  controller: MedicalRecordController;
+}
 
-  if (loadError) {
-    return (
-      <section className="flex-1 flex items-center justify-center bg-surface-alt p-6">
-        <p className="text-danger text-center">{loadError}</p>
-      </section>
-    );
-  }
+/**
+ * Só a área de trabalho: título, cabeçalho e ações moram em PatientHeader.
+ * Estrutura: coluna flex com `min-h-0` → o editor ocupa o resto da altura e rola por dentro,
+ * sem os antigos `h-[78%]` / `max-h-[78%]`.
+ */
+export function MedicalRecordComponent({ controller }: MedicalRecordComponentProps): JSX.Element {
+  const {
+    mode,
+    record,
+    initialContent,
+    editorKey,
+    editorRef,
+    loadError,
+    appointmentStatus,
+    isEmpty,
+    setIsEmpty,
+    handleChange,
+    applyTemplate,
+  } = controller;
 
-  if (record?.isFinalized) {
-    return (
-      <section className="flex-1 flex flex-col h-full bg-surface-alt py-4 pb-4 px-4 gap-4">
-        <div className="flex justify-between items-center pt-2">
-          <h2 className="text-2xl font-bold text-text-primary">Prontuário finalizado</h2>
-          <PdfButton status={signatureStatus} isOpening={isOpeningPdf} onOpen={openPdf} />
+  return (
+    <main className="flex min-w-0 flex-1 flex-col bg-surface-alt">
+      {mode === "loading" && (
+        <div className="flex flex-1 items-center justify-center" role="status" aria-label="Carregando prontuário">
+          <Spinner />
         </div>
-        <div className="flex-1 overflow-hidden">
-          <MedicalRecordViewer json={initialContent ?? record.contentJson} />
+      )}
+
+      {mode === "error" && (
+        <div className="flex flex-1 items-center justify-center p-6" role="alert">
+          <p className="text-center text-danger">{loadError}</p>
         </div>
-      </section>
-    );
-  }
+      )}
 
-  if (!isWritable) {
-    const statusLabel = appointmentStatus ? appointmentStatusLabel[appointmentStatus] : "indisponível";
+      {mode === "finalized" && record && (
+        <>
+          <div className="shrink-0 border-b border-success bg-success-subtle px-4 py-1.5 text-sm font-semibold text-success">
+            Atendimento finalizado
+            {record.finalizedAt && (
+              <span className="ml-2 font-normal tabular-nums">
+                em {dateTimeFormat.format(new Date(record.finalizedAt))}
+              </span>
+            )}
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <MedicalRecordViewer json={initialContent ?? record.contentJson} />
+          </div>
+        </>
+      )}
 
-    return (
-      <section className="flex-1 flex flex-col h-full bg-surface-alt py-4 pb-4 px-4 gap-4">
-        <h2 className="text-2xl font-bold text-text-primary pt-2">Prontuário</h2>
-        <p className="rounded-xl border border-warning bg-warning-subtle text-warning-text px-4 py-3">
-          Esta consulta está {statusLabel}. O prontuário só pode ser escrito em consultas confirmadas, em andamento ou concluídas.
-        </p>
-        {record && (
-          <div className="flex-1 overflow-hidden">
-            <MedicalRecordViewer json={record.contentJson} />
+      {mode === "readonly" && (
+        <>
+          <p className="shrink-0 border-b border-warning bg-warning-subtle px-4 py-2 text-sm text-warning-text">
+            Esta consulta está {appointmentStatus ? appointmentStatusLabel[appointmentStatus] : "indisponível"}.
+            O prontuário só pode ser escrito em consultas confirmadas, em andamento ou concluídas.
+          </p>
+          {record && (
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <MedicalRecordViewer json={record.contentJson} />
+            </div>
+          )}
+        </>
+      )}
+
+      {mode === "editing" && (
+        <>
+          <div className="flex h-9 shrink-0 items-center justify-between gap-2 px-4">
+            <h2 className="text-sm font-semibold text-text-primary">Evolução clínica</h2>
+            {/* Só aparece com o editor vazio: nunca sobrescreve o que o médico já escreveu */}
+            {isEmpty && (
+              <Button size="sm" variant="ghost" onPress={() => applyTemplate(SOAP_TEMPLATE)}>
+                <ClipboardList />
+                Usar modelo SOAP
+              </Button>
+            )}
           </div>
         )}
       </section>
@@ -253,11 +287,14 @@ export function MedicalRecordComponent({
         />
       </div>
       <div className="mt-4 p-4 w-full flex justify-end">
-        <ModalConfirmacao
+        <Button isDisabled={isEmpty || !record || isFinalizing} onPress={() => setIsSigningModalOpen(true)}>
+          Finalizar
+        </Button>
+        <SigningModeModal
+          isOpen={isSigningModalOpen}
           onConfirm={finalize}
-          disabled={isEmpty || !record || isFinalizing}
+          onCancel={() => setIsSigningModalOpen(false)}
           texto="Deseja finalizar o prontuário? Depois de finalizado ele não pode mais ser alterado."
-          textoBotao="Finalizar"
         />
       </div>
     </section>
@@ -275,6 +312,7 @@ function PdfButton({
 }): JSX.Element {
   const note =
     status === "Signed" ? null
+    : status === "AwaitingDoctor" ? <span className="text-sm text-text-secondary">Aguardando sua assinatura em Assinar Documentos</span>
     : status === "Failed" ? <span className="text-sm text-danger">A assinatura falhou; o PDF sai sem assinatura.</span>
     : status === null ? null
     : (
@@ -284,26 +322,18 @@ function PdfButton({
       </span>
     );
 
-  return (
-    <div className="flex items-center gap-3">
-      {note}
-      <Button variant="primary" onPress={onOpen} isDisabled={isOpening}>
-        <FileDown />
-        Baixar PDF
-      </Button>
-    </div>
+          {/* O RichTextEditor ocupa 100% deste contêiner e rola por dentro da área de escrita */}
+          <div className="min-h-0 flex-1 overflow-hidden px-2 pb-2">
+            <RichTextEditor
+              key={editorKey}
+              ref={editorRef}
+              setText={handleChange}
+              setIsEmpty={setIsEmpty}
+              content={initialContent}
+            />
+          </div>
+        </>
+      )}
+    </main>
   );
-}
-
-function SaveIndicator({ state }: { state: SaveState }): JSX.Element | null {
-  switch (state.kind) {
-    case "saving":
-      return <span className="text-sm text-text-secondary">Salvando…</span>;
-    case "saved":
-      return <span className="text-sm text-text-secondary">Salvo às {timeFormat.format(state.at)}</span>;
-    case "error":
-      return <span className="text-sm text-danger">Não foi salvo: {state.message}</span>;
-    default:
-      return null;
-  }
 }

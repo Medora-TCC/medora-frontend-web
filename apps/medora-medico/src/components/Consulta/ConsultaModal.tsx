@@ -26,7 +26,6 @@ import { canEnter } from "../../pages/ConsultaScreen/ConsultaHelpers";
 import EnterReceitaButton from "../Receita/EnterReceitaButton";
 import EnterMedicalRecordButton from "../Prontuario/EnterMedicalRecordButton";
 import AppointmentsService, { canDoctorCancel } from "../../api/services/Appointments";
-import { errorMessage } from "../../api/errors";
 
 // Mesmas regras do domínio (Appointment.cs): estes status ainda podem ser cancelados
 const CANCELAVEIS = ["agendado", "confirmado", "esperando_pagamento", "esperando_confirmacao"];
@@ -39,6 +38,11 @@ const ABERTAS = ["agendado", "confirmado", "em_atendimento"];
 // A regra NÃO olha o tipo (presencial/teleconsulta), então vale para os dois.
 function canClose(status: string, hasStarted: boolean) {
   return hasStarted && ABERTAS.includes(status);
+}
+
+// Extrai uma mensagem legível de um erro desconhecido, com fallback.
+function errorMessage(err: unknown, fallback: string) {
+  return err instanceof Error && err.message ? err.message : fallback;
 }
 
 type DoctorAction = "confirm" | "reject" | "complete" | "absent";
@@ -182,7 +186,7 @@ interface ConsultaModalProps {
   appointment: IConsultaDetailed | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Chamado depois que o médico confirma, recusa, conclui, registra falta ou cancela. */
+  /** Chamado depois que o médico cancela a consulta. */
   onChanged?: () => void;
 }
 
@@ -270,14 +274,16 @@ export default function ConsultaModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isJoinable, setIsJoinable] = useState<boolean>(false);
-  // calculado ao abrir: Date.now() não pode ser chamado durante a renderização
-  const [hasStarted, setHasStarted] = useState(false);
 
   const [cancelando, setCancelando] = useState(false);
 
   const podeCancelar = !!currentConsulta
     && CANCELAVEIS.includes(currentConsulta.status)
     && canDoctorCancel(currentConsulta.startDateTime);
+
+  // A consulta já passou do horário de início?
+  const hasStarted =
+    !!currentConsulta && new Date(currentConsulta.startDateTime).getTime() <= Date.now();
 
   // CLAUDE [Task 6]: nova flag para o botão "Finalizar consulta" do rodapé. Usa o mesmo helper
   // `canClose` do painel, então aparece para presencial E teleconsulta (não depende do `type`).
@@ -308,7 +314,6 @@ export default function ConsultaModal({
     try {
       setCurrentConsulta(appointment);
       setIsJoinable(canEnter(appointment))
-      setHasStarted(new Date(appointment.startDateTime).getTime() <= Date.now());
     } catch {
       setError("Não foi possível carregar as informações da consulta")
     }

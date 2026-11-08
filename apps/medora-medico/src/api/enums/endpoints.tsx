@@ -19,9 +19,6 @@ export const Endpoints = {
 
     REGISTER_DOCTOR: '/v1/Doctor',
 
-    GET_DOCTOR_PROFILE: '/doctors/profile',
-    UPDATE_DOCTOR_PROFILE: '/doctors/profile',
-
     DAILY_SCHEDULE: '/doctors/availability/daily',
     RECURRING_SCHEDULE: '/doctors/availability/recurring',
     SPECIFIC_AVAILABILITY: '/doctors/availability/specific',
@@ -40,12 +37,27 @@ export const Endpoints = {
     REJECT_TELECONSULTATION: (appointmentId: number) => `/appointments/${appointmentId}/reject`,
 
     MEDICAL_RECORD_BY_APPOINTMENT: (appointmentId: number) => `/appointments/${appointmentId}/medical-record`,
+    MEDICAL_RECORD_BY_PATIENT: (patientId: string) => `/medical-records/patient/${patientId}`,
     FINALIZE_MEDICAL_RECORD: (id: number) => `/medical-records/${id}/finalize`,
     MEDICAL_RECORD_PDF: (id: number) => `/medical-records/${id}/pdf`,
 
     ISSUE_PRESCRIPTION: (medicalRecordId: number) => `/medical-records/${medicalRecordId}/prescriptions`,
     PRESCRIPTION_PDF: (publicId: string) => `/prescriptions/${publicId}/pdf`,
 
+    MY_SIGNATURES: '/signatures/me',
+    AUTHORIZE_SIGNATURE: (id: number) => `/signatures/${id}/authorize`,
+    RETRY_SIGNATURE: (id: number) => `/signatures/${id}/retry`,
+    SIGNATURE_HEALTH: '/signatures/health',
+
     MY_PAYOUTS: '/payouts/me',
     MY_PAYOUT_CLOSINGS: '/payouts/me/closings',
+    MY_PIX_KEY: '/payouts/me/pix-key',
+
+    GET_PROFESSIONAL_DATA: '/v1/Doctor/me/professional-data',
+    GET_PERSONAL_DATA: '/v1/Doctor/me/personal-data',
+
+    UPDATE_DOCTOR_CONTACTS: '/v1/Doctor/me/personal-data/contact',
+    UPDATE_DOCTOR_COMPLEMENTARY: '/v1/Doctor/me/personal-data/complementary',
+    UPDATE_DOCTOR_PASSPORT: '/v1/Doctor/me/personal-data/passport',
+
 } as const;

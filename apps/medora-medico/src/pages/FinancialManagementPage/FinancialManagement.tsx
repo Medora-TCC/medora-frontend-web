@@ -4,7 +4,7 @@ import {
   Wallet,
   TrendingUp,
   Lock,
-  Building2,
+  KeyRound,
   CheckCircle2,
   Clock,
   ArrowDownRight,
@@ -13,8 +13,8 @@ import {
   ChevronUp,
   Loader2,
 } from "lucide-react";
-import { BankAccountModal } from "./BankModal";
-import { getMyPayoutClosing, getMyPayoutStatement } from "../../api/services/PayoutService";
+import { PixKeyModal } from "./PixKeyModal";
+import { getMyPayoutClosing, getMyPayoutStatement, getMyPixKey } from "../../api/services/PayoutService";
 import { errorMessage } from "../../api/errors";
 import type {
   PayoutClosingDetailDto,
@@ -23,6 +23,7 @@ import type {
   PayoutLineStatus,
   PayoutStatementDto,
   PayoutStatementLineDto,
+  PixKeyDto,
 } from "../../api/dtos/Payouts/PayoutDto";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -52,12 +53,16 @@ const closingStatus: Record<PayoutClosingStatus, string> = {
 export default function FinancialManagement() {
   const modal = useOverlayState({ defaultOpen: false });
   const [statement, setStatement] = useState<PayoutStatementDto | null>(null);
+  const [pixKey, setPixKey] = useState<PixKeyDto | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getMyPayoutStatement()
       .then(setStatement)
       .catch((e) => setError(errorMessage(e, "Erro ao carregar seus ganhos.")));
+    getMyPixKey()
+      .then(setPixKey)
+      .catch((e) => setError(errorMessage(e, "Erro ao carregar a chave Pix.")));
   }, []);
 
   const toReceive = statement
@@ -83,8 +88,8 @@ export default function FinancialManagement() {
               onClick={modal.open}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg cursor-pointer text-[13px] font-semibold text-accent bg-transparent border-[1.5px] border-accent hover:bg-surface-overlay transition-colors"
             >
-              <Building2 size={15} />
-              Vincular Conta Bancária
+              <KeyRound size={15} />
+              {pixKey ? "Alterar chave Pix" : "Cadastrar chave Pix"}
             </button>
           </div>
         </header>
@@ -159,7 +164,7 @@ export default function FinancialManagement() {
         )}
       </main>
 
-      <BankAccountModal isOpen={modal.isOpen} onOpenChange={modal.setOpen} />
+      <PixKeyModal isOpen={modal.isOpen} onOpenChange={modal.setOpen} current={pixKey} onSaved={setPixKey} />
     </div>
   );
 }

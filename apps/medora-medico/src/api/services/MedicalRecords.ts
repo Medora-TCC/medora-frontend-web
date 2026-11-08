@@ -2,6 +2,8 @@ import { Endpoints } from '../enums/endpoints';
 import { api } from './api';
 import { toDomainError } from '../errors';
 import type { AppointmentStatus } from './Appointments';
+import type { MedicalRecordDTO } from '../dtos/MedicalRecord/MedicalRecordDTO';
+import type { PatientSummary } from '../../pages/MedicalRecordPage/PatientHeader';
 
 export interface MedicalRecord {
   id: number;
@@ -12,12 +14,15 @@ export interface MedicalRecord {
   updatedAt: string;
 }
 
-export type SignatureStatus = 'NotApplicable' | 'Pending' | 'Submitted' | 'Signed' | 'Failed';
+export type SigningMode = 'Automatic' | 'Manual';
+
+export type SignatureStatus = 'NotApplicable' | 'AwaitingDoctor' | 'Pending' | 'Submitted' | 'Signed' | 'Failed';
 
 export interface AppointmentMedicalRecord {
   record: MedicalRecord | null;
   appointmentStatus: AppointmentStatus;
   isWritable: boolean;
+  patientSummary: PatientSummary;
 }
 
 export interface MedicalRecordPdf {
@@ -44,11 +49,20 @@ async function saveDraft(appointmentId: number, contentJson: string): Promise<Me
   }
 }
 
-async function finalize(id: number): Promise<void> {
+async function finalize(id: number, mode: SigningMode = 'Automatic'): Promise<void> {
   try {
-    await api.post(Endpoints.FINALIZE_MEDICAL_RECORD(id));
+    await api.post(Endpoints.FINALIZE_MEDICAL_RECORD(id), { mode });
   } catch (error) {
     throw toDomainError(error, 'Erro ao finalizar o prontuário.');
+  }
+}
+
+export async function getByPatient(patientId: string): Promise<MedicalRecordDTO[]> {
+  try {
+    const res = await api.get<MedicalRecordDTO[]>(Endpoints.MEDICAL_RECORD_BY_PATIENT(patientId));
+    return res.data;
+  } catch (error) {
+    throw toDomainError(error, "Erro ao buscar prontuários")
   }
 }
 
