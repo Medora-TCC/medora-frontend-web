@@ -3,6 +3,7 @@ import { toast } from "@heroui/react";
 import MedicalRecordsService, {
   type MedicalRecord,
   type SignatureStatus,
+  type SigningMode,
 } from "../api/services/MedicalRecords";
 import type { AppointmentStatus } from "../api/services/Appointments";
 import { errorMessage } from "../api/errors";
@@ -31,6 +32,7 @@ export function useMedicalRecord(appointmentId: number) {
   const [isEmpty, setIsEmpty] = useState(true);
   const [saveState, setSaveState] = useState<SaveState>({ kind: "idle" });
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isSigningModalOpen, setIsSigningModalOpen] = useState(false);
   const [isOpeningPdf, setIsOpeningPdf] = useState(false);
   const [isWritable, setIsWritable] = useState(true);
   const [appointmentStatus, setAppointmentStatus] = useState<AppointmentStatus | null>(null);
@@ -43,6 +45,10 @@ export function useMedicalRecord(appointmentId: number) {
   const inFlightRef = useRef<Promise<boolean> | null>(null);
   const editorRef = useRef<RichTextEditorRef>(null);
 
+  const openSigningModal = useCallback(() => setIsSigningModalOpen(true), []);
+  const closeSigningModal = useCallback(() => setIsSigningModalOpen(false), []);
+
+
   // ---- carga ----------------------------------------------------------------
   useEffect(() => {
     let active = true;
@@ -51,8 +57,8 @@ export function useMedicalRecord(appointmentId: number) {
 
     MedicalRecordsService.getByAppointment(appointmentId)
       .then(({ record: loaded, appointmentStatus: status, isWritable: writable, patientSummary }) => {
-        setPatient(patientSummary);
         if (!active) return;
+        setPatient(patientSummary);
         setRecord(loaded);
         setInitialContent(loaded?.contentJson ?? null);
         setAppointmentStatus(status);
@@ -83,7 +89,7 @@ export function useMedicalRecord(appointmentId: number) {
         const pdf = await MedicalRecordsService.getPdf(recordId);
         if (!active) return;
         setSignatureStatus(pdf.signatureStatus);
-        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed") {
+        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed" && pdf.signatureStatus !== "AwaitingDoctor") {
           timer = setTimeout(check, SIGNATURE_POLL_MS);
         }
       } catch {
@@ -159,23 +165,24 @@ export function useMedicalRecord(appointmentId: number) {
     else toast.danger("Não foi possível salvar. Verifique a conexão e tente de novo.");
   }, [flush]);
 
-  const finalize = useCallback(async () => {
+  const finalize = async (mode: SigningMode) => {
+    setIsSigningModalOpen(false);
     if (!record) return;
     setIsFinalizing(true);
     try {
       if (!(await flush())) {
         throw new Error("O último trecho não foi salvo. Tente de novo em instantes.");
       }
-      await MedicalRecordsService.finalize(record.id);
+      await MedicalRecordsService.finalize(record.id, mode);
       setInitialContent(lastSavedRef.current);
       setRecord((r) => (r ? { ...r, isFinalized: true, finalizedAt: new Date().toISOString() } : r));
-      toast.success("Prontuário finalizado.");
+      toast.success(mode === "Manual" ? "Prontuário finalizado. Assine em Assinar Documentos." : "Prontuário finalizado.");
     } catch (err) {
       toast.danger(errorMessage(err, "Erro ao finalizar o prontuário."));
     } finally {
       setIsFinalizing(false);
     }
-  }, [record, flush]);
+  };
 
   const openPdf = useCallback(async () => {
     if (!record) return;
@@ -222,13 +229,16 @@ export function useMedicalRecord(appointmentId: number) {
     setIsEmpty,
     isFinalizing,
     isOpeningPdf,
+    isSigningModalOpen,
+    openSigningModal,
+    closeSigningModal,
     canFinalize: mode === "editing" && !isEmpty && !!record && !isFinalizing,
     handleChange,
     saveDraft,
     finalize,
     openPdf,
     applyTemplate,
-    patient
+    patient,
   };
 }
 

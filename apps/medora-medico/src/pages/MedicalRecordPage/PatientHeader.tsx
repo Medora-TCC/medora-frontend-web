@@ -1,6 +1,5 @@
 import { useState, type JSX } from "react";
 import { Button, Spinner } from "@heroui/react";
-import { ModalConfirmacao } from "@medora_web/shared";
 import {
   Eye,
   EyeOff,
@@ -13,6 +12,7 @@ import type { SignatureStatus } from "../../api/services/MedicalRecords";
 import type { MedicalRecordController, SaveState } from "../../hooks/useMedicalRecord";
 import { formatSex } from "../../types/Sex";
 import type { Sex } from "../../api/dtos/Doctors/PersonalDataDto";
+import { SigningModeModal } from "../../components/SigningModeModal/SigningModeModal";
 export interface PatientSummary {
   id?: string;
   name: string;
@@ -38,7 +38,7 @@ function ageFrom(dateStr?: string): string | null {
 
   const [, d, mo, y] = m.map(Number);
   const now = new Date();
-  
+
   let years = now.getFullYear() - y;
   const currentMonth = now.getMonth() + 1;
   const currentDay = now.getDate();
@@ -72,8 +72,19 @@ export function PatientHeader({
   const [showCpf, setShowCpf] = useState(false);
   const isLoading = patientProp === null;
   const patient: PatientSummary = patientProp ?? { name: fallbackName ?? "" };
-  const { mode, saveState, canFinalize, finalize, saveDraft, openPdf, isOpeningPdf, signatureStatus } =
-    controller;
+  const {
+    mode,
+    saveState,
+    canFinalize,
+    isSigningModalOpen,
+    openSigningModal,
+    closeSigningModal,
+    finalize,
+    saveDraft,
+    openPdf,
+    isOpeningPdf,
+    signatureStatus,
+  } = controller;
 
   const birth = patient.birthDate;
   const age = ageFrom(patient.birthDate);
@@ -140,11 +151,14 @@ export function PatientHeader({
                 <Save />
                 <span className="hidden sm:inline">Salvar rascunho</span>
               </Button>
-              <ModalConfirmacao
+              <Button isDisabled={!canFinalize} onPress={openSigningModal}>
+                Finalizar
+              </Button>
+              <SigningModeModal
+                isOpen={isSigningModalOpen}
                 onConfirm={finalize}
-                disabled={!canFinalize}
-                texto="Deseja finalizar o atendimento? Depois de finalizado o prontuário não pode mais ser alterado."
-                textoBotao="Finalizar atendimento"
+                onCancel={closeSigningModal}
+                texto="Deseja finalizar o prontuário? Depois de finalizado ele não pode mais ser alterado."
               />
             </>
           )}
@@ -212,14 +226,17 @@ function PdfButton({
   onOpen: () => void;
 }): JSX.Element {
   const note =
-    status === "Signed" || status === null ? null : status === "Failed" ? (
-      <span className="hidden text-sm text-danger lg:inline">Assinatura falhou: o PDF sai sem assinatura.</span>
-    ) : (
-      <span className="hidden items-center gap-2 text-sm text-text-secondary lg:flex">
-        <Spinner size="sm" />
-        Assinando… o PDF sai sem assinatura por enquanto.
-      </span>
-    );
+    status === "Signed" ? null
+      : status === "AwaitingDoctor" ? <span className="text-sm text-text-secondary">Aguardando sua assinatura em Assinar Documentos</span>
+        : status === "Failed" ? <span className="text-sm text-danger">A assinatura falhou; o PDF sai sem assinatura.</span>
+          : status === null ? null
+            : (
+              <span className="flex items-center gap-2 text-sm text-text-secondary">
+                <Spinner size="sm" />
+                Assinatura em andamento; por enquanto o PDF sai sem assinatura.
+              </span>
+            );
+
 
   return (
     <div className="flex items-center gap-3">
