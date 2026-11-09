@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Settings, Video, User, Clock, Loader2, Building2, Monitor, RefreshCw, CalendarDays,
+  CalendarClock, Wallet, Hourglass, CheckCircle2, PlayCircle, CheckCheck, CalendarX, XCircle, UserX,
+  type LucideIcon,
 } from 'lucide-react';
 import { Card, Button, toast, ToastProvider } from '@heroui/react';
 import { ModalConfirmacao, type AvailabilitySlotType } from '@medora_web/shared';
@@ -45,17 +47,19 @@ const TYPE_CFG: Record<AvailabilitySlotType, {
   },
 };
 
-const STATUS_CFG: Record<AppointmentStatus, { label: string; badge: string }> = {
-  Scheduled:            { label: 'Agendada',               badge: 'bg-primary/10 text-primary-text' },
-  AwaitingPayment:      { label: 'Aguardando pagamento',   badge: 'bg-warning-subtle text-warning-text' },
-  AwaitingConfirmation: { label: 'Aguardando confirmação', badge: 'bg-warning-subtle text-warning-text' },
-  Confirmed:            { label: 'Confirmada',             badge: 'bg-success-subtle text-success-text' },
-  InProgress:           { label: 'Em andamento',           badge: 'bg-primary/10 text-primary-text' },
-  Completed:            { label: 'Realizada',              badge: 'bg-success-subtle text-success-text' },
-  RescheduleNeeded:     { label: 'Precisa remarcar',       badge: 'bg-danger-subtle text-danger-text' },
-  Canceled:             { label: 'Cancelada',              badge: 'bg-danger-subtle text-danger-text' },
-  Absent:               { label: 'Ausente',                badge: 'bg-danger-subtle text-danger-text' },
+const STATUS_CFG: Record<AppointmentStatus, { label: string; badge: string; icon: LucideIcon; tone: string }> = {
+  Scheduled:            { label: 'Agendada',               badge: 'bg-primary/10 text-primary-text',       icon: CalendarClock, tone: 'text-primary-text' },
+  AwaitingPayment:      { label: 'Aguardando pagamento',   badge: 'bg-warning-subtle text-warning-text',   icon: Wallet,        tone: 'text-warning-text' },
+  AwaitingConfirmation: { label: 'Aguardando confirmação', badge: 'bg-warning-subtle text-warning-text',   icon: Hourglass,     tone: 'text-warning-text' },
+  Confirmed:            { label: 'Confirmada',             badge: 'bg-success-subtle text-success-text',   icon: CheckCircle2,  tone: 'text-success-text' },
+  InProgress:           { label: 'Em andamento',           badge: 'bg-primary/10 text-primary-text',       icon: PlayCircle,    tone: 'text-primary-text' },
+  Completed:            { label: 'Realizada',              badge: 'bg-success-subtle text-success-text',   icon: CheckCheck,    tone: 'text-success-text' },
+  RescheduleNeeded:     { label: 'Precisa remarcar',       badge: 'bg-danger-subtle text-danger-text',     icon: CalendarX,     tone: 'text-danger-text' },
+  Canceled:             { label: 'Cancelada',              badge: 'bg-danger-subtle text-danger-text',     icon: XCircle,       tone: 'text-danger-text' },
+  Absent:               { label: 'Ausente',                badge: 'bg-danger-subtle text-danger-text',     icon: UserX,         tone: 'text-danger-text' },
 };
+
+const STATUS_ORDER = Object.keys(STATUS_CFG) as AppointmentStatus[];
 
 const FILTERS: { value: DoctorAppointmentsFilter; label: string }[] = [
   { value: 'Today',    label: 'Hoje' },
@@ -204,6 +208,9 @@ export function AvailabilityHistorical() {
     return () => { active = false; };
   }, [filter, reloadKey]);
 
+  // a legenda mostra só os status que aparecem na lista atual
+  const statusesInList = STATUS_ORDER.filter((st) => appointments.some((a) => a.status === st));
+
   const activeAppointment = appointments.find((a) => a.appointmentId === activeId) ?? null;
   const activeCfg = TYPE_CFG[activeAppointment?.type ?? 'InPerson'];
 
@@ -211,7 +218,7 @@ export function AvailabilityHistorical() {
     <>
       <ToastProvider />
 
-      <div className="flex flex-col h-screen overflow-hidden bg-surface">
+      <div className="flex flex-col h-full max-h-dvh min-h-0 overflow-hidden bg-surface">
 
         <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-border bg-surface gap-4">
           <div>
@@ -276,6 +283,8 @@ export function AvailabilityHistorical() {
                     <ul className="py-1">
                       {dayAppointments.map((appointment) => {
                         const isActive = appointment.appointmentId === activeId;
+                        const statusCfg = STATUS_CFG[appointment.status];
+                        const StatusIcon = statusCfg.icon;
                         return (
                           <li key={appointment.appointmentId}>
                             <button
@@ -287,8 +296,15 @@ export function AvailabilityHistorical() {
                                 {localTime(appointment)}
                               </span>
                               <span className={`w-2 h-2 rounded-full shrink-0 ${TYPE_CFG[appointment.type].stripe}`} />
-                              <span className="text-xs truncate text-text-primary font-medium">
+                              <span className="text-xs truncate min-w-0 text-text-primary font-medium">
                                 {appointment.patientName}
+                              </span>
+                              <span
+                                title={statusCfg.label}
+                                className={`ml-auto shrink-0 ${statusCfg.tone}`}
+                              >
+                                <StatusIcon size={14} aria-hidden="true" />
+                                <span className="sr-only">{statusCfg.label}</span>
                               </span>
                             </button>
                           </li>
@@ -300,13 +316,31 @@ export function AvailabilityHistorical() {
               )}
             </div>
 
-            <div className="px-4 py-3 border-t border-border space-y-1.5">
-              {(Object.entries(TYPE_CFG) as [AvailabilitySlotType, typeof TYPE_CFG[AvailabilitySlotType]][]).map(([k, v]) => (
-                <div key={k} className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${v.stripe}`} />
-                  <span className="text-[11px] text-text-muted">{v.label}</span>
+            <div className="px-4 py-3 border-t border-border space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted">Tipo</p>
+                {(Object.entries(TYPE_CFG) as [AvailabilitySlotType, typeof TYPE_CFG[AvailabilitySlotType]][]).map(([k, v]) => (
+                  <div key={k} className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${v.stripe}`} />
+                    <span className="text-[11px] text-text-muted">{v.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {statusesInList.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted">Status</p>
+                  {statusesInList.map((st) => {
+                    const { icon: Icon, label, tone } = STATUS_CFG[st];
+                    return (
+                      <div key={st} className="flex items-center gap-2">
+                        <Icon size={12} className={`shrink-0 ${tone}`} aria-hidden="true" />
+                        <span className="text-[11px] text-text-muted">{label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
             </div>
           </aside>
 
