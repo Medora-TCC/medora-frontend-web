@@ -224,7 +224,7 @@ export function HomePage() {
               {
                 key: "7",
                 q: "Vale a pena utilizar o sistema mesmo atendendo apenas por telemedicina?",
-                a: "Com certeza. O sistema possui uma sala de conferência integrada e criptografada com gravação opcional, emissão de documentos virtuais na hora e envio automático de receitas diretamente para o WhatsApp do paciente."
+                a: "Com certeza. O sistema possui uma sala de conferência integrada e criptografada, emissão de documentos virtuais na hora e envio automático de receitas diretamente para o WhatsApp do paciente."
               },
               {
                 key: "8",
