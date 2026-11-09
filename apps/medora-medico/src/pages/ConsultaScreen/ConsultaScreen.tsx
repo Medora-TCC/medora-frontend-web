@@ -24,8 +24,7 @@ import ConsultaModal from "../../components/Consulta/ConsultaModal";
 import { ConsultaCard } from "./ConsultaCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Filtro = "todas" | StatusConsulta | "a_concluir";
-
+type Filtro = "todas" | StatusConsulta;
 
 const filtroDataNoBackend: Record<FiltroConsulta, DoctorAppointmentsApiFilter> = {
   hoje: "Today",
@@ -56,7 +55,6 @@ const filtroOpcoes: { key: Filtro; label: string }[] = [
   { key: "esperando_pagamento", label: "Aguard. pagamento" },
   { key: "esperando_confirmacao", label: "Aguard. confirmação" },
   { key: "confirmado", label: "Confirmadas" },
-  { key: "a_concluir", label: "A concluir" },
   { key: "em_atendimento", label: "Em andamento" },
   { key: "finalizado", label: "Concluídas" },
   { key: "cancelado", label: "Canceladas" },
@@ -93,9 +91,7 @@ function EmptyState({ filtro }: { filtro: Filtro }) {
       <p className="text-sm text-fg-muted">
         {filtro === "todas"
           ? "Nenhuma consulta encontrada"
-          : filtro === "a_concluir"
-            ? "Nenhuma consulta passada esperando conclusão"
-            : `Nenhuma consulta com status "${statusCfg[filtro as StatusConsulta]?.label}"`}
+          : `Nenhuma consulta com status "${statusCfg[filtro as StatusConsulta]?.label}"`}
       </p>
     </div>
   );
@@ -122,13 +118,12 @@ export function ConsultaScreen() {
     consultaModal.open();
   };
 
-    const filtroApi = filtroDataNoBackend[filtroData];
+  const filtroApi = filtroDataNoBackend[filtroData];
 
   async function carregar(filtroAtual: DoctorAppointmentsApiFilter = filtroApi) {
     const id = ++requestId.current;
     setLoading(true);
     setError(null);
-    console.log("filtro atual: " + filtroAtual);
     
     try {
       const data = await fetchConsultas(filtroAtual);
@@ -153,7 +148,7 @@ export function ConsultaScreen() {
   const filtradas = useMemo(
     () =>
       consultas
-        .filter((c) => filtro === "todas" || filtro === "a_concluir" || c.status === filtro)
+        .filter((c) => filtro === "todas" || c.status === filtro)
         .filter(
           (c) =>
             busca.trim() === "" ||

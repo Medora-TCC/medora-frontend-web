@@ -5,7 +5,10 @@ import {
   LABEL_FREQUENCIA,
   LABEL_DURACAO,
 } from "../../../types/Prescritpion.ts";
-import { ModalConfirmacao } from "@medora_web/shared";
+import { useState } from "react";
+import { Button } from "@heroui/react";
+import { SigningModeModal } from "../../../components/SigningModeModal/SigningModeModal";
+import type { SigningMode } from "../../../api/services/MedicalRecords";
 
 function SecaoPaciente({ paciente }: { paciente: PrescricaoRascunho["paciente"] }) {
   if (!paciente) return null;
@@ -35,13 +38,14 @@ function SecaoPaciente({ paciente }: { paciente: PrescricaoRascunho["paciente"] 
 interface Props {
   rascunho: PrescricaoRascunho;
   medico: { nome: string; especialidade?: string };
-  onEmitir: () => void;
+  onEmitir: (mode: SigningMode) => void;
   onVoltar: () => void;
   emitindo?: boolean;
   erro?: string | null;
 }
 
 export function StepRevision({ rascunho, medico, onEmitir, onVoltar, emitindo, erro }: Props) {
+  const [escolhendoModo, setEscolhendoModo] = useState(false);
 
   return (
     <div className="flex flex-col gap-5">
@@ -152,7 +156,15 @@ export function StepRevision({ rascunho, medico, onEmitir, onVoltar, emitindo, e
         >
           Voltar e editar
         </button>
-        <ModalConfirmacao onConfirm={onEmitir} disabled={emitindo ?? false} texto={"Deseja finalizar e emitir a prescrição ?"} textoBotao={emitindo ? "Emitindo..." : "Emitir receituário"} />
+        <Button isDisabled={emitindo ?? false} onPress={() => setEscolhendoModo(true)}>
+          {emitindo ? "Emitindo..." : "Emitir receituário"}
+        </Button>
+        <SigningModeModal
+          isOpen={escolhendoModo}
+          onConfirm={(mode) => { setEscolhendoModo(false); onEmitir(mode); }}
+          onCancel={() => setEscolhendoModo(false)}
+          texto="Deseja finalizar e emitir a prescrição?"
+        />
         
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $getSelection,
+  $isElementNode,
   $isRangeSelection,
   FORMAT_TEXT_COMMAND,
   FORMAT_ELEMENT_COMMAND,
@@ -10,11 +11,7 @@ import {
   COMMAND_PRIORITY_CRITICAL,
 } from "lexical";
 import { $setBlocksType } from "@lexical/selection";
-import {
-  $createHeadingNode,
-  $isHeadingNode,
-  type HeadingTagType,
-} from "@lexical/rich-text";
+import { $createHeadingNode, $isHeadingNode, type HeadingTagType } from "@lexical/rich-text";
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
@@ -51,21 +48,20 @@ interface ToolbarButtonProps {
 function ToolbarButton({ onClick, active = false, title, children }: ToolbarButtonProps) {
   return (
     <button
-      onMouseDown={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
-      title={title}
       type="button"
+      // mouseDown não rouba o foco do editor (a seleção continua); o clique cuida de mouse E teclado.
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      title={title}
+      aria-label={title}
       aria-pressed={active}
       className={[
-        "flex items-center justify-center w-8 h-8 rounded-md",
-        "transition-all duration-150 cursor-pointer select-none",
-        "text-sm font-medium focus:outline-none",
-        "focus-visible:ring-2 focus-visible:ring-indigo-500",
+        "flex size-7 shrink-0 cursor-pointer select-none items-center justify-center rounded-md",
+        "transition-colors duration-150 motion-reduce:transition-none focus:outline-none",
+        "focus-visible:ring-2 focus-visible:ring-primary-color",
         active
-          ? "bg-indigo-100 text-indigo-700 shadow-inner"
-          : "text-secondary hover:bg-surface-alt hover:text-primary",
+          ? "bg-primary-subtle text-primary-text"
+          : "text-text-secondary hover:bg-surface-alt hover:text-text-primary",
       ].join(" ")}
     >
       {children}
@@ -74,12 +70,7 @@ function ToolbarButton({ onClick, active = false, title, children }: ToolbarButt
 }
 
 function Separator() {
-  return (
-    <div
-      role="separator"
-      className="w-px h-5 bg-surface mx-1 self-center rounded-full"
-    />
-  );
+  return <div role="separator" aria-orientation="vertical" className="mx-1 h-4 w-px shrink-0 self-center bg-border" />;
 }
 
 export function ToolbarPlugin() {
@@ -100,19 +91,14 @@ export function ToolbarPlugin() {
     setIsStrikethrough(selection.hasFormat("strikethrough"));
 
     const anchorNode = selection.anchor.getNode();
-    const element =
-      anchorNode.getKey() === "root"
-        ? anchorNode
-        : anchorNode.getTopLevelElementOrThrow();
+    const element = anchorNode.getKey() === "root" ? anchorNode : anchorNode.getTopLevelElementOrThrow();
 
     if ($isListNode(element)) {
-      const listType = element.getListType();
-      setBlockType(listType === "bullet" ? "bullet" : "number");
+      setBlockType(element.getListType() === "bullet" ? "bullet" : "number");
     } else {
       const parentList = $getNearestNodeOfType(anchorNode, ListNode);
       if (parentList) {
-        const listType = parentList.getListType();
-        setBlockType(listType === "bullet" ? "bullet" : "number");
+        setBlockType(parentList.getListType() === "bullet" ? "bullet" : "number");
       } else if ($isHeadingNode(element)) {
         setBlockType(element.getTag() as BlockType);
       } else {
@@ -120,10 +106,9 @@ export function ToolbarPlugin() {
       }
     }
 
-    const fmt = (element as any).__format ?? 0;
-    if (fmt === 2) setAlignment("center");
-    else if (fmt === 3) setAlignment("right");
-    else setAlignment("left");
+    // API pública em vez de ler `__format` (campo privado do Lexical).
+    const format = $isElementNode(element) ? element.getFormatType() : "left";
+    setAlignment(format === "center" ? "center" : format === "right" || format === "end" ? "right" : "left");
   }, []);
 
   useEffect(() => {
@@ -142,136 +127,83 @@ export function ToolbarPlugin() {
     );
   }, [editor, updateToolbar]);
 
-  const formatBold = () =>
-    editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-
-  const formatUnderline = () =>
-    editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
-
-  const formatStrikethrough = () =>
-    editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough");
+  const formatBold = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+  const formatUnderline = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
+  const formatStrikethrough = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough");
 
   const formatHeading = (tag: HeadingTagType | "paragraph") => {
     editor.update(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
-      if (tag === "paragraph") {
-        $setBlocksType(selection, () => $createParagraphNode());
-      } else {
-        $setBlocksType(selection, () => $createHeadingNode(tag));
-      }
+      $setBlocksType(selection, () => (tag === "paragraph" ? $createParagraphNode() : $createHeadingNode(tag)));
     });
   };
+
+  const toggleHeading = (tag: HeadingTagType) => formatHeading(blockType === tag ? "paragraph" : tag);
 
   const toggleList = (type: "bullet" | "number") => {
     if (blockType === type) {
       editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     } else {
       editor.dispatchCommand(
-        type === "bullet"
-          ? INSERT_UNORDERED_LIST_COMMAND
-          : INSERT_ORDERED_LIST_COMMAND,
+        type === "bullet" ? INSERT_UNORDERED_LIST_COMMAND : INSERT_ORDERED_LIST_COMMAND,
         undefined,
       );
     }
   };
 
-  const formatAlign = (align: Alignment) =>
-    editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, align);
+  const formatAlign = (align: Alignment) => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, align);
 
   return (
     <div
       role="toolbar"
       aria-label="Opções de formatação"
-      className="flex h-fit items-center gap-0.5 px-2 py-1.5 bg-surface-raised border border-border rounded-xl shadow-sm w-fit"
+      // Faixa fina colada no topo do editor; em telas estreitas rola na horizontal em vez de quebrar linha.
+      className="flex shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border bg-surface px-1.5 py-1"
     >
       <ToolbarButton onClick={formatBold} active={isBold} title="Negrito (Ctrl+B)">
         <Bold size={15} strokeWidth={2.5} />
       </ToolbarButton>
-
       <ToolbarButton onClick={formatUnderline} active={isUnderline} title="Sublinhado (Ctrl+U)">
         <Underline size={15} strokeWidth={2.5} />
       </ToolbarButton>
-
       <ToolbarButton onClick={formatStrikethrough} active={isStrikethrough} title="Tachado">
         <Strikethrough size={15} strokeWidth={2.5} />
       </ToolbarButton>
 
       <Separator />
 
-      <ToolbarButton
-        onClick={() => blockType === "h1" ? formatHeading("paragraph") : formatHeading("h1")}
-        active={blockType === "h1"}
-        title="Cabeçalho 1"
-      >
+      <ToolbarButton onClick={() => toggleHeading("h1")} active={blockType === "h1"} title="Título 1">
         <Heading1 size={15} strokeWidth={2} />
       </ToolbarButton>
-
-      <ToolbarButton
-        onClick={() => blockType === "h2" ? formatHeading("paragraph") : formatHeading("h2")}
-        active={blockType === "h2"}
-        title="Cabeçalho 2"
-      >
+      <ToolbarButton onClick={() => toggleHeading("h2")} active={blockType === "h2"} title="Título 2">
         <Heading2 size={15} strokeWidth={2} />
       </ToolbarButton>
-
-      <ToolbarButton
-        onClick={() => blockType === "h3" ? formatHeading("paragraph") : formatHeading("h3")}
-        active={blockType === "h3"}
-        title="Cabeçalho 3"
-      >
+      <ToolbarButton onClick={() => toggleHeading("h3")} active={blockType === "h3"} title="Título 3">
         <Heading3 size={15} strokeWidth={2} />
       </ToolbarButton>
-
-      <ToolbarButton
-        onClick={() => formatHeading("paragraph")}
-        active={blockType === "paragraph"}
-        title="Parágrafo normal"
-      >
+      <ToolbarButton onClick={() => formatHeading("paragraph")} active={blockType === "paragraph"} title="Parágrafo normal">
         <Pilcrow size={15} strokeWidth={2} />
       </ToolbarButton>
 
       <Separator />
 
-      <ToolbarButton
-        onClick={() => toggleList("bullet")}
-        active={blockType === "bullet"}
-        title="Lista não ordenada"
-      >
+      <ToolbarButton onClick={() => toggleList("bullet")} active={blockType === "bullet"} title="Lista com marcadores">
         <List size={15} strokeWidth={2} />
       </ToolbarButton>
-
-      <ToolbarButton
-        onClick={() => toggleList("number")}
-        active={blockType === "number"}
-        title="Lista ordenada"
-      >
+      <ToolbarButton onClick={() => toggleList("number")} active={blockType === "number"} title="Lista numerada">
         <ListOrdered size={15} strokeWidth={2} />
       </ToolbarButton>
 
       <Separator />
 
-      <ToolbarButton
-        onClick={() => formatAlign("left")}
-        active={alignment === "left"}
-        title="Alinhar à esquerda"
-      >
+      <ToolbarButton onClick={() => formatAlign("left")} active={alignment === "left"} title="Alinhar à esquerda">
         <AlignLeft size={15} strokeWidth={2} />
       </ToolbarButton>
-
-      <ToolbarButton
-        onClick={() => formatAlign("center")}
-        active={alignment === "center"}
-        title="Centralizar"
-      >
+      <ToolbarButton onClick={() => formatAlign("center")} active={alignment === "center"} title="Centralizar">
         <AlignCenter size={15} strokeWidth={2} />
       </ToolbarButton>
-
-      <ToolbarButton
-        onClick={() => formatAlign("right")}
-        active={alignment === "right"}
-        title="Alinhar à direita"
-      >
+      <ToolbarButton onClick={() => formatAlign("right")} active={alignment === "right"} title="Alinhar à direita">
         <AlignRight size={15} strokeWidth={2} />
       </ToolbarButton>
     </div>

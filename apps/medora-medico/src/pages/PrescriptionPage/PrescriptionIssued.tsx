@@ -1,21 +1,25 @@
 import { Button } from "@heroui/react";
 import { CheckCircle2, FileDown } from "lucide-react";
+import type { SigningMode } from "../../api/services/MedicalRecords";
 
 interface Props {
   secretCode: string;
   temPdf: boolean;
   onAbrirPdf: () => void;
   onVoltar?: () => void;
+  mode: SigningMode;
 }
 
-export function ReceitaEmitida({ secretCode, temPdf, onAbrirPdf, onVoltar }: Props) {
+export function PrescriptionIssued({ secretCode, temPdf, onAbrirPdf, onVoltar, mode }: Props) {
   return (
     <div className="bg-surface my-auto flex flex-col items-center gap-5 w-full max-w-lg mx-auto rounded-2xl shadow-sm border border-border px-6 py-8 text-center">
       <CheckCircle2 size={40} className="text-success" />
       <div>
         <h2 className="text-base font-semibold text-text-primary">Receita emitida</h2>
         <p className="text-sm mt-1 text-text-secondary">
-          A receita foi enviada para assinatura digital e será entregue ao paciente depois de assinada.
+          {mode === "Manual"
+            ? "A receita está aguardando a sua assinatura em Assinar Documentos. O paciente só a recebe depois disso."
+            : "A receita foi enviada para assinatura digital e será entregue ao paciente depois de assinada."}
         </p>
       </div>
 
