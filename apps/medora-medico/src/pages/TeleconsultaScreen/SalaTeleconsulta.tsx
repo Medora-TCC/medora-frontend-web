@@ -17,17 +17,21 @@ import {
   FileUser,
   Ellipsis,
   ChevronDown,
+  CircleAlert,
 } from "lucide-react";
+import type { IConsultaTeleConsultaPayload } from "@medora_web/shared";
 import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
 import { useTelemedicineCall } from "../../hooks/useTelemedicineCall";
 import { AuthContext } from "../../contexts/AuthContext";
 import { PrescricaoDaConsulta } from "../PrescriptionPage/PrescriptionPage";
 import AppointmentsService from "../../api/services/Appointments";
+import { FindConsultaDetailedByMeetingCode } from "../../api/services/Appointment";
 import { errorMessage } from "../../api/errors";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+// O appointmentId NÃO vem mais do state da navegação: é buscado pelo meetingCode da URL
+// (ver `carregarConsulta`). O state só traz preferências de mídia e o nome (usado até a consulta carregar).
 interface LocationState {
-  appointmentId?: number;
   patientName?: string;
   camOn?: boolean;
   micOn?: boolean;
@@ -306,6 +310,7 @@ function DeviceMenuSelect({
 
 // ─── Page principal ───────────────────────────────────────────────────────────
 export default function SalaTeleConsulta() {
+  // `id` da rota = meetingCode da teleconsulta
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -328,11 +333,6 @@ export default function SalaTeleConsulta() {
     localStream: localStream,
   });
 
-  /* TODO: nome real do paciente — buscar via API da consulta */
-  const remoteName = state.patientName ?? "Paciente";
-  /* TODO: Hub ainda não propaga estado de câmera do remoto */
-  const remoteCamOn = true;
-
   const timer = useCallTimer();
 
   const mountedRef = useRef(true);
@@ -341,6 +341,51 @@ export default function SalaTeleConsulta() {
   // delas quando o dispositivo troca, sem parar a track que continua em uso.
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
   const audioTrackRef = useRef<MediaStreamTrack | null>(null);
+
+  // ── Dados da consulta (buscados pelo meetingCode) ─────────────────────────
+  // O appointmentId vêm daqui, não do state da navegação.
+  // Se a busca falhar, o erro é exibido na sala (banner + painéis) com opção de tentar de novo.
+  const [consulta, setConsulta] = useState<IConsultaTeleConsultaPayload | null>(null);
+  const [erroConsulta, setErroConsulta] = useState<string | null>(null);
+
+  const carregarConsulta = useCallback(async () => {
+    if (!id) {
+      setErroConsulta("Código da consulta não encontrado na URL.");
+      return;
+    }
+    setErroConsulta(null);
+    try {
+      const data = await FindConsultaDetailedByMeetingCode(id);
+      if (!mountedRef.current) return;
+      console.log('Consulta carregada:', data);
+      setConsulta(data);
+    } catch (e) {
+      if (!mountedRef.current) return;
+      setConsulta(null);
+      setErroConsulta(errorMessage(e, "Não foi possível carregar a consulta."));
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void carregarConsulta();
+  }, [carregarConsulta]);
+
+  // ATENÇÃO: nomes dos campos do payload (`appointmentId`, `patientName`) são uma suposição;
+  // se o `IConsultaTeleConsultaPayload` usar outros nomes, ajuste só estas duas linhas.
+  const appointmentId = consulta?.id;
+
+  console.log(
+    "Appointment encontrado: " + appointmentId
+  );
+  
+  const remoteName = state.patientName ?? "Paciente";
+  /* TODO: Hub ainda não propaga estado de câmera do remoto */
+  const remoteCamOn = true;
+
+  // Mensagem mostrada nos painéis enquanto não há appointmentId
+  const semConsultaMsg = erroConsulta
+    ? `Não foi possível carregar a consulta: ${erroConsulta}`
+    : "Carregando consulta…";
 
   const [camOn, setCamOn] = useState(state.camOn ?? true);
   const [micOn, setMicOn] = useState(state.micOn ?? true);
@@ -687,8 +732,9 @@ export default function SalaTeleConsulta() {
   }
 
   function encerrar() {
-    // sem o id da consulta não dá para concluir, só sair
-    if (!state.appointmentId) {
+    // sem o id da consulta (ainda carregando ou falhou) não dá para concluir, só sair;
+    // o motivo já está visível no banner de erro da sala
+    if (!appointmentId) {
       sair();
       return;
     }
@@ -697,13 +743,13 @@ export default function SalaTeleConsulta() {
   }
 
   async function concluirESair() {
-    if (!state.appointmentId) return;
+    if (!appointmentId) return;
 
     setConcluindo(true);
     setErroEncerrar(null);
     try {
       await AppointmentsService.changeAppointmentStatus(
-        state.appointmentId,
+        appointmentId,
         "Completed",
       );
     } catch (e) {
@@ -768,11 +814,34 @@ export default function SalaTeleConsulta() {
         {/* Área de vídeo: ocupa só o espaço que sobra (flex-1 + min-h-0) e
             reserva embaixo (pb-28) a altura da barra de controles */}
         <div className="relative flex-1 min-h-0 p-3 pb-28">
-          {/* Aviso de mídia indisponível */}
-          {mediaError && (
-            <div className="absolute top-3 left-3 z-30 flex items-center gap-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full">
-              <span className="size-2 rounded-full bg-warning" />
-              {mediaError}
+          {/* Avisos (mídia indisponível e falha ao carregar a consulta) */}
+          {(mediaError || erroConsulta) && (
+            <div className="absolute top-3 left-3 z-30 flex max-w-[min(32rem,calc(100%-1.5rem))] flex-col items-start gap-2">
+              {mediaError && (
+                <div className="flex items-center gap-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full">
+                  <span className="size-2 rounded-full bg-warning" />
+                  {mediaError}
+                </div>
+              )}
+
+              {erroConsulta && (
+                <div
+                  role="alert"
+                  className="flex items-center gap-3 rounded-xl bg-danger/90 px-3 py-2 text-xs text-white shadow-lg"
+                >
+                  <CircleAlert size={14} className="shrink-0" />
+                  <span>
+                    Não foi possível carregar os dados da consulta. Prontuário, receita e
+                    conclusão estão indisponíveis. {erroConsulta}
+                  </span>
+                  <button
+                    onClick={() => void carregarConsulta()}
+                    className="shrink-0 cursor-pointer rounded-md border border-white/40 px-2 py-1 font-medium hover:bg-white/10"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -972,28 +1041,24 @@ export default function SalaTeleConsulta() {
       >
         {sidePanel === "prontuario" && (
           <div className="h-full w-full overflow-y-auto border-l border-ring bg-surface">
-            {state.appointmentId ? (
-              <MedicalRecordComponent appointmentId={state.appointmentId} />
+            {appointmentId ? (
+              <MedicalRecordComponent appointmentId={appointmentId} />
             ) : (
-              <p className="p-6 text-text-secondary">
-                Abra a teleconsulta pelo painel para escrever o prontuário.
-              </p>
+              <p className="p-6 text-text-secondary">{semConsultaMsg}</p>
             )}
           </div>
         )}
         {sidePanel === "receita" && (
           <div className="h-full w-full overflow-y-auto border-l border-ring flex justify-center items-center bg-surface-overlay">
-            {state.appointmentId ? (
+            {appointmentId ? (
               <PrescricaoDaConsulta
-                appointmentId={state.appointmentId}
-                patientName={state.patientName}
+                appointmentId={appointmentId}
+                patientName={remoteName}
                 onAbrirProntuario={() => setSidePanel("prontuario")}
                 onCancelar={() => setSidePanel(null)}
               />
             ) : (
-              <p className="p-6 text-text-secondary">
-                Abra a teleconsulta pelo painel para emitir a receita.
-              </p>
+              <p className="p-6 text-text-secondary">{semConsultaMsg}</p>
             )}
           </div>
         )}

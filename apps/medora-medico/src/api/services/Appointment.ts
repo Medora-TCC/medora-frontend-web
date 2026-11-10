@@ -1,8 +1,12 @@
 import { isAxiosError } from "axios";
 import {
   statusMapByCode,
+  statusMapByCodeToString,
   typeMapByCode,
   type IConsultaDetailed,
+  type IConsultaTeleConsultaDto,
+  type IConsultaTeleConsultaPayload,
+  type StatusConsulta,
 } from "@medora_web/shared";
 
 import { api } from "../services/api";
@@ -15,8 +19,8 @@ interface AppointmentDto {
   startDateTime: string;
   endDateTime: string;
   localStartDateTime: string;
-  status: string;
-  type: string;
+  status: number;
+  type: number;
   timeZoneId: string;
   meetingUrl: string | null;
   platform: string | null;
@@ -50,12 +54,27 @@ function toConsulta(a: AppointmentDto): IConsultaDetailed {
     startDateTime: a.startDateTime,
     endDateTime: a.endDateTime,
     locationAdress: type === "teleconsulta" ? "Sala Virtual" : "", // a API não retorna endereço
-    status: statusMapByCode[a.status] ?? "agendado",
+    status: statusMapByCodeToString[a.status] ?? "agendado",
     type,
     meetingCode: a.meetingCode ?? undefined, // API manda null, o tipo espera undefined
     platform: a.platform ?? DEFAULT_PLATFORM,
     patientTermsAccepted: false, // a API ainda não retorna o aceite dos termos
   };
+}
+
+function toTeleConsultaPayload(t: IConsultaTeleConsultaDto): IConsultaTeleConsultaPayload{
+  const type = typeMapByCode[t.type] ?? "outro";
+  const status = statusMapByCodeToString[t.status] ?? "outro";
+
+  return{
+    id: t.id,
+    patientId: t.patientId,
+    doctorId: t.doctorId,
+    startDateTime: t.startDateTime,
+    endDateTime: t.startDateTime,
+    status: status,
+    type: type
+  }
 }
 
 function toFriendlyError(error: unknown, fallback: string): Error {
@@ -79,20 +98,31 @@ function toFriendlyError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-export async function fetchConsultas(filter: DoctorAppointmentsApiFilter): Promise<IConsultaDetailed[]> {
+// Período: continua exatamente como era (texto do enum DoctorAppointmentsFilter; "None" = não envia).
+// Status: opcional; vai como código numérico via `statusMapByCode` (sem ele traz todos).
+// ATENÇÃO: o nome do query param do status ("status") é uma suposição; ajuste se o backend usar outro.
+export async function fetchConsultas(
+  filter: DoctorAppointmentsApiFilter,
+  status?: StatusConsulta,
+): Promise<IConsultaDetailed[]> {
   try {
     const all: AppointmentDto[] = [];
     const pageSize = 100;
     let page = 1;
     const filterValue = filter && filter !== "None" ? filter : undefined;
+    const statusValue = status ? statusMapByCode[status] : undefined;
 
     while (true) {
       const { data } = await api.get<PagedResponse<AppointmentDto>>(
         Endpoints.DOCTOR_APPOINTMENTS,
-        { params: { 
-            page, 
+        {
+          params: {
+            page,
             pageSize,
-            filter: filterValue} },
+            filter: filterValue,
+            status: statusValue,
+          },
+        },
       );
 
       all.push(...data.items);
@@ -115,6 +145,17 @@ export async function FindConsultaDetailedById(
       `${Endpoints.DOCTOR_APPOINTMENTS}/${id}`,
     );
     return toConsulta(data);
+  } catch (error) {
+    throw toFriendlyError(error, "Erro ao carregar detalhes da consulta");
+  }
+}
+
+export async function FindConsultaDetailedByMeetingCode(meetingCode:string): Promise<IConsultaTeleConsultaPayload> {
+  try {
+    const { data } = await api.get<IConsultaTeleConsultaDto>(
+      `${Endpoints.GET_DOCTOR_APPOINTMENT_MEETINGCODE(meetingCode)}`,
+    );
+    return toTeleConsultaPayload(data);
   } catch (error) {
     throw toFriendlyError(error, "Erro ao carregar detalhes da consulta");
   }

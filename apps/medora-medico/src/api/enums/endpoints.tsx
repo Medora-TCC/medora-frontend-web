@@ -60,4 +60,6 @@ export const Endpoints = {
     UPDATE_DOCTOR_COMPLEMENTARY: '/v1/Doctor/me/personal-data/complementary',
     UPDATE_DOCTOR_PASSPORT: '/v1/Doctor/me/personal-data/passport',
 
+    GET_DOCTOR_APPOINTMENT_MEETINGCODE: (meetingCode: string) => `/appointments/${meetingCode}/details`,
+
 } as const;

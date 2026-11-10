@@ -101,8 +101,10 @@ const actionCfg: Record<DoctorAction, { confirm?: ConfirmCfg }> = {
 
 // CLAUDE [Task 6]: classes base dos botões de ação movidas para o módulo (antes eram uma const
 // dentro do DoctorActions) para o botão "Finalizar consulta" do rodapé reaproveitar o mesmo estilo.
+// CLAUDE [Estilo]: botões menos arredondados (rounded-lg -> rounded-md) e mais leves
+// (font-semibold -> font-medium) para um visual mais minimalista.
 const actionBtnBase =
-  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CLAUDE [Task 2 + Task 7]: configuração visual do TIPO da consulta em um só lugar.
@@ -192,12 +194,13 @@ interface ConsultaModalProps {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] font-semibold tracking-widest uppercase text-text">
+    <span className="text-[10px] font-medium tracking-widest uppercase text-text-secondary">
       {children}
     </span>
   );
 }
 
+// CLAUDE [Estilo]: card sem fundo (só borda) e cantos menos arredondados, para ficar mais leve.
 function InfoCard({
   children,
   className = "",
@@ -207,7 +210,7 @@ function InfoCard({
 }) {
   return (
     <div
-      className={`rounded-xl bg-surface-raised border border-ring px-4 py-3 ${className}`}
+      className={`rounded-lg border border-ring px-4 py-3 ${className}`}
     >
       {children}
     </div>
@@ -339,27 +342,26 @@ export default function ConsultaModal({
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container>
-          <Modal.Dialog className="max-w-2xl! w-full">
+          {/* CLAUDE [Fundo único]: o Modal.Dialog do HeroUI tem fundo e padding próprios, e a casca
+              interna tinha outro `bg-surface`, gerando o "fundo duplo". Agora o Dialog fica
+              transparente e sem padding/sombra; só a casca interna pinta o fundo. */}
+          <Modal.Dialog className="max-w-2xl! w-full bg-transparent! p-0! shadow-none!">
             {/* ── Custom Dialog Shell ── */}
-            <div className="relative flex flex-col rounded-2xl bg-surface overflow-hidden max-h-[90vh]">
+            {/* CLAUDE [Estilo]: casca com cantos menos arredondados (rounded-2xl -> rounded-xl). */}
+            <div className="relative flex flex-col rounded-xl bg-surface border border-ring shadow-xl overflow-hidden max-h-[90vh]">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-ring">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-accent/10 border border-ring">
-                    <Stethoscope className="w-4 h-4 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold tracking-widest uppercase text-text-secondary">
-                      #{currentConsulta?.id ?? appointment?.id ?? "—"}
-                    </p>
-                    <h2 className="text-lg font-bold text-text-primary leading-tight">
-                      Detalhes da Consulta
-                    </h2>
-                  </div>
+              {/* CLAUDE [Estilo]: ícone do Stethoscope agora sem caixa de fundo/borda e título mais leve.
+                  CLAUDE [Remoção]: o "#id" da consulta foi retirado do cabeçalho. */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-ring">
+                <div className="flex items-center gap-2.5">
+                  <Stethoscope className="w-5 h-5 text-accent" />
+                  <h2 className="text-base font-semibold text-text-primary leading-tight">
+                    Detalhes da Consulta
+                  </h2>
                 </div>
                 <button
                   onClick={() => onOpenChange(false)}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg text-text hover:text-surface hover:bg-text-primary hover:cursor-pointer transition-colors"
+                  className="flex items-center justify-center w-8 h-8 rounded-md text-text hover:text-surface hover:bg-text-primary hover:cursor-pointer transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -377,7 +379,7 @@ export default function ConsultaModal({
                 )}
 
                 {error && (
-                  <div className="flex items-center gap-3 rounded-xl bg-danger/10 border border-danger-soft-hover px-4 py-3">
+                  <div className="flex items-center gap-3 rounded-lg bg-danger/10 border border-danger-soft-hover px-4 py-3">
                     <AlertCircle className="w-4 h-4 text-danger-text shrink-0" />
                     <p className="text-sm text-danger-text">{error}</p>
                   </div>
@@ -392,7 +394,7 @@ export default function ConsultaModal({
                         escondido no rodapé, longe do contexto. `flex-wrap` evita estouro em telas estreitas. */}
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent-soft border border-ring">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent-soft">
                           <User className="w-5 h-5 text-accent" />
                         </div>
                         <div>
@@ -419,7 +421,7 @@ export default function ConsultaModal({
                         <SectionLabel>Horário</SectionLabel>
                         <div className="flex items-center gap-1.5 mt-1">
                           <Clock className="w-3.5 h-3.5 text-accent" />
-                          <p className="text-sm font-semibold text-text-primary">
+                          <p className="text-sm font-medium text-text-primary">
                             {formatDate(currentConsulta.startDateTime)}
                           </p>
                         </div>
@@ -429,7 +431,7 @@ export default function ConsultaModal({
                         <SectionLabel>Local</SectionLabel>
                         <div className="flex items-center gap-1.5 mt-1">
                           <MapPin className="w-3.5 h-3.5 text-accent" />
-                          <p className="text-sm font-semibold  text-text-primary truncate">
+                          <p className="text-sm font-medium text-text-primary truncate">
                             {currentConsulta.locationAdress ?? "Sala Virtual"}
                           </p>
                         </div>
@@ -443,20 +445,7 @@ export default function ConsultaModal({
                       error={actionError}
                       onAction={requestAction}
                     />
-
-                    <div className="flex flex-col gap-3">
-                      {currentConsulta?.type != "teleconsulta" && (
-                        <InfoCard>
-                          <SectionLabel>Convênio</SectionLabel>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <CreditCard className="w-3.5 h-3.5  text-accent" />
-                            <p className="text-sm text-text-primary">
-                              {currentConsulta.healthInsurance ?? "Particular"}
-                            </p>
-                          </div>
-                        </InfoCard>
-                      )}
-                    </div>
+                    {/* CLAUDE [Remoção]: card "Convênio" removido. */}
                   </>
                 )}
               </div>
@@ -466,8 +455,11 @@ export default function ConsultaModal({
                   rodapé porque o status agora vive no topo, ao lado do paciente. Por isso o rodapé
                   usa `justify-end`. Adicionei `flex-wrap` porque com o novo botão "Finalizar
                   consulta" o rodapé pode ter 5 botões e estourar a largura em telas menores. */}
-              <div className="flex items-center justify-end px-6 py-4 border-t border-ring bg-surface backdrop-blur-sm">
-                <div className="flex flex-wrap items-center justify-end gap-2">
+              <div className="flex items-center justify-end px-6 py-4 border-t border-ring bg-surface">
+                {/* CLAUDE [Estilo]: `[&_button]:rounded-md!` força cantos menos arredondados em TODOS os
+                    botões do rodapé, inclusive os dos componentes externos (ModalConfirmacao,
+                    EnterReceitaButton, EnterMedicalRecordButton, EnterConsultaButton), sem editá-los. */}
+                <div className="flex flex-wrap items-center justify-end gap-2 [&_button]:rounded-md!">
                   {podeCancelar && (
                     <ModalConfirmacao
                       onConfirm={cancelar}
@@ -580,13 +572,13 @@ function ConfirmActionModal({
       <Modal.Backdrop>
         <Modal.Container>
           <Modal.Dialog className="max-w-md! w-full">
-            <div className="flex flex-col gap-4 rounded-2xl bg-surface p-6">
+            <div className="flex flex-col gap-4 rounded-xl bg-surface p-6">
               <div className="flex items-start gap-3">
-                <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${tone.iconBox}`}>
+                <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${tone.iconBox}`}>
                   <Icon className="w-5 h-5" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-base font-bold text-text-primary leading-tight">{cfg.title}</h3>
+                  <h3 className="text-base font-semibold text-text-primary leading-tight">{cfg.title}</h3>
                   <p className="mt-1 text-sm text-text-secondary">{cfg.message}</p>
                 </div>
               </div>
@@ -594,7 +586,7 @@ function ConfirmActionModal({
               {patientName && (
                 <InfoCard>
                   <SectionLabel>Consulta</SectionLabel>
-                  <p className="mt-1 text-sm font-semibold text-text-primary">{patientName}</p>
+                  <p className="mt-1 text-sm font-medium text-text-primary">{patientName}</p>
                   {quando && <p className="text-xs text-text-secondary">{quando}</p>}
                 </InfoCard>
               )}

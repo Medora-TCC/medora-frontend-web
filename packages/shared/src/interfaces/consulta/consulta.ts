@@ -16,18 +16,27 @@ export const filterMapByCode: Record<FiltroConsulta, number | undefined> = {
   nenhum: undefined,
 };
 
+export const statusMapByCodeToString: Record<number, StatusConsulta | undefined> = {
+  1: "agendado",
+  2: "esperando_pagamento",
+  3: "esperando_confirmacao",
+  4: "confirmado",
+  5: "em_atendimento",
+  6: "finalizado",
+  8: "cancelado",
+  9: "ausente",
+};
 
-export const statusMapByCode: Record<string, StatusConsulta> = {
-  Scheduled: "agendado",
-  AwaitingPayment: "esperando_pagamento",
-  AwaitingConfirmation: "esperando_confirmacao",
-  Confirmed: "confirmado",
-  InProgress: "em_atendimento",
-  Completed: "finalizado",
-  RescheduleNeeded: "agendado",
-  Canceled: "cancelado",
-  Absent: "ausente",
-};  
+export const statusMapByCode: Record<StatusConsulta, number> = {
+  agendado: 1,
+  esperando_pagamento: 2,
+  esperando_confirmacao: 3,
+  confirmado: 4,
+  em_atendimento: 5,
+  finalizado: 6,
+  cancelado: 8,
+  ausente: 9,
+};
 
 export interface IConsultaDetailed {
   id: number;
@@ -50,6 +59,26 @@ export interface IConsultaSimplified{
   healthInsurance: string; //Ex. Unimed, MedSenior e etc
   status: StatusConsulta;
   type: TypeConsulta;
+}
+
+export interface IConsultaTeleConsultaDto{
+  id: number,
+  patientId: string,
+  doctorId: string,
+  startDateTime: string;
+  endDateTime: string;
+  status: number,
+  type: number
+}
+
+export interface IConsultaTeleConsultaPayload{
+  id: number,
+  patientId: string,
+  doctorId: string,
+  startDateTime: string;
+  endDateTime: string;
+  status: string,
+  type: string
 }
 
 
