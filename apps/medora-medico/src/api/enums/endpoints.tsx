@@ -60,4 +60,10 @@ export const Endpoints = {
     UPDATE_DOCTOR_COMPLEMENTARY: '/v1/Doctor/me/personal-data/complementary',
     UPDATE_DOCTOR_PASSPORT: '/v1/Doctor/me/personal-data/passport',
 
+    GET_MY_PUBLIC_PAGE: '/v1/Doctor/me/public-page',
+    UPDATE_ABOUT: '/v1/Doctor/me/public-profile/about',
+
+    EDUCATIONS: '/v1/Doctor/me/educations',
+    EXPERIENCES: '/v1/Doctor/me/experiences',
+    
 } as const;
