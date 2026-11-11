@@ -12,8 +12,7 @@ export function PatientInitials(nome: string) {
 
 export function canEnter(c: IConsultaDetailed): boolean {
   if (!c) return false;
-  if (c.status !== "confirmado" && c.status !== "em_atendimento") return false;
-
+  if (c.status !== "confirmado" && c.status !== "em_atendimento") return false;  
   const inicio = new Date(c.startDateTime).getTime() - 15 * 60 * 1000;
   const fim = new Date(c.endDateTime).getTime();
   const agora = Date.now();

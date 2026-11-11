@@ -27,6 +27,25 @@ export const statusMapByCodeToString: Record<number, StatusConsulta | undefined>
   9: "ausente",
 };
 
+export const statusMapByName: Record<string, StatusConsulta> = {
+  Scheduled: "agendado",
+  AwaitingPayment: "esperando_pagamento",
+  AwaitingConfirmation: "esperando_confirmacao",
+  Confirmed: "confirmado",
+  InProgress: "em_atendimento",
+  Completed: "finalizado",
+  Canceled: "cancelado",
+  Absent: "ausente",
+};
+
+
+// Aceita texto (atual) ou número (caso o backend mude)
+export function parseStatus(raw: string | number): StatusConsulta | undefined {
+  return typeof raw === "number"
+    ? statusMapByCodeToString[raw]
+    : statusMapByName[raw];
+}
+
 export const statusMapByCode: Record<StatusConsulta, number> = {
   agendado: 1,
   esperando_pagamento: 2,

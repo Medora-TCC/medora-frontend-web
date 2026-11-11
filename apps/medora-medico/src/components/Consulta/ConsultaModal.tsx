@@ -33,7 +33,7 @@ const CANCELAVEIS = ["agendado", "confirmado", "esperando_pagamento", "esperando
 // CLAUDE [Task 6]: lista de status "abertos" extraída para constante de módulo + helper `canClose`.
 // Antes essa regra ficava presa dentro do DoctorActions; agora o modal (botão do rodapé) e o
 // painel usam EXATAMENTE a mesma regra, sem risco de ficarem divergentes.
-const ABERTAS = ["agendado", "confirmado", "em_atendimento"];
+const ABERTAS = ["confirmado", "em_atendimento"];
 // Concluir ou registrar falta só depois do horário, em consulta ainda aberta.
 // A regra NÃO olha o tipo (presencial/teleconsulta), então vale para os dois.
 function canClose(status: string, hasStarted: boolean) {
@@ -286,7 +286,12 @@ export default function ConsultaModal({
 
   // A consulta já passou do horário de início?
   const hasStarted =
-    !!currentConsulta && new Date(currentConsulta.startDateTime).getTime() <= Date.now();
+  !!currentConsulta && 
+  new Date(currentConsulta.startDateTime).getTime() + (15 * 60 * 1000) <= Date.now();
+
+  const hasEnded =
+  !!currentConsulta && 
+  Date.now() >= new Date(currentConsulta.endDateTime).getTime();
 
   // CLAUDE [Task 6]: nova flag para o botão "Finalizar consulta" do rodapé. Usa o mesmo helper
   // `canClose` do painel, então aparece para presencial E teleconsulta (não depende do `type`).
@@ -440,7 +445,7 @@ export default function ConsultaModal({
 
                     <DoctorActions
                       status={currentConsulta.status}
-                      hasStarted={hasStarted}
+                      hasStarted={hasEnded}
                       disabled={acting}
                       error={actionError}
                       onAction={requestAction}

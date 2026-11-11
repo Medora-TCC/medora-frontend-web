@@ -1041,8 +1041,8 @@ export default function SalaTeleConsulta() {
       >
         {sidePanel === "prontuario" && (
           <div className="h-full">
-            {state.appointmentId ? (
-              <MedicalRecordPanel key={state.appointmentId} appointmentId={state.appointmentId} />
+            {appointmentId ? (
+              <MedicalRecordPanel key={appointmentId} appointmentId={appointmentId} />
             ) : (
               <p className="p-6 text-text-secondary">{semConsultaMsg}</p>
             )}

@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import {
+  parseStatus,
   statusMapByCode,
   statusMapByCodeToString,
   typeMapByCode,
@@ -19,12 +20,23 @@ interface AppointmentDto {
   startDateTime: string;
   endDateTime: string;
   localStartDateTime: string;
-  status: number;
-  type: number;
+   status: string | number;
+  type: string | number;
   timeZoneId: string;
   meetingUrl: string | null;
   platform: string | null;
   meetingCode: string | null;
+  address?: AddressDto | null;
+}
+
+interface AddressDto {
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  postalCode: string;
 }
 
 interface PagedResponse<T> {
@@ -46,6 +58,7 @@ export type DoctorAppointmentsApiFilter =
 
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
   const type = typeMapByCode[a.type] ?? "outro";
+  const status = parseStatus(a.status);
 
   return {
     id: a.appointmentId,
@@ -53,8 +66,9 @@ function toConsulta(a: AppointmentDto): IConsultaDetailed {
     healthInsurance: "", // a API ainda não retorna convênio
     startDateTime: a.startDateTime,
     endDateTime: a.endDateTime,
-    locationAdress: type === "teleconsulta" ? "Sala Virtual" : "", // a API não retorna endereço
-    status: statusMapByCodeToString[a.status] ?? "agendado",
+    locationAdress:
+      type === "teleconsulta" ? "Sala Virtual" : formatAddress(a.address),
+    status: status ?? "agendado",
     type,
     meetingCode: a.meetingCode ?? undefined, // API manda null, o tipo espera undefined
     platform: a.platform ?? DEFAULT_PLATFORM,
@@ -75,6 +89,17 @@ function toTeleConsultaPayload(t: IConsultaTeleConsultaDto): IConsultaTeleConsul
     status: status,
     type: type
   }
+}
+
+function formatAddress(address?: AddressDto | null): string {
+  if (!address) return "";
+  const streetAndNumber = [address.street, address.number]
+    .map((s) => s?.trim())
+    .filter(Boolean)
+    .join(", ");
+  return [streetAndNumber, address.neighborhood?.trim()]
+    .filter(Boolean)
+    .join(" - ");
 }
 
 function toFriendlyError(error: unknown, fallback: string): Error {
