@@ -81,7 +81,7 @@ export interface IConsultaSimplified{
 }
 
 export interface IConsultaTeleConsultaDto{
-  id: number,
+  appointmentId: number,
   patientId: string,
   doctorId: string,
   startDateTime: string;

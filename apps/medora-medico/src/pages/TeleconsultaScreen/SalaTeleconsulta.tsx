@@ -357,7 +357,6 @@ export default function SalaTeleConsulta() {
     try {
       const data = await FindConsultaDetailedByMeetingCode(id);
       if (!mountedRef.current) return;
-      console.log('Consulta carregada:', data);
       setConsulta(data);
     } catch (e) {
       if (!mountedRef.current) return;
@@ -374,10 +373,6 @@ export default function SalaTeleConsulta() {
   // se o `IConsultaTeleConsultaPayload` usar outros nomes, ajuste só estas duas linhas.
   const appointmentId = consulta?.id;
 
-  console.log(
-    "Appointment encontrado: " + appointmentId
-  );
-  
   const remoteName = state.patientName ?? "Paciente";
   /* TODO: Hub ainda não propaga estado de câmera do remoto */
   const remoteCamOn = true;

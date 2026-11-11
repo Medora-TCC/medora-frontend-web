@@ -81,7 +81,7 @@ function toTeleConsultaPayload(t: IConsultaTeleConsultaDto): IConsultaTeleConsul
   const status = statusMapByCodeToString[t.status] ?? "outro";
 
   return{
-    id: t.id,
+    id: t.appointmentId,
     patientId: t.patientId,
     doctorId: t.doctorId,
     startDateTime: t.startDateTime,
