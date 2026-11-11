@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Spinner } from "@heroui/react";
-import { AlertTriangle, Award, BadgeCheck, Clock, IdCard, Stethoscope, XCircle } from "lucide-react";
+import { AlertTriangle, Award, IdCard, Stethoscope } from "lucide-react";
 import { useMainLayout } from "../../../components/MainLayout/mainLayoutContext";
+import VerificationBadge from "../../../components/VerificationBadge/VerificationBadge";
 import { getProfessionalData } from "../../../api/services/DoctorService";
-import type { DoctorStatus, ProfessionalDataDto } from "../../../api/dtos/Doctors/ProfessionalRegistrationDto";
-
-const STATUS_BADGE: Record<DoctorStatus, { label: string; className: string; icon: typeof BadgeCheck }> = {
-  Approved: { label: "Verificado", className: "bg-success-subtle text-success-text", icon: BadgeCheck },
-  Pending:  { label: "Em análise", className: "bg-warning-subtle text-warning-text", icon: Clock },
-  Rejected: { label: "Não aprovado", className: "bg-danger-subtle text-danger-text", icon: XCircle },
-};
+import type { ProfessionalDataDto } from "../../../api/dtos/Doctors/ProfessionalRegistrationDto";
 
 export default function ProfessionalDataSection() {
   const { doctorRqes, openSpecialtiesModal } = useMainLayout();
@@ -40,9 +35,6 @@ export default function ProfessionalDataSection() {
     return a.priority - b.priority;
   });
 
-  const badge = professional ? STATUS_BADGE[professional.status] : null;
-  const BadgeIcon = badge?.icon;
-
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -52,11 +44,12 @@ export default function ProfessionalDataSection() {
             Seus registros profissionais e as especialidades que aparecem para os pacientes.
           </p>
         </div>
-        {badge && BadgeIcon && (
-          <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${badge.className}`}>
-            <BadgeIcon size={14} />
-            {badge.label}
-          </span>
+        {professional && (
+          <VerificationBadge
+            status={professional.status}
+            verificationBadge={professional.verificationBadge}
+            verificationDate={professional.verificationDate}
+          />
         )}
       </div>
 

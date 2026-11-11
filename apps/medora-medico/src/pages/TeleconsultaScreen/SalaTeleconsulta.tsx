@@ -19,7 +19,7 @@ import {
   ClipboardClock,
   FileUser,
 } from "lucide-react";
-import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
+import { MedicalRecordPanel } from "../MedicalRecordPage/MedicalRecordPanel";
 import { PrescricaoWizard } from "../PrescriptionPage/PrescriptionWizard";
 import { useTelemedicineCall } from "../../hooks/useTelemedicineCall";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -694,7 +694,7 @@ export default function SalaTeleConsulta() {
         {sidePanel === "prontuario" && (
           <div className="h-full">
             {state.appointmentId ? (
-              <MedicalRecordComponent appointmentId={state.appointmentId} />
+              <MedicalRecordPanel key={state.appointmentId} appointmentId={state.appointmentId} />
             ) : (
               <p className="p-6 text-text-secondary">Abra a teleconsulta pelo painel para escrever o prontuário.</p>
             )}

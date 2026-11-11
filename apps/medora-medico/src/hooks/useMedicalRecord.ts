@@ -3,6 +3,7 @@ import { toast } from "@heroui/react";
 import MedicalRecordsService, {
   type MedicalRecord,
   type SignatureStatus,
+  type SigningMode,
 } from "../api/services/MedicalRecords";
 import type { AppointmentStatus } from "../api/services/Appointments";
 import { errorMessage } from "../api/errors";
@@ -83,7 +84,7 @@ export function useMedicalRecord(appointmentId: number) {
         const pdf = await MedicalRecordsService.getPdf(recordId);
         if (!active) return;
         setSignatureStatus(pdf.signatureStatus);
-        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed") {
+        if (pdf.signatureStatus !== "Signed" && pdf.signatureStatus !== "Failed" && pdf.signatureStatus !== "AwaitingDoctor") {
           timer = setTimeout(check, SIGNATURE_POLL_MS);
         }
       } catch {
@@ -159,17 +160,17 @@ export function useMedicalRecord(appointmentId: number) {
     else toast.danger("Não foi possível salvar. Verifique a conexão e tente de novo.");
   }, [flush]);
 
-  const finalize = useCallback(async () => {
+  const finalize = useCallback(async (signingMode: SigningMode) => {
     if (!record) return;
     setIsFinalizing(true);
     try {
       if (!(await flush())) {
         throw new Error("O último trecho não foi salvo. Tente de novo em instantes.");
       }
-      await MedicalRecordsService.finalize(record.id);
+      await MedicalRecordsService.finalize(record.id, signingMode);
       setInitialContent(lastSavedRef.current);
       setRecord((r) => (r ? { ...r, isFinalized: true, finalizedAt: new Date().toISOString() } : r));
-      toast.success("Prontuário finalizado.");
+      toast.success(signingMode === "Manual" ? "Prontuário finalizado. Assine em Assinar Documentos." : "Prontuário finalizado.");
     } catch (err) {
       toast.danger(errorMessage(err, "Erro ao finalizar o prontuário."));
     } finally {
