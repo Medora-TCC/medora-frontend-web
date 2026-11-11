@@ -6,7 +6,6 @@ import {
   type ReactNode,
 } from "react"
 import { teleconsultaGuard, type GuardState } from "./teleconsultaGuard"
-import TermoUsoModal from "../TermoUsoModal"
 
 interface GuardCtx {
   state: GuardState
@@ -28,17 +27,6 @@ export function TeleconsultaGuardProvider({ children }: { children: ReactNode })
   return (
     <TeleconsultaGuardCtx.Provider value={{ state, tentar }}>
       {children}
-
-      <TermoUsoModal
-        isOpen={state.fase === "termos_pendentes"}
-        onOpenChange={() => teleconsultaGuard.reset()}
-        onAccept={() =>
-          state.fase === "termos_pendentes" &&
-          teleconsultaGuard.aceitarTermos(state.consultaId)
-        }
-        onDecline={() => teleconsultaGuard.reset()}
-        consultaId={state.fase === "termos_pendentes" ? state.consultaId : ""}
-      />
     </TeleconsultaGuardCtx.Provider>
   )
 }

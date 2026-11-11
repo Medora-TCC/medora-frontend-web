@@ -27,7 +27,7 @@ interface TelemedicineCallState {
 }
 
 // Reaproveita o baseURL já configurado no axios do projeto.
-const API_BASE = "https://localhost:7069";
+const API_BASE = "http://localhost:5262";
 const HUB_URL = `${API_BASE}/hubs/telemedicine`;
 
 const RECONNECT_GRACE_MS = 4000;
@@ -54,7 +54,12 @@ export function useTelemedicineCall({
   const autoAttemptsRef = useRef(0);
   const makingOfferRef = useRef(false);
 
+  const joinedRoomRef = useRef(false);
+  const pendingCandidatesRef = useRef<RTCIceCandidate[]>([]);
+
   const hangUp = useCallback(() => {
+    joinedRoomRef.current = false;
+    pendingCandidatesRef.current = [];
     if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
     pcRef.current?.close();
     pcRef.current = null;
@@ -74,11 +79,14 @@ export function useTelemedicineCall({
   }, []);
 
   useEffect(() => {
+    console.log("[Telemedicina] Parâmetros:", { meetingCode, hasToken: !!token, role, hasStream: !!localStream });
     if (!meetingCode || !token || !role || !localStream) return;
 
     let cancelled = false;
 
     async function start() {
+      joinedRoomRef.current = false;
+      pendingCandidatesRef.current = [];
       setCallState("connecting");
       setError(null);
 
@@ -110,14 +118,20 @@ export function useTelemedicineCall({
       };
 
       pc.onicecandidate = (e) => {
-        if (e.candidate) {
-          connectionRef.current
-            ?.invoke("SendSignal", {
-              type: "ice-candidate",
-              payload: JSON.stringify(e.candidate),
-            })
-            .catch(() => {});
+        if (!e.candidate) return;
+
+        // Se ainda não entrou na sala, enfileira o candidato
+        if (!joinedRoomRef.current) {
+          pendingCandidatesRef.current.push(e.candidate);
+          return;
         }
+
+        connectionRef.current
+          ?.invoke("SendSignal", {
+            type: "ice-candidate",
+            payload: JSON.stringify(e.candidate),
+          })
+          .catch(() => { });
       };
 
       async function sendOffer(iceRestart = false) {
@@ -186,7 +200,7 @@ export function useTelemedicineCall({
       };
 
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl(HUB_URL, { accessTokenFactory: () => token ?? ""})
+        .withUrl(HUB_URL, { accessTokenFactory: () => token ?? "" })
         .withAutomaticReconnect()
         .build();
       connectionRef.current = connection;
@@ -224,13 +238,27 @@ export function useTelemedicineCall({
       });
 
       connection.onreconnected(() => {
-        connection.invoke("JoinRoom", meetingCode).catch(() => {});
+        connection.invoke("JoinRoom", meetingCode).catch(() => { });
       });
 
       try {
         await connection.start();
         if (cancelled) return;
+
+        // 1. Entra na sala primeiro e aguarda confirmação
         await connection.invoke("JoinRoom", meetingCode);
+        joinedRoomRef.current = true;
+
+        // 2. Descarrega os candidatos que acumularam enquanto conectava
+        while (pendingCandidatesRef.current.length > 0) {
+          const cand = pendingCandidatesRef.current.shift();
+          if (cand) {
+            connection.invoke("SendSignal", {
+              type: "ice-candidate",
+              payload: JSON.stringify(cand),
+            }).catch(() => { });
+          }
+        }
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : "Não foi possível conectar à sala.");
@@ -243,6 +271,8 @@ export function useTelemedicineCall({
 
     return () => {
       cancelled = true;
+      joinedRoomRef.current = false;
+      pendingCandidatesRef.current = [];
       if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
       pcRef.current?.close();
       pcRef.current = null;

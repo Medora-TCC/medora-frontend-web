@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useParams, useNavigate } from "react-router"
 import { useTeleconsultaGuard } from "./TeleconsultaGuardContext"
+import { teleconsultaGuard } from "./teleconsultaGuard"
 
 // REMINDER: substituir pelos componentes reais quando existirem
 function FullPageSpinner({ message }: { message: string }) {
@@ -41,6 +42,9 @@ const MOTIVO_LABELS: Record<string, string> = {
 }
 
 // ─── Rota protegida ───────────────────────────────────────────────────────────
+// Esta rota é a ÚNICA dona do ciclo de vida do guard (tentar/reset).
+// Telas filhas (ex.: TeleConsultaConfig) só devem LER o estado via
+// useTeleconsultaGuard(), sem chamar tentar()/reset() por conta própria.
 
 export function PreSalaRoute() {
   const { id } = useParams<{ id: string }>()
@@ -48,13 +52,25 @@ export function PreSalaRoute() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // usuário colou a URL direto → força verificação pelo guard
-    if ((state.fase === "idle") && id) {
-      tentar(id)
+    if (!id) return
+    tentar(id) // sempre verifica ao entrar (inclusive URL colada direto e troca de id)
+    return () => {
+      teleconsultaGuard.reset()
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
-  if (state.fase === "verificando") {
+  if (!id) {
+    return (
+      <AcessoNegadoScreen
+        motivo={MOTIVO_LABELS.CONSULTA_INVALIDA}
+        onVoltar={() => navigate(-1)}
+      />
+    )
+  }
+
+  // "idle" cobre o primeiro render, antes do efeito disparar a verificação
+  if (state.fase === "idle" || state.fase === "verificando") {
     return <FullPageSpinner message="Verificando acesso…" />
   }
 
@@ -67,13 +83,8 @@ export function PreSalaRoute() {
     )
   }
 
-  // termos ou mídia pendentes → provider já exibe o modal,
-  // mantemos spinner enquanto aguarda resolução do usuário
-  if (state.fase === "termos_pendentes" || state.fase === "permissao_pendente") {
-    return <FullPageSpinner message="Aguardando confirmação…" />
-  }
-
-  // REMINDER: substituir <div> pelo componente real <PreSala consultaId={id!} />
+  // fase === "liberado"
+  // REMINDER: substituir <div> pelo componente real <PreSala consultaId={id} />
   return (
     <div className="flex items-center justify-center h-screen bg-zinc-950">
       <p className="text-zinc-400 text-sm">PreSala — consultaId: {id}</p>

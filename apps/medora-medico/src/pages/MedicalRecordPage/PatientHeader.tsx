@@ -1,10 +1,19 @@
 import { useState, type JSX } from "react";
-import { Button } from "@heroui/react";
-import { Eye, EyeOff, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import type { MedicalRecordController } from "../../hooks/useMedicalRecord";
+import { Button, Spinner } from "@heroui/react";
+import {
+  Eye,
+  EyeOff,
+  FileDown,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Save,
+} from "lucide-react";
+import type { SignatureStatus } from "../../api/services/MedicalRecords";
+import type { MedicalRecordController, SaveState } from "../../hooks/useMedicalRecord";
 import { MedicalRecordActions } from "./MedicalRecordActions";
 import { formatSex } from "../../types/Sex";
 import type { Sex } from "../../api/dtos/Doctors/PersonalDataDto";
+import { SigningModeModal } from "../../components/SigningModeModal/SigningModeModal";
 export interface PatientSummary {
   id?: string;
   name: string;
@@ -28,7 +37,7 @@ function ageFrom(dateStr?: string): string | null {
 
   const [, d, mo, y] = m.map(Number);
   const now = new Date();
-  
+
   let years = now.getFullYear() - y;
   const currentMonth = now.getMonth() + 1;
   const currentDay = now.getDate();

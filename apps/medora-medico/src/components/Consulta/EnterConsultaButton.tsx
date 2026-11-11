@@ -3,40 +3,36 @@ import { Video } from "lucide-react";
 import { enterConsulta } from "../../pages/ConsultaScreen/ConsultaHelpers";
 import { useNavigate } from "react-router";
 
-interface EnterButtonProps{
-  isJoinable: boolean | false;
-  id: number | null;
+
+interface EnterButtonProps {
+  isJoinable: boolean;
+  meetingCode: string | null | undefined;
 }
 
+export default function EnterConsultaButton({ isJoinable, meetingCode }: EnterButtonProps) {
+  const navigate = useNavigate();
 
-export default function EnterConsultaButton({ isJoinable, id }: EnterButtonProps) {
-    const navigate = useNavigate();
+  const disabled = !isJoinable || meetingCode == null;
 
+  function handleEnter() {
+    if (meetingCode == null) return;
+    enterConsulta(meetingCode, navigate);
+  }
   return (
-  <>
-    {isJoinable ? (
+    <span
+      title={disabled ? "Disponível próximo ao horário da consulta" : "Entrar na teleconsulta"}
+      className="inline-flex"
+    >
       <Button
         size="sm"
-        variant="primary"
-        onPress={() => id != null ? enterConsulta(id, navigate) : console.log("Null consulta ID")
-        }
+        variant={disabled ? "secondary" : "primary"}
+        isDisabled={disabled}
+        onPress={handleEnter}
         className="shrink-0"
       >
-      <Video />
+        <Video className="size-4" />
         Entrar
       </Button>
-    ) : (
-      <Button
-        size="sm"
-        variant="secondary"
-        isDisabled
-        className="shrink-0"
-      >
-        <Video />
-        Iniciar
-      </Button>
-
-    )}
-  </>
-  )
+    </span>
+  );
 }

@@ -1,5 +1,6 @@
 // hooks/useTermosConsulta.ts
 import { useState } from "react"
+import { enterConsulta } from "../ConsultaScreen/ConsultaHelpers"
 
 export function useTermosConsulta() {
   const [termosAbertos, setTermosAbertos] = useState(false)
@@ -10,10 +11,10 @@ export function useTermosConsulta() {
     setTermosAbertos(true)
   }
 
-  const handleAceitar = async () => {
+  const handleAceitar = async (meetingCode: string, navigate: any) => {
     setLoading(true)
     try {
-      // await enterConsulta(consultaId) // abre a sala
+      await enterConsulta(meetingCode, navigate) // abre a sala
     } finally {
       setLoading(false)
       setTermosAbertos(false)

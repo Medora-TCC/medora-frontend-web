@@ -1,8 +1,13 @@
 import { isAxiosError } from "axios";
 import {
+  parseStatus,
   statusMapByCode,
+  statusMapByCodeToString,
   typeMapByCode,
   type IConsultaDetailed,
+  type IConsultaTeleConsultaDto,
+  type IConsultaTeleConsultaPayload,
+  type StatusConsulta,
 } from "@medora_web/shared";
 
 import { api } from "../services/api";
@@ -15,12 +20,23 @@ interface AppointmentDto {
   startDateTime: string;
   endDateTime: string;
   localStartDateTime: string;
-  status: string;
-  type: string;
+   status: string | number;
+  type: string | number;
   timeZoneId: string;
   meetingUrl: string | null;
   platform: string | null;
   meetingCode: string | null;
+  address?: AddressDto | null;
+}
+
+interface AddressDto {
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  postalCode: string;
 }
 
 interface PagedResponse<T> {
@@ -42,6 +58,7 @@ export type DoctorAppointmentsApiFilter =
 
 function toConsulta(a: AppointmentDto): IConsultaDetailed {
   const type = typeMapByCode[a.type] ?? "outro";
+  const status = parseStatus(a.status);
 
   return {
     id: a.appointmentId,
@@ -49,13 +66,40 @@ function toConsulta(a: AppointmentDto): IConsultaDetailed {
     healthInsurance: "", // a API ainda não retorna convênio
     startDateTime: a.startDateTime,
     endDateTime: a.endDateTime,
-    locationAdress: type === "teleconsulta" ? "Sala Virtual" : "", // a API não retorna endereço
-    status: statusMapByCode[a.status] ?? "agendado",
+    locationAdress:
+      type === "teleconsulta" ? "Sala Virtual" : formatAddress(a.address),
+    status: status ?? "agendado",
     type,
-    meetingUrl: a.meetingUrl ?? undefined, // API manda null, o tipo espera undefined
+    meetingCode: a.meetingCode ?? undefined, // API manda null, o tipo espera undefined
     platform: a.platform ?? DEFAULT_PLATFORM,
     patientTermsAccepted: false, // a API ainda não retorna o aceite dos termos
   };
+}
+
+function toTeleConsultaPayload(t: IConsultaTeleConsultaDto): IConsultaTeleConsultaPayload{
+  const type = typeMapByCode[t.type] ?? "outro";
+  const status = statusMapByCodeToString[t.status] ?? "outro";
+
+  return{
+    id: t.appointmentId,
+    patientId: t.patientId,
+    doctorId: t.doctorId,
+    startDateTime: t.startDateTime,
+    endDateTime: t.startDateTime,
+    status: status,
+    type: type
+  }
+}
+
+function formatAddress(address?: AddressDto | null): string {
+  if (!address) return "";
+  const streetAndNumber = [address.street, address.number]
+    .map((s) => s?.trim())
+    .filter(Boolean)
+    .join(", ");
+  return [streetAndNumber, address.neighborhood?.trim()]
+    .filter(Boolean)
+    .join(" - ");
 }
 
 function toFriendlyError(error: unknown, fallback: string): Error {
@@ -79,20 +123,31 @@ function toFriendlyError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-export async function fetchConsultas(filter: DoctorAppointmentsApiFilter): Promise<IConsultaDetailed[]> {
+// Período: continua exatamente como era (texto do enum DoctorAppointmentsFilter; "None" = não envia).
+// Status: opcional; vai como código numérico via `statusMapByCode` (sem ele traz todos).
+// ATENÇÃO: o nome do query param do status ("status") é uma suposição; ajuste se o backend usar outro.
+export async function fetchConsultas(
+  filter: DoctorAppointmentsApiFilter,
+  status?: StatusConsulta,
+): Promise<IConsultaDetailed[]> {
   try {
     const all: AppointmentDto[] = [];
     const pageSize = 100;
     let page = 1;
     const filterValue = filter && filter !== "None" ? filter : undefined;
+    const statusValue = status ? statusMapByCode[status] : undefined;
 
     while (true) {
       const { data } = await api.get<PagedResponse<AppointmentDto>>(
         Endpoints.DOCTOR_APPOINTMENTS,
-        { params: { 
-            page, 
+        {
+          params: {
+            page,
             pageSize,
-            filter: filterValue} },
+            filter: filterValue,
+            status: statusValue,
+          },
+        },
       );
 
       all.push(...data.items);
@@ -115,6 +170,17 @@ export async function FindConsultaDetailedById(
       `${Endpoints.DOCTOR_APPOINTMENTS}/${id}`,
     );
     return toConsulta(data);
+  } catch (error) {
+    throw toFriendlyError(error, "Erro ao carregar detalhes da consulta");
+  }
+}
+
+export async function FindConsultaDetailedByMeetingCode(meetingCode:string): Promise<IConsultaTeleConsultaPayload> {
+  try {
+    const { data } = await api.get<IConsultaTeleConsultaDto>(
+      `${Endpoints.GET_DOCTOR_APPOINTMENT_MEETINGCODE(meetingCode)}`,
+    );
+    return toTeleConsultaPayload(data);
   } catch (error) {
     throw toFriendlyError(error, "Erro ao carregar detalhes da consulta");
   }

@@ -1,111 +1,117 @@
-import type { IConsultaDetailed, StatusConsulta } from "@medora_web/shared";
-import { canEnter, formatConsultaHorario, isHoje, isTeleConsulta, PatientInitials } from "./ConsultaHelpers";
+import type { IConsultaDetailed } from "@medora_web/shared";
+import { canEnter, isHoje, isTeleConsulta, PatientInitials } from "./ConsultaHelpers";
 import { useEffect, useState } from "react";
-import { Avatar, Card, Chip } from "@heroui/react";
+import { Avatar, Card } from "@heroui/react";
 import EnterConsultaButton from "../../components/Consulta/EnterConsultaButton";
+import { StatusConsultaTag, TipoConsultaTag } from "../../components/Consulta/ConsultaModal";
 import { Calendar } from "lucide-react";
-
-/*
-todo
-
-[] ajustar o status bugado
-[] ajustar o tipo bugado
-*/
 
 
 interface ConsultaCardProps {
   consulta: IConsultaDetailed;
   onCardClick: (id: number) => void;
+  muted?: boolean;
 }
 
-const statusCfg: Record<
-  StatusConsulta,
-  { label: string; color: "accent" | "success" | "default" | "danger" }
-> = {
-  agendado: { label: "Agendada", color: "accent" },
-  esperando_pagamento: { label: "Aguardando Pagamento", color: "accent" },
-  esperando_confirmacao: { label: "Aguardando Confirmação", color: "accent" },
-  confirmado: { label: "Confirmada", color: "accent" },
-  em_atendimento: { label: "Em andamento", color: "success" },
-  finalizado: { label: "Concluída", color: "default" },
-  cancelado: { label: "Cancelada", color: "danger" },
-  ausente: { label: "Ausente", color: "danger" },
-};
+const COM_BOTAO_ENTRAR = ["confirmado", "em_atendimento"];
 
-
-export function ConsultaCard({ consulta, onCardClick }: ConsultaCardProps) {
-  const cfg = statusCfg[consulta.status];
+export function ConsultaCard({ consulta, onCardClick, muted = false }: ConsultaCardProps) {
   const hoje = isHoje(consulta.startDateTime);
+  const isTele = isTeleConsulta(consulta);
   const [isJoinable, setIsJoinable] = useState<boolean>(false);
-  const isTeleConsultaBool = isTeleConsulta(consulta);
+  const [agora, setAgora] = useState(() => Date.now());
 
   useEffect(() => {
-  if (isTeleConsultaBool) {
-    setIsJoinable(canEnter(consulta));
-  } else {
-    setIsJoinable(false);
-  }
-}, [consulta, canEnter]);
+    const atualizar = () => {
+      setIsJoinable(isTele ? canEnter(consulta) : false);
+      setAgora(Date.now());
+    };
+    atualizar();
+    const t = setInterval(atualizar, 30_000);
+    return () => clearInterval(t);
+  }, [consulta, isTele]);
+
+  const inicio = new Date(consulta.startDateTime);
+  const hora = inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const data = inicio.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
+
+  const amanhaRef = new Date(agora);
+  amanhaRef.setDate(amanhaRef.getDate() + 1);
+  const amanha = !hoje && inicio.toDateString() === amanhaRef.toDateString();
+
+  const rotuloDia = hoje ? "Hoje" : amanha ? "Amanhã" : data;
+  const rotuloClasse = hoje
+    ? "font-semibold text-orange-600"
+    : amanha
+      ? "font-semibold text-accent"
+      : "text-text-secondary";
+
+  const mostrarEntrar = isTele && COM_BOTAO_ENTRAR.includes(consulta.status);
+
+  const faixa = isJoinable ? "bg-success" : isTele ? "bg-violet-500" : "bg-teal-500";
 
   return (
     <Card
+      role="button"
+      tabIndex={0}
       onClick={() => onCardClick(consulta.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onCardClick(consulta.id);
+        }
+      }}
       className={`
-        transition-all duration-300 shadow-xl h-40 border rounded-md border-ring b-2 bg-surface-raised
+        relative flex min-h-56 h-52 w-full min-w-0 md:min-h-0 md:aspect-square overflow-hidden gap-0 p-0 cursor-pointer
+        rounded-lg border border-ring bg-surface-raised shadow-md transition-all duration-200 hover:shadow-lg
         ${
           isJoinable
-            ? "border border-success/30 bg-success/5 hover:bg-success/10"
+            ? "border-success/30 bg-success/5 hover:bg-success/10"
             : "hover:bg-surface-secondary"
         }
+        ${muted ? "opacity-50 grayscale hover:opacity-100 hover:grayscale-0" : ""}
       `}
     >
-      <Card.Content className="flex items-center justify-center flex-row gap-2">
-        {/* Avatar com iniciais */}
-        <Avatar size="md" color="accent">
-          <Avatar.Fallback>
-            {PatientInitials(consulta.patientNome)}
-          </Avatar.Fallback>
-        </Avatar>
+      <span aria-hidden className={`absolute inset-x-0 top-0 h-1 ${faixa}`} />
 
-        {/* Info */}
-        <div className="flex flex-1 items-center min-w-0 flex-col gap-1">
-          <div className="flex flex-col items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium truncate">
-              {consulta.patientNome}
-            </span>
+      <Card.Content className="flex flex-1 flex-col gap-0 p-0">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2.5 px-4 pb-3 pt-5 text-center">
+          <Avatar size="lg" color="accent" className="shrink-0">
+            <Avatar.Fallback>{PatientInitials(consulta.patientNome)}</Avatar.Fallback>
+          </Avatar>
 
-            {hoje && consulta.status === "agendado" && (
-              <Chip size="sm" color="warning" variant="soft">
-                hoje
-              </Chip>
-            )}
+          <span
+            className="line-clamp-2 wrap-break-word text-base font-semibold leading-tight"
+            title={consulta.patientNome}
+          >
+            {consulta.patientNome}
+          </span>
 
-              <Chip
-              size="sm"
-              color={cfg.color}
-              variant="soft"
-              className="hidden sm:flex shrink-0 absolute top-0 right-0 m-5"
-            >
-              {cfg.label}
-          </Chip>
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            <TipoConsultaTag type={isTele ? "teleconsulta" : "presencial"} />
+            <StatusConsultaTag status={consulta.status} />
           </div>
-
-          <div className="flex items-center gap-3 text-xs text-text-seconday flex-wrap">
-            <span className="flex items-center gap-2">
-              <Calendar size={20} className="text-text-secondary" />
-              {formatConsultaHorario(consulta.startDateTime)}
-            </span>
-          </div>
-
-          
         </div>
 
-        {consulta?.type === "teleconsulta" && consulta?.status !== "finalizado"  &&(
-          <EnterConsultaButton
-            isJoinable={isJoinable}
-            id={consulta?.id ?? ""}
-          />
-        )}
+        <div
+          className={`flex items-center gap-3 border-t border-ring bg-surface-secondary/40 px-4 py-2.5 ${
+            mostrarEntrar ? "justify-between" : "justify-center"
+          }`}
+        >
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Calendar size={18} className="shrink-0 text-text-secondary" aria-hidden />
+            <div className="flex flex-col">
+              <span className="text-lg font-bold leading-none tabular-nums">{hora}</span>
+              <span className={`mt-0.5 text-[11px] capitalize ${rotuloClasse}`}>{rotuloDia}</span>
+            </div>
+          </div>
+
+          {mostrarEntrar && (
+            <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+              <EnterConsultaButton isJoinable={isJoinable} meetingCode={consulta.meetingCode} />
+            </div>
+          )}
+        </div>
       </Card.Content>
     </Card>
   );

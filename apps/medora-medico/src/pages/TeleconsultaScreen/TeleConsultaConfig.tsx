@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { Button, Card, Chip, Spinner } from "@heroui/react";
 import {
@@ -10,18 +10,95 @@ import {
   AlertTriangle,
   CheckCircle,
   ChevronDown,
-  FileText,
   ArrowLeft,
+  RefreshCw,
 } from "lucide-react";
 import { useTeleconsultaGuard } from "./guard/TeleconsultaGuardContext";
 import { teleconsultaGuard } from "./guard/teleconsultaGuard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type PermissionState = "idle" | "requesting" | "granted" | "denied" | "error";
+type MediaKind = "video" | "audio";
 
 interface DeviceInfo {
   deviceId: string;
   label: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function errorName(reason: unknown): string {
+  return typeof reason === "object" && reason !== null && "name" in reason
+    ? String((reason as { name: unknown }).name)
+    : "";
+}
+
+function classifyError(reason: unknown): PermissionState {
+  const name = errorName(reason);
+  return name === "NotAllowedError" || name === "SecurityError"
+    ? "denied"
+    : "error";
+}
+
+function stopStream(stream: MediaStream | null | undefined) {
+  stream?.getTracks().forEach((t) => t.stop());
+}
+
+// Abre o dispositivo escolhido; se ele sumiu (desplugado, id antigo), cai para o padrão.
+async function openStream(kind: MediaKind, deviceId: string) {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      [kind]: { deviceId: { exact: deviceId } },
+    });
+  } catch (e) {
+    const name = errorName(e);
+    if (name === "OverconstrainedError" || name === "NotFoundError") {
+      return navigator.mediaDevices.getUserMedia({ [kind]: true });
+    }
+    throw e;
+  }
+}
+
+// Gerencia o ciclo de vida de um stream: abre quando habilitado e SEMPRE
+// para as tracks no cleanup (troca de dispositivo, desligar, desmontar).
+function useMediaStream(
+  kind: MediaKind,
+  deviceId: string,
+  enabled: boolean,
+  onFail: () => void,
+) {
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const onFailRef = useRef(onFail);
+  onFailRef.current = onFail;
+
+  useEffect(() => {
+    if (!enabled || !deviceId) {
+      setStream(null);
+      return;
+    }
+    let active = true;
+    let current: MediaStream | null = null;
+
+    openStream(kind, deviceId)
+      .then((s) => {
+        if (!active) {
+          stopStream(s);
+          return;
+        }
+        current = s;
+        setStream(s);
+      })
+      .catch(() => {
+        if (active) onFailRef.current();
+      });
+
+    return () => {
+      active = false;
+      stopStream(current);
+      setStream(null);
+    };
+  }, [kind, deviceId, enabled]);
+
+  return stream;
 }
 
 // ─── DeviceSelect ─────────────────────────────────────────────────────────────
@@ -82,7 +159,8 @@ function PermissionBadge({ state }: { state: PermissionState }) {
     );
   return (
     <Chip size="sm" color="danger" variant="soft">
-      <AlertTriangle size={12} className="mr-1" /> Bloqueado
+      <AlertTriangle size={12} className="mr-1" />{" "}
+      {state === "denied" ? "Bloqueado" : "Indisponível"}
     </Chip>
   );
 }
@@ -98,9 +176,12 @@ function MicLevelBar({ stream }: { stream: MediaStream | null }) {
       return;
     }
     const ctx = new AudioContext();
+    // Alguns navegadores iniciam o AudioContext "suspended"
+    void ctx.resume().catch(() => {});
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 256;
-    ctx.createMediaStreamSource(stream).connect(analyser);
+    const source = ctx.createMediaStreamSource(stream);
+    source.connect(analyser);
     const data = new Uint8Array(analyser.frequencyBinCount);
     const tick = () => {
       analyser.getByteFrequencyData(data);
@@ -111,7 +192,8 @@ function MicLevelBar({ stream }: { stream: MediaStream | null }) {
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(rafRef.current);
-      ctx.close();
+      source.disconnect();
+      void ctx.close().catch(() => {});
     };
   }, [stream]);
 
@@ -130,27 +212,121 @@ function MicLevelBar({ stream }: { stream: MediaStream | null }) {
   );
 }
 
+// ─── Status da conexão ────────────────────────────────────────────────────────
+type CheckState = "pending" | "ok" | "warn" | "fail";
+
+interface StatusCheck {
+  label: string;
+  state: CheckState;
+  detail: string;
+}
+
+interface StatusSummary {
+  tone: CheckState;
+  title: string;
+  text: string;
+}
+
+const TONE_CLASSES: Record<CheckState, string> = {
+  pending: "border-ring",
+  ok: "border-success/30 bg-success/5",
+  warn: "border-warning/30 bg-warning/5",
+  fail: "border-danger/30 bg-danger/5",
+};
+
+function CheckIcon({ state, size = 16 }: { state: CheckState; size?: number }) {
+  if (state === "pending") return <Spinner size="sm" />;
+  if (state === "ok")
+    return <CheckCircle size={size} className="text-success shrink-0" />;
+  return (
+    <AlertTriangle
+      size={size}
+      className={`shrink-0 ${state === "warn" ? "text-warning" : "text-danger"}`}
+    />
+  );
+}
+
+function ConnectionStatus({
+  summary,
+  checks,
+}: {
+  summary: StatusSummary;
+  checks: StatusCheck[];
+}) {
+  return (
+    <Card className={`border ${TONE_CLASSES[summary.tone]}`}>
+      <Card.Content className="flex flex-col gap-3 p-4">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-3"
+        >
+          <CheckIcon state={summary.tone} size={22} />
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-fg">{summary.title}</p>
+            <p className="text-xs text-fg-muted">{summary.text}</p>
+          </div>
+        </div>
+
+        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {checks.map((c) => (
+            <li
+              key={c.label}
+              className="flex items-center gap-2 rounded border border-divider bg-surface-secondary px-3 py-2"
+            >
+              <CheckIcon state={c.state} />
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-medium text-fg truncate">
+                  {c.label}
+                </span>
+                <span className="text-[11px] text-fg-muted truncate">
+                  {c.detail}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card.Content>
+    </Card>
+  );
+}
+
+// Acompanha a conexão com a internet (eventos online/offline do navegador)
+function useOnlineStatus() {
+  const [online, setOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+  return online;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function TeleConsultaConfig() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // ── 1. Guard — primeiro hook, sempre ─────────────────────────────────────
   const { state, tentar } = useTeleconsultaGuard();
-  const [termoAceitoGuard, setTermoAceitoGuard] = useState<boolean | null>(
-    null,
-  );
 
   // ── 2. Estado local ───────────────────────────────────────────────────────
   // O painel manda qual é a consulta; repassamos para a sala, onde o prontuário precisa dela.
-  const consultaState = (useLocation().state ?? {}) as { appointmentId?: number; patientName?: string };
-  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
-  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
-  // Refs com o stream atual: os cleanups abaixo rodam com closures antigas e
-  // veriam o valor inicial (null), deixando a câmera ligada ao sair da tela
-  const videoStreamRef = useRef<MediaStream | null>(null);
-  const audioStreamRef = useRef<MediaStream | null>(null);
+  const consultaState = (location.state ?? {}) as {
+    appointmentId?: number;
+    patientName?: string;
+  };
+
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mountedRef = useRef(true);
 
   const [camPerm, setCamPerm] = useState<PermissionState>("idle");
   const [micPerm, setMicPerm] = useState<PermissionState>("idle");
@@ -161,34 +337,70 @@ export default function TeleConsultaConfig() {
   const [camOn, setCamOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
 
-  const guardIniciado = useRef(false);
+  // REMINDER: BUG ESTRANHO — atualmente funciona se conectar ambos e daí entrar
+  // na sala; caso contrário dá erro "Unknown ufrag (08f4771d)". Isso acontece na
+  // sinalização/WebRTC da sala (não nesta tela): vale investigar se o peer remoto
+  // recebe candidates/answer de uma sessão anterior.
 
-    //REMINDER: BUG ESTRANHO, ATUALMENTE FUNIONA SE CONECTAR AMBOS E DAI ENTRAR NA SALA
-    //CASO CONTRARIO DA ERRO [17:09:58] ❌ Erro ao processar sinal: Unknown ufrag (08f4771d)
-
-  // ── 3. Dispara o guard uma única vez ao montar ────────────────────────────
+  // ── 3. Guard: dispara ao montar e reseta ao desmontar ─────────────────────
+  // Mesmo efeito para tentar + reset: no StrictMode (dev) o ciclo
+  // montar → desmontar → montar continua consistente.
   useEffect(() => {
-    if (id && !guardIniciado.current) {
-      guardIniciado.current = true;
-      tentar(id);
-    }
-  }, []);
-
-  // ── 4. Sincroniza o botão de termos com a fase do guard ───────────────────
-  useEffect(() => {
-    setTermoAceitoGuard(
-      state.fase === "termos_pendentes" || state.fase === "idle" ? false : true,
-    );
-  }, [state.fase]);
-
-  useEffect(() => {
+    if (!id) return;
+    tentar(id);
     return () => {
       teleconsultaGuard.reset();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // ── 4. Flag de montagem (evita setState após desmontar) ───────────────────
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
-  // ── 5. Solicitar permissões de mídia (câmera e microfone separadamente) ──
-  async function requestPermissions() {
+  // ── 5. Lista de dispositivos ──────────────────────────────────────────────
+  const refreshDevices = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      if (!mountedRef.current) return;
+
+      // Sem permissão o navegador devolve deviceId vazio — não serve para seleção
+      const cams = devices
+        .filter((d) => d.kind === "videoinput" && d.deviceId)
+        .map((d) => ({ deviceId: d.deviceId, label: d.label }));
+      const micsArr = devices
+        .filter((d) => d.kind === "audioinput" && d.deviceId)
+        .map((d) => ({ deviceId: d.deviceId, label: d.label }));
+
+      setCameras(cams);
+      setMics(micsArr);
+      // Mantém a seleção atual se o dispositivo ainda existir
+      setSelectedCam((prev) =>
+        cams.some((d) => d.deviceId === prev) ? prev : (cams[0]?.deviceId ?? ""),
+      );
+      setSelectedMic((prev) =>
+        micsArr.some((d) => d.deviceId === prev)
+          ? prev
+          : (micsArr[0]?.deviceId ?? ""),
+      );
+    } catch {
+      // enumerateDevices falhou: mantém listas como estão
+    }
+  }, []);
+
+  // ── 6. Solicitar permissões (câmera e microfone separadamente) ────────────
+  const requestPermissions = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      // Contexto inseguro (http) ou navegador sem suporte
+      setCamPerm("error");
+      setMicPerm("error");
+      return;
+    }
+
     setCamPerm("requesting");
     setMicPerm("requesting");
 
@@ -197,119 +409,63 @@ export default function TeleConsultaConfig() {
       navigator.mediaDevices.getUserMedia({ audio: true }),
     ]);
 
-    if (camResult.status === "fulfilled") {
-      camResult.value.getTracks().forEach((t) => t.stop());
-      setCamPerm("granted");
-    } else {
-      const denied =
-        camResult.reason instanceof Error &&
-        camResult.reason.name === "NotAllowedError";
-      setCamPerm(denied ? "denied" : "error");
-    }
+    // Aqui só queremos a permissão; os streams reais são abertos depois
+    if (camResult.status === "fulfilled") stopStream(camResult.value);
+    if (micResult.status === "fulfilled") stopStream(micResult.value);
 
-    if (micResult.status === "fulfilled") {
-      micResult.value.getTracks().forEach((t) => t.stop());
-      setMicPerm("granted");
-    } else {
-      const denied =
-        micResult.reason instanceof Error &&
-        micResult.reason.name === "NotAllowedError";
-      setMicPerm(denied ? "denied" : "error");
-    }
+    if (!mountedRef.current) return;
+
+    setCamPerm(
+      camResult.status === "fulfilled" ? "granted" : classifyError(camResult.reason),
+    );
+    setMicPerm(
+      micResult.status === "fulfilled" ? "granted" : classifyError(micResult.reason),
+    );
 
     // A label dos dispositivos só vem preenchida depois de pelo menos uma
     // permissão concedida.
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cams = devices
-      .filter((d) => d.kind === "videoinput")
-      .map((d) => ({ deviceId: d.deviceId, label: d.label }));
-    const micsArr = devices
-      .filter((d) => d.kind === "audioinput")
-      .map((d) => ({ deviceId: d.deviceId, label: d.label }));
-    setCameras(cams);
-    setMics(micsArr);
-    setSelectedCam(cams[0]?.deviceId ?? "");
-    setSelectedMic(micsArr[0]?.deviceId ?? "");
-  }
+    await refreshDevices();
+  }, [refreshDevices]);
 
   useEffect(() => {
-    requestPermissions();
-  }, []);
+    void requestPermissions();
+  }, [requestPermissions]);
 
-  // ── 6. Stream de vídeo ────────────────────────────────────────────────────
+  // Atualiza a lista quando um dispositivo é conectado/removido
   useEffect(() => {
-    if (!selectedCam || camPerm !== "granted") return;
-    let active = true;
-    videoStreamRef.current?.getTracks().forEach((t) => t.stop());
-    if (!camOn) {
-      setVideoStream(null);
-      return;
-    }
-    navigator.mediaDevices
-      .getUserMedia({ video: { deviceId: { exact: selectedCam } } })
-      .then((s) => {
-        if (!active) {
-          s.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        setVideoStream(s);
-      })
-      .catch(() => setCamPerm("error"));
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCam, camOn, camPerm]);
+    const md = navigator.mediaDevices;
+    if (!md?.addEventListener) return;
+    const onChange = () => void refreshDevices();
+    md.addEventListener("devicechange", onChange);
+    return () => md.removeEventListener("devicechange", onChange);
+  }, [refreshDevices]);
 
-  // ── 7. Stream de áudio ────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!selectedMic || micPerm !== "granted") return;
-    let active = true;
-    audioStreamRef.current?.getTracks().forEach((t) => t.stop());
-    if (!micOn) {
-      setAudioStream(null);
-      return;
-    }
-    navigator.mediaDevices
-      .getUserMedia({ audio: { deviceId: { exact: selectedMic } } })
-      .then((s) => {
-        if (!active) {
-          s.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        setAudioStream(s);
-      })
-      .catch(() => setMicPerm("error"));
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMic, micOn, micPerm]);
+  // ── 7. Streams de vídeo e áudio (cleanup automático no hook) ──────────────
+  const videoStream = useMediaStream(
+    "video",
+    selectedCam,
+    camOn && camPerm === "granted",
+    () => setCamPerm("error"),
+  );
+  const audioStream = useMediaStream(
+    "audio",
+    selectedMic,
+    micOn && micPerm === "granted",
+    () => setMicPerm("error"),
+  );
 
-  // ── 8. Bind vídeo ao elemento <video> ─────────────────────────────────────
+  // ── 8. Bind do vídeo ao elemento <video> ──────────────────────────────────
   useEffect(() => {
-    if (videoRef.current) videoRef.current.srcObject = videoStream;
+    const el = videoRef.current;
+    if (!el) return;
+    el.srcObject = videoStream;
+    if (videoStream) el.play().catch(() => {});
   }, [videoStream]);
 
-  // ── 9. Mantém as refs sincronizadas com o stream atual ────────────────────
-  useEffect(() => {
-    videoStreamRef.current = videoStream;
-  }, [videoStream]);
+  // ── 8b. Conexão com a internet ────────────────────────────────────────────
+  const online = useOnlineStatus();
 
-  useEffect(() => {
-    audioStreamRef.current = audioStream;
-  }, [audioStream]);
-
-  // ── 10. Cleanup de streams ao desmontar ───────────────────────────────────
-  useEffect(() => {
-    return () => {
-      videoStreamRef.current?.getTracks().forEach((t) => t.stop());
-      audioStreamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
-
-  // ── 11. Early returns do guard — SEMPRE após todos os hooks ───────────────
-
+  // ── 9. Early return do guard — SEMPRE após todos os hooks ─────────────────
   if (state.fase === "acesso_negado") {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
@@ -333,22 +489,93 @@ export default function TeleConsultaConfig() {
   const prontoPeloGuard = state.fase === "liberado";
   // Permite entrar com apenas áudio ou apenas vídeo (consulta parcial),
   // desde que ao menos um dos dois tenha sido liberado.
-  const pronto =
-    prontoPeloGuard && (camPerm === "granted" || micPerm === "granted");
+  const temMidia = camPerm === "granted" || micPerm === "granted";
+  const pronto = prontoPeloGuard && temMidia && online;
+  const permProblema = [camPerm, micPerm].some(
+    (p) => p === "denied" || p === "error",
+  );
+  const aguardandoPermissao = camPerm === "requesting" || micPerm === "requesting";
 
   function handleEntrar() {
     if (!prontoPeloGuard) return; // segurança extra
-    videoStream?.getTracks().forEach((t) => t.stop());
-    audioStream?.getTracks().forEach((t) => t.stop());
+    stopStream(videoStream);
+    stopStream(audioStream);
     navigate(`../${id}/sala`, {
-      state: { ...consultaState, camOn, micOn, selectedCam, selectedMic },
+      state: {
+        ...consultaState,
+        // Nunca informa "ligado" para um dispositivo sem permissão
+        camOn: camOn && camPerm === "granted",
+        micOn: micOn && micPerm === "granted",
+        selectedCam,
+        selectedMic,
+      },
     });
   }
 
-  function handleReOpenTermsModal() {
-    if (id) {
-      tentar(id);
-    }
+  // ── Status da conexão (aparece antes de entrar na sala) ───────────────────
+  function mediaCheck(
+    label: string,
+    perm: PermissionState,
+    on: boolean,
+    stream: MediaStream | null,
+  ): StatusCheck {
+    if (perm === "idle" || perm === "requesting")
+      return { label, state: "pending", detail: "Solicitando permissão…" };
+    if (perm === "denied") return { label, state: "warn", detail: "Bloqueado" };
+    if (perm === "error") return { label, state: "warn", detail: "Indisponível" };
+    if (!on) return { label, state: "ok", detail: "Desativado" };
+    // Só considera "ok" quando o stream realmente abriu
+    return stream
+      ? { label, state: "ok", detail: "Funcionando" }
+      : { label, state: "pending", detail: "Iniciando…" };
+  }
+
+  const checks: StatusCheck[] = [
+    {
+      label: "Internet",
+      state: online ? "ok" : "fail",
+      detail: online ? "Conectado" : "Sem conexão",
+    },
+    mediaCheck("Câmera", camPerm, camOn, videoStream),
+    mediaCheck("Microfone", micPerm, micOn, audioStream),
+  ];
+
+  // O guard não aparece como item (quem chegou aqui já tem acesso), mas o
+  // botão só libera quando ele termina; então conta como "verificando".
+  const algumPendente =
+    checks.some((c) => c.state === "pending") || !prontoPeloGuard;
+  const entraParcial =
+    temMidia && (camPerm !== "granted" || micPerm !== "granted");
+
+  let summary: StatusSummary;
+  if (!online) {
+    summary = {
+      tone: "fail",
+      title: "Sem conexão com a internet",
+      text: "Verifique sua rede para entrar na consulta.",
+    };
+  } else if (algumPendente) {
+    summary = {
+      tone: "pending",
+      title: "Verificando conexão…",
+      text: "Testando internet, câmera e microfone.",
+    };
+  } else if (!temMidia) {
+    summary = {
+      tone: "warn",
+      title: "Câmera e microfone indisponíveis",
+      text: "Libere ao menos um dos dois para entrar na consulta.",
+    };
+  } else {
+    summary = {
+      tone: entraParcial ? "warn" : "ok",
+      title: "Conexão estabelecida",
+      text: entraParcial
+        ? `Tudo certo para entrar, mas ${
+            camPerm !== "granted" ? "sem câmera" : "sem microfone"
+          }.`
+        : "Tudo certo para entrar na consulta.",
+    };
   }
 
   return (
@@ -361,20 +588,27 @@ export default function TeleConsultaConfig() {
           <p className="text-sm text-fg-muted mt-1 mb-3">
             Verifique câmera e microfone antes de entrar na teleconsulta
           </p>
-          {(camPerm === "denied" || micPerm === "denied") && (
+          {permProblema && (
             <Card className="border-warning/30 bg-warning/5">
-              <Card.Content className="flex flex-row items-center justify-center gap-5 p-1">
-                <AlertTriangle
-                  size={24}
-                  className="text-warning mt-0.5 shrink-0"
-                />
+              <Card.Content className="flex flex-row items-center justify-center gap-5 p-2">
+                <AlertTriangle size={24} className="text-warning shrink-0" />
                 <div className="text-sm text-start flex flex-col">
                   <p className="font-medium text-fg">Permissões necessárias</p>
                   <p className="text-fg-muted mt-0.5">
-                    Clique no ícone de cadeado na barra de endereço e permita o
-                    acesso à câmera e/ou microfone, depois recarregue a página.
+                    {camPerm === "denied" || micPerm === "denied"
+                      ? "Clique no ícone de cadeado na barra de endereço e permita o acesso à câmera e/ou microfone, depois tente novamente."
+                      : "Não foi possível acessar um dos dispositivos. Verifique se ele está conectado e não está sendo usado por outro programa."}
                   </p>
                 </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="border-ring shrink-0"
+                  onPress={() => void requestPermissions()}
+                  isDisabled={aguardandoPermissao}
+                >
+                  <RefreshCw size={14} /> Tentar novamente
+                </Button>
               </Card.Content>
             </Card>
           )}
@@ -405,9 +639,11 @@ export default function TeleConsultaConfig() {
                   <span className="text-xs">
                     {camPerm === "denied"
                       ? "Câmera bloqueada"
-                      : camPerm === "requesting"
-                        ? "Aguardando permissão…"
-                        : "Câmera desativada"}
+                      : camPerm === "error"
+                        ? "Câmera indisponível"
+                        : camPerm === "requesting"
+                          ? "Aguardando permissão…"
+                          : "Câmera desativada"}
                   </span>
                 </div>
               )}
@@ -450,22 +686,28 @@ export default function TeleConsultaConfig() {
             <Card.Content className="flex flex-col gap-4 p-4 h-full">
               <div className="flex-1 flex flex-col items-center justify-center gap-3 py-6">
                 <div
-                  className={`flex size-16 items-center justify-center rounded transition-colors ${micOn && audioStream ? "bg-success/10 text-success" : "bg-surface-secondary text-fg-muted"}`}
+                  className={`flex size-16 items-center justify-center rounded transition-colors ${
+                    micOn && audioStream
+                      ? "bg-success/10 text-success"
+                      : "bg-surface-secondary text-fg-muted"
+                  }`}
                 >
-                  {micOn ? (
+                  {micOn && micPerm === "granted" ? (
                     <Mic size={28} strokeWidth={1.5} />
                   ) : (
                     <MicOff size={28} strokeWidth={1.5} />
                   )}
                 </div>
-                <p className="text-sm text-secondary text-center">
+                <p className="text-sm text-fg-muted text-center">
                   {micPerm === "requesting"
                     ? "Aguardando permissão do microfone…"
                     : micPerm === "denied"
                       ? "Microfone bloqueado. Verifique as permissões do navegador."
-                      : micOn && audioStream
-                        ? "Fale algo para testar o microfone"
-                        : "Microfone desativado"}
+                      : micPerm === "error"
+                        ? "Microfone indisponível. Verifique se está conectado."
+                        : micOn && audioStream
+                          ? "Fale algo para testar o microfone"
+                          : "Microfone desativado"}
                 </p>
                 <MicLevelBar stream={micOn ? audioStream : null} />
               </div>
@@ -494,38 +736,27 @@ export default function TeleConsultaConfig() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-3">
-          <div className="flex items-center justify-center">
+        <ConnectionStatus summary={summary} checks={checks} />
+
+        <div className="grid grid-cols-3 items-center">
+          <div className="flex items-center justify-start">
             <Button
               variant="ghost"
               onPress={() => navigate(-1)}
               className="border-ring"
             >
-              {" "}
-              <ArrowLeft /> Voltar
+              <ArrowLeft size={16} /> Voltar
             </Button>
           </div>
 
           <div className="flex justify-center items-center flex-col gap-2">
-            {!pronto && (
-              <p className="text-text-secondary text-sm">
-                Aguardando permissões.
-              </p>
-            )}
             <Button size="lg" onPress={handleEntrar} isDisabled={!pronto}>
               <Video size={18} /> Entrar na consulta
             </Button>
           </div>
 
-          <div className="flex items-center justify-center">
-            {!termoAceitoGuard && (
-              <Button size="lg" onPress={handleReOpenTermsModal}>
-                <FileText size={18} /> Termos
-              </Button>
-            )}
-          </div>
-
-          <div className=""></div>
+          {/* Coluna vazia para manter o botão central alinhado */}
+          <div />
         </div>
       </div>
     </div>

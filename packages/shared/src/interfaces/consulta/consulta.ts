@@ -16,18 +16,46 @@ export const filterMapByCode: Record<FiltroConsulta, number | undefined> = {
   nenhum: undefined,
 };
 
+export const statusMapByCodeToString: Record<number, StatusConsulta | undefined> = {
+  1: "agendado",
+  2: "esperando_pagamento",
+  3: "esperando_confirmacao",
+  4: "confirmado",
+  5: "em_atendimento",
+  6: "finalizado",
+  8: "cancelado",
+  9: "ausente",
+};
 
-export const statusMapByCode: Record<string, StatusConsulta> = {
+export const statusMapByName: Record<string, StatusConsulta> = {
   Scheduled: "agendado",
   AwaitingPayment: "esperando_pagamento",
   AwaitingConfirmation: "esperando_confirmacao",
   Confirmed: "confirmado",
   InProgress: "em_atendimento",
   Completed: "finalizado",
-  RescheduleNeeded: "agendado",
   Canceled: "cancelado",
   Absent: "ausente",
-};  
+};
+
+
+// Aceita texto (atual) ou número (caso o backend mude)
+export function parseStatus(raw: string | number): StatusConsulta | undefined {
+  return typeof raw === "number"
+    ? statusMapByCodeToString[raw]
+    : statusMapByName[raw];
+}
+
+export const statusMapByCode: Record<StatusConsulta, number> = {
+  agendado: 1,
+  esperando_pagamento: 2,
+  esperando_confirmacao: 3,
+  confirmado: 4,
+  em_atendimento: 5,
+  finalizado: 6,
+  cancelado: 8,
+  ausente: 9,
+};
 
 export interface IConsultaDetailed {
   id: number;
@@ -39,7 +67,7 @@ export interface IConsultaDetailed {
   status: StatusConsulta;
   type: TypeConsulta;
   tags?: string[];
-  meetingUrl?: string; //EX. Medora.com/nanoID
+  meetingCode?: string; //EX. Medora.com/nanoID
   platform: string; //EX. fixo -> Medora
   patientTermsAccepted: boolean; 
 }
@@ -50,6 +78,26 @@ export interface IConsultaSimplified{
   healthInsurance: string; //Ex. Unimed, MedSenior e etc
   status: StatusConsulta;
   type: TypeConsulta;
+}
+
+export interface IConsultaTeleConsultaDto{
+  appointmentId: number,
+  patientId: string,
+  doctorId: string,
+  startDateTime: string;
+  endDateTime: string;
+  status: number,
+  type: number
+}
+
+export interface IConsultaTeleConsultaPayload{
+  id: number,
+  patientId: string,
+  doctorId: string,
+  startDateTime: string;
+  endDateTime: string;
+  status: string,
+  type: string
 }
 
 
