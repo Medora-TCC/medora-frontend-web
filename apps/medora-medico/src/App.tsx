@@ -28,6 +28,7 @@ import AccountLayout from './pages/AccountPage/AccountLayout';
 import PersonalDataSection from './pages/AccountPage/sections/PersonalDataSection';
 import ProfessionalDataSection from './pages/AccountPage/sections/ProfessionalDataSection';
 import SecuritySection from './pages/AccountPage/sections/SecuritySection';
+import PublicProfileSection from './pages/AccountPage/sections/PublicProfileSection';
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
                     <Route index element={<Navigate to="dados-pessoais" replace />} />
                     <Route path="dados-pessoais" element={<PersonalDataSection />} />
                     <Route path="dados-profissionais" element={<ProfessionalDataSection />} />
+                    <Route path="perfil-publico" element={<PublicProfileSection />} />
                     <Route path="seguranca" element={<SecuritySection />} />
                   </Route>
 

@@ -20,7 +20,7 @@ import {
   CircleAlert,
 } from "lucide-react";
 import type { IConsultaTeleConsultaPayload } from "@medora_web/shared";
-import { MedicalRecordComponent } from "../MedicalRecordPage/MedicalRecordComponent";
+import { MedicalRecordPanel } from "../MedicalRecordPage/MedicalRecordPanel";
 import { useTelemedicineCall } from "../../hooks/useTelemedicineCall";
 import { AuthContext } from "../../contexts/AuthContext";
 import { PrescricaoDaConsulta } from "../PrescriptionPage/PrescriptionPage";
@@ -1040,9 +1040,9 @@ export default function SalaTeleConsulta() {
         className="shrink-0 h-full overflow-hidden transition-[width] duration-300 ease-in-out"
       >
         {sidePanel === "prontuario" && (
-          <div className="h-full w-full overflow-y-auto border-l border-ring bg-surface">
-            {appointmentId ? (
-              <MedicalRecordComponent appointmentId={appointmentId} />
+          <div className="h-full">
+            {state.appointmentId ? (
+              <MedicalRecordPanel key={state.appointmentId} appointmentId={state.appointmentId} />
             ) : (
               <p className="p-6 text-text-secondary">{semConsultaMsg}</p>
             )}

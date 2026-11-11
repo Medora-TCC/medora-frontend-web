@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { SignatureStatus } from "../../api/services/MedicalRecords";
 import type { MedicalRecordController, SaveState } from "../../hooks/useMedicalRecord";
+import { MedicalRecordActions } from "./MedicalRecordActions";
 import { formatSex } from "../../types/Sex";
 import type { Sex } from "../../api/dtos/Doctors/PersonalDataDto";
 import { SigningModeModal } from "../../components/SigningModeModal/SigningModeModal";
@@ -29,8 +30,6 @@ interface PatientHeaderProps {
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
-
-const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
 function ageFrom(dateStr?: string): string | null {
   const m = dateStr?.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
@@ -72,19 +71,6 @@ export function PatientHeader({
   const [showCpf, setShowCpf] = useState(false);
   const isLoading = patientProp === null;
   const patient: PatientSummary = patientProp ?? { name: fallbackName ?? "" };
-  const {
-    mode,
-    saveState,
-    canFinalize,
-    isSigningModalOpen,
-    openSigningModal,
-    closeSigningModal,
-    finalize,
-    saveDraft,
-    openPdf,
-    isOpeningPdf,
-    signatureStatus,
-  } = controller;
 
   const birth = patient.birthDate;
   const age = ageFrom(patient.birthDate);
@@ -142,31 +128,7 @@ export function PatientHeader({
           </dl>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
-          <SaveIndicator state={saveState} />
-
-          {mode === "editing" && (
-            <>
-              <Button size="sm" variant="secondary" onPress={saveDraft} aria-keyshortcuts="Control+S Meta+S">
-                <Save />
-                <span className="hidden sm:inline">Salvar rascunho</span>
-              </Button>
-              <Button isDisabled={!canFinalize} onPress={openSigningModal}>
-                Finalizar
-              </Button>
-              <SigningModeModal
-                isOpen={isSigningModalOpen}
-                onConfirm={finalize}
-                onCancel={closeSigningModal}
-                texto="Deseja finalizar o prontuário? Depois de finalizado ele não pode mais ser alterado."
-              />
-            </>
-          )}
-
-          {mode === "finalized" && (
-            <PdfButton status={signatureStatus} isOpening={isOpeningPdf} onOpen={openPdf} />
-          )}
-        </div>
+        <MedicalRecordActions controller={controller} />
       </div>
 
     </header>
@@ -184,67 +146,4 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
 
 function Skeleton({ className = "" }: { className?: string }): JSX.Element {
   return <span aria-hidden className={`block animate-pulse rounded bg-border motion-reduce:animate-none ${className}`} />;
-}
-
-function SaveIndicator({ state }: { state: SaveState }): JSX.Element {
-  let content: React.ReactNode = null;
-  switch (state.kind) {
-    case "saving":
-      content = (
-        <span className="inline-flex items-center gap-1.5 text-text-secondary">
-          <Spinner size="sm" />
-          Salvando…
-        </span>
-      );
-      break;
-    case "saved":
-      content = <span className="text-text-secondary">Salvo às {timeFormat.format(state.at)}</span>;
-      break;
-    case "error":
-      content = (
-        <span className="font-semibold text-danger" title={state.message}>
-          Não salvo. Tentaremos de novo na próxima alteração
-        </span>
-      );
-      break;
-  }
-
-  return (
-    <div aria-live="polite" className="hidden min-w-28 justify-end text-sm tabular-nums sm:flex">
-      {content}
-    </div>
-  );
-}
-
-function PdfButton({
-  status,
-  isOpening,
-  onOpen,
-}: {
-  status: SignatureStatus | null;
-  isOpening: boolean;
-  onOpen: () => void;
-}): JSX.Element {
-  const note =
-    status === "Signed" ? null
-      : status === "AwaitingDoctor" ? <span className="text-sm text-text-secondary">Aguardando sua assinatura em Assinar Documentos</span>
-        : status === "Failed" ? <span className="text-sm text-danger">A assinatura falhou; o PDF sai sem assinatura.</span>
-          : status === null ? null
-            : (
-              <span className="flex items-center gap-2 text-sm text-text-secondary">
-                <Spinner size="sm" />
-                Assinatura em andamento; por enquanto o PDF sai sem assinatura.
-              </span>
-            );
-
-
-  return (
-    <div className="flex items-center gap-3">
-      {note}
-      <Button size="sm" variant="primary" onPress={onOpen} isDisabled={isOpening}>
-        <FileDown />
-        Baixar PDF
-      </Button>
-    </div>
-  );
 }

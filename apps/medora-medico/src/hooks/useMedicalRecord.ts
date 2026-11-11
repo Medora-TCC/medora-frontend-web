@@ -165,24 +165,31 @@ export function useMedicalRecord(appointmentId: number) {
     else toast.danger("Não foi possível salvar. Verifique a conexão e tente de novo.");
   }, [flush]);
 
-  const finalize = async (mode: SigningMode) => {
-    setIsSigningModalOpen(false);
-    if (!record) return;
-    setIsFinalizing(true);
-    try {
-      if (!(await flush())) {
-        throw new Error("O último trecho não foi salvo. Tente de novo em instantes.");
+  const finalize = useCallback(
+    async (signingMode: SigningMode) => {
+      setIsSigningModalOpen(false);
+      if (!record) return;
+      setIsFinalizing(true);
+      try {
+        if (!(await flush())) {
+          throw new Error("O último trecho não foi salvo. Tente de novo em instantes.");
+        }
+        await MedicalRecordsService.finalize(record.id, signingMode);
+        setInitialContent(lastSavedRef.current);
+        setRecord((r) => (r ? { ...r, isFinalized: true, finalizedAt: new Date().toISOString() } : r));
+        toast.success(
+          signingMode === "Manual"
+            ? "Prontuário finalizado. Assine em Assinar Documentos."
+            : "Prontuário finalizado.",
+        );
+      } catch (err) {
+        toast.danger(errorMessage(err, "Erro ao finalizar o prontuário."));
+      } finally {
+        setIsFinalizing(false);
       }
-      await MedicalRecordsService.finalize(record.id, mode);
-      setInitialContent(lastSavedRef.current);
-      setRecord((r) => (r ? { ...r, isFinalized: true, finalizedAt: new Date().toISOString() } : r));
-      toast.success(mode === "Manual" ? "Prontuário finalizado. Assine em Assinar Documentos." : "Prontuário finalizado.");
-    } catch (err) {
-      toast.danger(errorMessage(err, "Erro ao finalizar o prontuário."));
-    } finally {
-      setIsFinalizing(false);
-    }
-  };
+    },
+    [record, flush],
+  );
 
   const openPdf = useCallback(async () => {
     if (!record) return;
