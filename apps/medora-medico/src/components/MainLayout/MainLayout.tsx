@@ -69,7 +69,7 @@ export default function MainLayout() {
   // Liste os caminhos completos como eles aparecem na URL
   const locationsSidebar = ["/", "/home", "/medico/teleconsulta"];
   const locationsFooter = [
-    "/medico/prontuario",
+    "/medico/busca-prontuario",
     "/medico/consulta",
     "/medico/prescricao",
     "/medico/agenda",
@@ -140,7 +140,7 @@ export default function MainLayout() {
                 icon={ClipboardPlus}
                 label="Meus Prontuários"
                 isActive={location.pathname.startsWith("/medico/prontuario")}
-                href="/medico/prontuario"
+                href="/medico/busca-prontuario"
               />
 
               <Sidebar.Item

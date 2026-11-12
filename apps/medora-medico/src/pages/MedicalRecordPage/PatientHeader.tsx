@@ -1,27 +1,15 @@
 import { useState, type JSX } from "react";
-import { Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
 import {
   Eye,
   EyeOff,
-  FileDown,
   PanelLeftClose,
   PanelLeftOpen,
-  Save,
 } from "lucide-react";
-import type { SignatureStatus } from "../../api/services/MedicalRecords";
-import type { MedicalRecordController, SaveState } from "../../hooks/useMedicalRecord";
+import type { MedicalRecordController } from "../../hooks/useMedicalRecord";
 import { MedicalRecordActions } from "./MedicalRecordActions";
 import { formatSex } from "../../types/Sex";
-import type { Sex } from "../../api/dtos/Doctors/PersonalDataDto";
-import { SigningModeModal } from "../../components/SigningModeModal/SigningModeModal";
-export interface PatientSummary {
-  id?: string;
-  name: string;
-  birthDate?: string; // ISO "yyyy-mm-dd"
-  sex?: Sex;
-  cpf?: string;
-}
-
+import type { PatientSummary } from "../../api/dtos/MedicalRecord/PatientSummary";
 interface PatientHeaderProps {
   patient: PatientSummary | null;
   fallbackName?: string;
