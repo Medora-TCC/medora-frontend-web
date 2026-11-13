@@ -27,9 +27,9 @@ const TYPE_CFG: Record<AvailabilitySlotType, {
   InPerson: {
     label: 'Presencial',
     icon: <Building2 size={15} />,
-    pill:    'bg-primary/10 text-primary-text border border-primary/20',
+    pill:    'bg-accent/10 text-primary-text border border-primary/20',
     iconBg:  'bg-primary/10 text-primary-text',
-    stripe:  'bg-primary',
+    stripe:  'bg-accent',
   },
   Online: {
     label: 'Telemedicina',
