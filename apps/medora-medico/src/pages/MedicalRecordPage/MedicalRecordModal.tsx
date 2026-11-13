@@ -7,10 +7,15 @@ import MedicalRecordsService, {
   type SignatureStatus,
 } from "../../api/services/MedicalRecords";
 import { MedicalRecordViewer } from "../../components/RichTextEditor/RichTextEditor";
-// TODO: ajuste o caminho para onde o PDFViewer realmente está.
 import PDFViewer from "../../components/PDF/PDFViewer";
 
 const URL_STALE_AFTER_MS = 4 * 60 * 1000;
+
+export function formatRecordDate(value: Date | string | null | undefined): string {
+  if (!value) return "Data indisponível";
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? "Data indisponível" : d.toLocaleDateString("pt-BR");
+}
 
 const signatureBadge: Partial<
   Record<SignatureStatus, { label: string; color: "success" | "warning" | "danger" }>
@@ -34,7 +39,7 @@ function MedicalRecordContent({ medicalRecord }: { medicalRecord: MedicalRecordD
   const [pdf, setPdf] = useState<MedicalRecordPdf | null>(null);
   const [attempt, setAttempt] = useState(0);
   const loadedAt = useRef(0);
-
+  
   useEffect(() => {
     let active = true;
     setMode("loading");
@@ -55,7 +60,7 @@ function MedicalRecordContent({ medicalRecord }: { medicalRecord: MedicalRecordD
         if (active) setMode("raw");
       });
 
-    return () => {
+      return () => {
       active = false;
     };
   }, [medicalRecord.id, attempt]);
@@ -129,7 +134,7 @@ export function MedicalRecordModal({ medicalRecord, children }: MedicalRecordMod
       <Button
         variant="ghost"
         className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
-        aria-label={`Abrir consulta de ${medicalRecord.date}`}
+        aria-label={`Abrir consulta de ${formatRecordDate(medicalRecord.dateCreated)}`}
       >
         {children}
       </Button>
@@ -139,7 +144,7 @@ export function MedicalRecordModal({ medicalRecord, children }: MedicalRecordMod
             <Modal.CloseTrigger />
             <Modal.Header>
               <Modal.Heading className="w-full text-center">
-                <p className="font-semibold text-muted">{medicalRecord.date.toLocaleDateString("pt-BR")}</p>
+                <p className="font-semibold text-muted">{formatRecordDate(medicalRecord.dateCreated)}</p>
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body>
