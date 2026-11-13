@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { setAccessToken } from "../api/api";
+import { setAccessToken } from "../api/client";
 import { logout, refresh } from "../api/auth";
 import { AuthContext } from "./authContextValue";
 

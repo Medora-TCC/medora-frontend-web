@@ -10,6 +10,7 @@ import PayoutsPage from './pages/Payouts/PayoutsPage'
 import MfaPage from './pages/MfaPage/MfaPage'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import AuditPage from './pages/Audit/AuditPage'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/admin/profile" element={<ProfilePage />} />
                 <Route path="/admin/manage-users" element={<UserManagementPage />} />
                 <Route path="/admin/logs" element={<WorkerLogs />} />
+                <Route path="/admin/audit" element={<AuditPage />} />
                 <Route path="/admin/payouts" element={<PayoutsPage />} />
               </Route>
             </Route>
