@@ -3,7 +3,7 @@ import { api } from './api';
 import { toDomainError } from '../errors';
 import type { AppointmentStatus } from './Appointments';
 import type { MedicalRecordDTO } from '../dtos/MedicalRecord/MedicalRecordDTO';
-import type { PatientSummary } from '../../pages/MedicalRecordPage/PatientHeader';
+import type { PatientSummary } from '../dtos/MedicalRecord/PatientSummary';
 
 export interface MedicalRecord {
   id: number;

@@ -63,7 +63,6 @@ export function MedicalRecordRow({ item }: MedicalRecordRowProps) {
 
         <div className="flex flex-col items-center gap-1">
           <span className="text-sm tabular-nums">CPF {formatCpf(patient.cpf)}</span>
-          <span className="text-xs tabular-nums text-fg-muted">Prontuário #{medicalRecord.id}</span>
           <span className="mt-1 flex items-center gap-1.5 text-xs tabular-nums text-fg-muted">
             <CalendarDays size={14} />
             {formatDate(medicalRecord.date)} · {formatTime(medicalRecord.date)}

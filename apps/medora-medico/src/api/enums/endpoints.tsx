@@ -38,7 +38,7 @@ export const Endpoints = {
 
     MEDICAL_RECORD_BY_APPOINTMENT: (appointmentId: number) => `/appointments/${appointmentId}/medical-record`,
     MEDICAL_RECORD_BY_PATIENT: (patientId: string) => `/medical-records/patient/${patientId}`,
-    SEARCH_MEDICAL_RECORD: "/medical-record/search",
+    SEARCH_MEDICAL_RECORD: "/medical-records/search",
     FINALIZE_MEDICAL_RECORD: (id: number) => `/medical-records/${id}/finalize`,
     MEDICAL_RECORD_PDF: (id: number) => `/medical-records/${id}/pdf`,
 

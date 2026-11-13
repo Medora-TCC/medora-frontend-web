@@ -9,9 +9,13 @@ pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.vers
 
 interface PDFViewerProps {
   documentUrl: string | null;
+  /** Altura da seção. Padrão: tela inteira (uso em página). Em modal, passe "min-h-0". */
+  className?: string;
+  /** Chamado se o PDF não puder ser carregado (URL expirada, CORS, arquivo inválido...). */
+  onError?: () => void;
 }
 
-export default function PDFViewer({ documentUrl }: PDFViewerProps): JSX.Element {
+export default function PDFViewer({ documentUrl, className = "min-h-screen", onError }: PDFViewerProps): JSX.Element {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,7 +50,7 @@ export default function PDFViewer({ documentUrl }: PDFViewerProps): JSX.Element 
     <section
       role="region"
       aria-label="Visualizador de documento PDF"
-      className="w-full min-h-screen bg-surface-alt flex flex-col"
+      className={`w-full bg-surface-alt flex flex-col ${className}`}
     >
       <div className="flex-1 flex flex-col items-center gap-6 px-4 py-8">
 
@@ -57,6 +61,8 @@ export default function PDFViewer({ documentUrl }: PDFViewerProps): JSX.Element 
           <Document
             file={documentUrl}
             onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+            onLoadError={onError}
+            onSourceError={onError}
             noData={<span className="block p-8 text-center text-text-secondary">Nenhum documento selecionado</span>}
             loading={<span aria-live="assertive" className="block p-8 text-center text-text-secondary">Carregando documento...</span>}
             error={<span role="alert" className="block p-8 text-center text-danger">Erro ao carregar o documento.</span>}

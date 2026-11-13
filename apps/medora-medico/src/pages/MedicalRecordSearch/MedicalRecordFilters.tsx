@@ -1,17 +1,15 @@
 import {
   Button,
+  Calendar,
   DateField,
-  DateRangePicker,
+  DatePicker,
   Dropdown,
   Label,
-  RangeCalendar,
   SearchField,
   type DateValue,
 } from "@heroui/react";
 import { ChevronDown, FilterX, ListFilter, RotateCcw, Search } from "lucide-react";
 import type { MedicalRecordStatusFilter } from "../../api/services/MedicalRecordSearch";
-
-export type DateRange = { start: DateValue; end: DateValue };
 
 const statusOptions: { key: MedicalRecordStatusFilter; label: string }[] = [
   { key: "all", label: "Todos" },
@@ -19,17 +17,78 @@ const statusOptions: { key: MedicalRecordStatusFilter; label: string }[] = [
   { key: "finalized", label: "Finalizados" },
 ];
 
+// ─── Campo de data (um calendário por campo) ──────────────────────────────────
+interface DateFilterProps {
+  label: string;
+  name: string;
+  value: DateValue | null;
+  onChange: (value: DateValue | null) => void;
+  minValue?: DateValue;
+  maxValue?: DateValue;
+}
+
+function DateFilter({ label, name, value, onChange, minValue, maxValue }: DateFilterProps) {
+  return (
+    <DatePicker
+      className="w-44"
+      name={name}
+      value={value}
+      onChange={onChange}
+      minValue={minValue}
+      maxValue={maxValue}
+    >
+      <Label>{label}</Label>
+      <DateField.Group fullWidth>
+        <DateField.Input>
+          {(segment) => <DateField.Segment segment={segment} />}
+        </DateField.Input>
+        <DateField.Suffix>
+          <DatePicker.Trigger>
+            <DatePicker.TriggerIndicator />
+          </DatePicker.Trigger>
+        </DateField.Suffix>
+      </DateField.Group>
+      <DatePicker.Popover>
+        <Calendar aria-label={label}>
+          <Calendar.Header>
+            <Calendar.YearPickerTrigger>
+              <Calendar.YearPickerTriggerHeading />
+              <Calendar.YearPickerTriggerIndicator />
+            </Calendar.YearPickerTrigger>
+            <Calendar.NavButton slot="previous" />
+            <Calendar.NavButton slot="next" />
+          </Calendar.Header>
+          <Calendar.Grid>
+            <Calendar.GridHeader>
+              {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+            </Calendar.GridHeader>
+            <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
+          </Calendar.Grid>
+          <Calendar.YearPickerGrid>
+            <Calendar.YearPickerGridBody>
+              {({ year }) => <Calendar.YearPickerCell year={year} />}
+            </Calendar.YearPickerGridBody>
+          </Calendar.YearPickerGrid>
+        </Calendar>
+      </DatePicker.Popover>
+    </DatePicker>
+  );
+}
+
+// ─── Filtros ──────────────────────────────────────────────────────────────────
 interface MedicalRecordFiltersProps {
   nome: string;
   cpf: string;
   status: MedicalRecordStatusFilter;
-  dateRange: DateRange | null;
+  dateFrom: DateValue | null;
+  dateTo: DateValue | null;
   hasActiveFilters: boolean;
   isLoading: boolean;
   onNomeChange: (value: string) => void;
   onCpfChange: (value: string) => void;
   onStatusChange: (value: MedicalRecordStatusFilter) => void;
-  onDateRangeChange: (value: DateRange | null) => void;
+  onDateFromChange: (value: DateValue | null) => void;
+  onDateToChange: (value: DateValue | null) => void;
   onSearch: () => void;
   onClear: () => void;
   onRefresh: () => void;
@@ -39,13 +98,15 @@ export function MedicalRecordFilters({
   nome,
   cpf,
   status,
-  dateRange,
+  dateFrom,
+  dateTo,
   hasActiveFilters,
   isLoading,
   onNomeChange,
   onCpfChange,
   onStatusChange,
-  onDateRangeChange,
+  onDateFromChange,
+  onDateToChange,
   onSearch,
   onClear,
   onRefresh,
@@ -124,55 +185,21 @@ export function MedicalRecordFilters({
             </Dropdown.Popover>
           </Dropdown>
 
-          {/* Data do último atendimento (intervalo, filtrado no backend) */}
-          <DateRangePicker
-            className="w-72"
-            startName="dataInicio"
-            endName="dataFim"
-            value={dateRange}
-            onChange={onDateRangeChange}
-          >
-            <Label>Data do último atendimento</Label>
-            <DateField.Group fullWidth>
-              <DateField.Input slot="start">
-                {(segment) => <DateField.Segment segment={segment} />}
-              </DateField.Input>
-              <DateRangePicker.RangeSeparator />
-              <DateField.Input slot="end">
-                {(segment) => <DateField.Segment segment={segment} />}
-              </DateField.Input>
-              <DateField.Suffix>
-                <DateRangePicker.Trigger>
-                  <DateRangePicker.TriggerIndicator />
-                </DateRangePicker.Trigger>
-              </DateField.Suffix>
-            </DateField.Group>
-            <DateRangePicker.Popover>
-              <RangeCalendar aria-label="Data do último atendimento">
-                <RangeCalendar.Header>
-                  <RangeCalendar.YearPickerTrigger>
-                    <RangeCalendar.YearPickerTriggerHeading />
-                    <RangeCalendar.YearPickerTriggerIndicator />
-                  </RangeCalendar.YearPickerTrigger>
-                  <RangeCalendar.NavButton slot="previous" />
-                  <RangeCalendar.NavButton slot="next" />
-                </RangeCalendar.Header>
-                <RangeCalendar.Grid>
-                  <RangeCalendar.GridHeader>
-                    {(day) => <RangeCalendar.HeaderCell>{day}</RangeCalendar.HeaderCell>}
-                  </RangeCalendar.GridHeader>
-                  <RangeCalendar.GridBody>
-                    {(date) => <RangeCalendar.Cell date={date} />}
-                  </RangeCalendar.GridBody>
-                </RangeCalendar.Grid>
-                <RangeCalendar.YearPickerGrid>
-                  <RangeCalendar.YearPickerGridBody>
-                    {({ year }) => <RangeCalendar.YearPickerCell year={year} />}
-                  </RangeCalendar.YearPickerGridBody>
-                </RangeCalendar.YearPickerGrid>
-              </RangeCalendar>
-            </DateRangePicker.Popover>
-          </DateRangePicker>
+          {/* Data do último atendimento: de / até (um limita o outro) */}
+          <DateFilter
+            label="Atendimento de"
+            name="dataInicio"
+            value={dateFrom}
+            onChange={onDateFromChange}
+            maxValue={dateTo ?? undefined}
+          />
+          <DateFilter
+            label="Atendimento até"
+            name="dataFim"
+            value={dateTo}
+            onChange={onDateToChange}
+            minValue={dateFrom ?? undefined}
+          />
         </div>
 
         {/* Limpar + Atualizar */}

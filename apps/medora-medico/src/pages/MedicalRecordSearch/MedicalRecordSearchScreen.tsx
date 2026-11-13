@@ -1,24 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Card, Pagination } from "@heroui/react";
+import { Button, Card, Pagination, type DateValue } from "@heroui/react";
 import axios from "axios";
 import { CircleAlert, FileSearch } from "lucide-react";
+
 import { maskCpf, onlyDigits } from "./MedicalRecordHelper";
 import {
   searchMedicalRecords,
   type MedicalRecordStatusFilter,
 } from "../../api/services/MedicalRecordSearch";
-import { MedicalRecordFilters, type DateRange } from "./MedicalRecordFilters";
+import { MedicalRecordFilters } from "./MedicalRecordFilters";
 import { MedicalRecordRow, MedicalRecordRowSkeleton } from "./MedicalRecordRow";
 import type { MedicalRecordListDTO } from "../../api/dtos/MedicalRecord/MedicalRecordListDTO";
 
 const PAGE_SIZE = 10;
 const DEBOUNCE_MS = 450;
 
+// Fonte única da verdade da requisição: qualquer mudança aqui dispara UMA busca.
 interface Query {
   nome: string;
   cpf: string; // somente dígitos
   status: MedicalRecordStatusFilter;
-  dateRange: DateRange | null;
+  dateFrom: DateValue | null;
+  dateTo: DateValue | null;
   page: number;
 }
 
@@ -26,10 +29,12 @@ const INITIAL_QUERY: Query = {
   nome: "",
   cpf: "",
   status: "all",
-  dateRange: null,
+  dateFrom: null,
+  dateTo: null,
   page: 1,
 };
 
+// ─── Paginação: janela de páginas com reticências ─────────────────────────────
 function getPageItems(page: number, total: number): (number | "ellipsis")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const items: (number | "ellipsis")[] = [1];
@@ -42,6 +47,7 @@ function getPageItems(page: number, total: number): (number | "ellipsis")[] {
   return items;
 }
 
+// ─── Estado vazio ─────────────────────────────────────────────────────────────
 function EmptyState({
   hasActiveFilters,
   onClear,
@@ -68,6 +74,7 @@ function EmptyState({
   );
 }
 
+// ─── Página ───────────────────────────────────────────────────────────────────
 export function MedicalRecordSearchScreen() {
   // Valores digitados (atualizam a cada tecla)
   const [nome, setNome] = useState("");
@@ -82,6 +89,7 @@ export function MedicalRecordSearchScreen() {
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0); // incrementa para recarregar (botão Atualizar)
 
+  // Aplica nome/CPF na query; só muda o estado (e a página) se algo realmente mudou.
   const commitSearch = useCallback((n: string, c: string) => {
     const name = n.trim();
     const digits = onlyDigits(c);
@@ -90,11 +98,13 @@ export function MedicalRecordSearchScreen() {
     );
   }, []);
 
+  // Debounce da digitação
   useEffect(() => {
     const timer = setTimeout(() => commitSearch(nome, cpf), DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [nome, cpf, commitSearch]);
 
+  // Busca no servidor; cancela a requisição anterior quando a query muda
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
@@ -107,8 +117,8 @@ export function MedicalRecordSearchScreen() {
         name: query.nome || undefined,
         cpf: query.cpf || undefined,
         status: query.status,
-        dateFrom: query.dateRange?.start.toString(),
-        dateTo: query.dateRange?.end.toString(),
+        dateFrom: query.dateFrom?.toString(),
+        dateTo: query.dateTo?.toString(),
       },
       controller.signal,
     )
@@ -132,7 +142,11 @@ export function MedicalRecordSearchScreen() {
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const hasActiveFilters =
-    nome !== "" || cpf !== "" || query.status !== "all" || query.dateRange !== null;
+    nome !== "" ||
+    cpf !== "" ||
+    query.status !== "all" ||
+    query.dateFrom !== null ||
+    query.dateTo !== null;
 
   const handleClear = () => {
     setNome("");
@@ -147,6 +161,7 @@ export function MedicalRecordSearchScreen() {
   return (
     <div className="min-h-screen max-w-screen bg-surface">
       <div className="flex flex-col gap-6 px-4 py-8">
+        {/* ── Cabeçalho ─────────────────────────────────── */}
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Prontuários</h1>
           <p className="mt-0.5 text-sm text-fg-muted">
@@ -156,22 +171,26 @@ export function MedicalRecordSearchScreen() {
           </p>
         </div>
 
+        {/* ── Busca + filtros ──────────────────────────── */}
         <MedicalRecordFilters
           nome={nome}
           cpf={cpf}
           status={query.status}
-          dateRange={query.dateRange}
+          dateFrom={query.dateFrom}
+          dateTo={query.dateTo}
           hasActiveFilters={hasActiveFilters}
           isLoading={isLoading}
           onNomeChange={setNome}
           onCpfChange={(v) => setCpf(maskCpf(v))}
           onStatusChange={(status) => setQuery((q) => ({ ...q, status, page: 1 }))}
-          onDateRangeChange={(dateRange) => setQuery((q) => ({ ...q, dateRange, page: 1 }))}
+          onDateFromChange={(dateFrom) => setQuery((q) => ({ ...q, dateFrom, page: 1 }))}
+          onDateToChange={(dateTo) => setQuery((q) => ({ ...q, dateTo, page: 1 }))}
           onSearch={() => commitSearch(nome, cpf)}
           onClear={handleClear}
           onRefresh={() => setAttempt((n) => n + 1)}
         />
 
+        {/* ── Erro ──────────────────────────────────────── */}
         {error && (
           <Card className="border-danger-soft-hover bg-danger/5">
             <Card.Content className="flex items-center gap-2 p-3 text-sm text-danger" role="alert">
@@ -181,6 +200,7 @@ export function MedicalRecordSearchScreen() {
           </Card>
         )}
 
+        {/* ── Lista ─────────────────────────────────────── */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {isLoading ? (
             Array.from({ length: 6 }, (_, i) => <MedicalRecordRowSkeleton key={i} />)
@@ -193,10 +213,11 @@ export function MedicalRecordSearchScreen() {
           )}
         </div>
 
+        {/* ── Paginação (server-side) ───────────────────── */}
         {!error && totalCount > 0 && (
           <Pagination className="w-full">
             <Pagination.Summary>
-              {firstItem}-{lastItem} de {totalCount} resultados
+              {firstItem}–{lastItem} de {totalCount} resultados
             </Pagination.Summary>
             <Pagination.Content>
               <Pagination.Item>
