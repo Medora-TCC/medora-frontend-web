@@ -2,14 +2,13 @@ import {
   Button,
   DateField,
   DateRangePicker,
+  Dropdown,
   Label,
   RangeCalendar,
   SearchField,
-  ToggleButton,
-  ToggleButtonGroup,
   type DateValue,
 } from "@heroui/react";
-import { FilterX, Search } from "lucide-react";
+import { ChevronDown, FilterX, ListFilter, RotateCcw, Search } from "lucide-react";
 import type { MedicalRecordStatusFilter } from "../../api/services/MedicalRecordSearch";
 
 export type DateRange = { start: DateValue; end: DateValue };
@@ -33,6 +32,7 @@ interface MedicalRecordFiltersProps {
   onDateRangeChange: (value: DateRange | null) => void;
   onSearch: () => void;
   onClear: () => void;
+  onRefresh: () => void;
 }
 
 export function MedicalRecordFilters({
@@ -48,9 +48,12 @@ export function MedicalRecordFilters({
   onDateRangeChange,
   onSearch,
   onClear,
+  onRefresh,
 }: MedicalRecordFiltersProps) {
+  const statusAtual = statusOptions.find((o) => o.key === status) ?? statusOptions[0];
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {/* ── Busca ─────────────────────────────────────── */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
         <SearchField
@@ -86,7 +89,7 @@ export function MedicalRecordFilters({
         </SearchField>
 
         <Button variant="primary" onPress={onSearch} isDisabled={isLoading}>
-          <Search size={16} />
+          <Search className="size-4" />
           Pesquisar
         </Button>
       </div>
@@ -94,28 +97,34 @@ export function MedicalRecordFilters({
       {/* ── Filtros ───────────────────────────────────── */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-fg-muted">Status</span>
-            <ToggleButtonGroup
-              aria-label="filtrar por status"
-              selectionMode="single"
-              disallowEmptySelection
-              selectedKeys={new Set([status])}
-              onSelectionChange={(keys) => {
-                const val = [...keys][0] as MedicalRecordStatusFilter | undefined;
-                if (val) onStatusChange(val);
-              }}
-              className="flex flex-wrap gap-2"
-            >
-              {statusOptions.map(({ key, label }) => (
-                <ToggleButton key={key} id={key} size="sm">
-                  {label}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </div>
+          {/* Status (filtrado no backend) */}
+          <Dropdown>
+            <Button variant="outline" size="sm" aria-label="Filtrar por status">
+              <ListFilter className="size-4" />
+              {statusAtual.label}
+              <ChevronDown className="size-4" />
+            </Button>
+            <Dropdown.Popover>
+              <Dropdown.Menu
+                selectionMode="single"
+                selectedKeys={new Set([status])}
+                onSelectionChange={(keys) => {
+                  if (keys === "all") return;
+                  const val = [...keys][0] as MedicalRecordStatusFilter | undefined;
+                  if (val) onStatusChange(val);
+                }}
+              >
+                {statusOptions.map(({ key, label }) => (
+                  <Dropdown.Item key={key} id={key} textValue={label}>
+                    <Label>{label}</Label>
+                    <Dropdown.ItemIndicator />
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
 
-          {/* Data do último atendimento (intervalo) */}
+          {/* Data do último atendimento (intervalo, filtrado no backend) */}
           <DateRangePicker
             className="w-72"
             startName="dataInicio"
@@ -166,16 +175,32 @@ export function MedicalRecordFilters({
           </DateRangePicker>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onPress={onClear}
-          isDisabled={!hasActiveFilters}
-          aria-label="limpar busca e filtros"
-        >
-          <FilterX size={16} />
-          Limpar
-        </Button>
+        {/* Limpar + Atualizar */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={onClear}
+            isDisabled={!hasActiveFilters}
+            aria-label="Limpar busca e filtros"
+          >
+            <FilterX className="size-4" />
+            Limpar
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            isIconOnly
+            onPress={onRefresh}
+            isDisabled={isLoading}
+            aria-label="Atualizar prontuários"
+          >
+            <span title="Atualizar prontuários" className="inline-flex">
+              <RotateCcw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
+            </span>
+          </Button>
+        </div>
       </div>
     </div>
   );

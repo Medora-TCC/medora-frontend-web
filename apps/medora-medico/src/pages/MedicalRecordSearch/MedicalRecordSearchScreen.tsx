@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Card, Pagination, type DateRange } from "@heroui/react";
+import { Button, Card, Pagination } from "@heroui/react";
 import axios from "axios";
 import { CircleAlert, FileSearch } from "lucide-react";
-
-
 import { maskCpf, onlyDigits } from "./MedicalRecordHelper";
-import { searchMedicalRecords, type MedicalRecordStatusFilter } from "../../api/services/MedicalRecordSearch";
-import { MedicalRecordFilters } from "./MedicalRecordFilters";
-import { MedicalRecordRow, MedicalRecordRowSkeleton } from "./MedicalRecodRow";
+import {
+  searchMedicalRecords,
+  type MedicalRecordStatusFilter,
+} from "../../api/services/MedicalRecordSearch";
+import { MedicalRecordFilters, type DateRange } from "./MedicalRecordFilters";
+import { MedicalRecordRow, MedicalRecordRowSkeleton } from "./MedicalRecordRow";
 import type { MedicalRecordListDTO } from "../../api/dtos/MedicalRecord/MedicalRecordListDTO";
 
 const PAGE_SIZE = 10;
 const DEBOUNCE_MS = 450;
 
-// Fonte única da verdade da requisição: qualquer mudança aqui dispara UMA busca.
 interface Query {
   nome: string;
   cpf: string; // somente dígitos
@@ -30,7 +30,6 @@ const INITIAL_QUERY: Query = {
   page: 1,
 };
 
-// ─── Paginação: janela de páginas com reticências ─────────────────────────────
 function getPageItems(page: number, total: number): (number | "ellipsis")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const items: (number | "ellipsis")[] = [1];
@@ -43,7 +42,6 @@ function getPageItems(page: number, total: number): (number | "ellipsis")[] {
   return items;
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({
   hasActiveFilters,
   onClear,
@@ -56,7 +54,11 @@ function EmptyState({
       <div className="flex size-14 items-center justify-center rounded-2xl bg-surface-secondary text-fg-muted">
         <FileSearch strokeWidth={1.5} />
       </div>
-      <p className="text-sm text-fg-muted">Nenhum prontuário encontrado</p>
+      <p className="text-sm text-fg-muted">
+        {hasActiveFilters
+          ? "Nenhum prontuário encontrado para essa busca"
+          : "Nenhum prontuário encontrado"}
+      </p>
       {hasActiveFilters && (
         <Button size="sm" variant="outline" onPress={onClear}>
           Limpar filtros
@@ -66,7 +68,6 @@ function EmptyState({
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export function MedicalRecordSearchScreen() {
   // Valores digitados (atualizam a cada tecla)
   const [nome, setNome] = useState("");
@@ -79,9 +80,8 @@ export function MedicalRecordSearchScreen() {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
+  const [attempt, setAttempt] = useState(0); // incrementa para recarregar (botão Atualizar)
 
-  // Aplica nome/CPF na query; só muda o estado (e a página) se algo realmente mudou.
   const commitSearch = useCallback((n: string, c: string) => {
     const name = n.trim();
     const digits = onlyDigits(c);
@@ -90,13 +90,11 @@ export function MedicalRecordSearchScreen() {
     );
   }, []);
 
-  // Debounce da digitação
   useEffect(() => {
     const timer = setTimeout(() => commitSearch(nome, cpf), DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [nome, cpf, commitSearch]);
 
-  // Busca no servidor; cancela a requisição anterior quando a query muda
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
@@ -123,7 +121,7 @@ export function MedicalRecordSearchScreen() {
         console.error(e);
         setItems([]);
         setTotalCount(0);
-        setError("Não foi possível carregar os prontuários.");
+        setError(e instanceof Error ? e.message : "Não foi possível carregar os prontuários.");
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoading(false);
@@ -149,17 +147,15 @@ export function MedicalRecordSearchScreen() {
   return (
     <div className="min-h-screen max-w-screen bg-surface">
       <div className="flex flex-col gap-6 px-4 py-8">
-        {/* ── Header ───────────────────────────────────── */}
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Prontuários</h1>
           <p className="mt-0.5 text-sm text-fg-muted">
             {isLoading
               ? "Carregando…"
-              : `${totalCount} prontuário${totalCount !== 1 ? "s" : ""} encontrado${totalCount !== 1 ? "s" : ""}`}
+              : `${totalCount} prontuário${totalCount !== 1 ? "s" : ""}`}
           </p>
         </div>
 
-        {/* ── Busca + filtros ──────────────────────────── */}
         <MedicalRecordFilters
           nome={nome}
           cpf={cpf}
@@ -173,39 +169,34 @@ export function MedicalRecordSearchScreen() {
           onDateRangeChange={(dateRange) => setQuery((q) => ({ ...q, dateRange, page: 1 }))}
           onSearch={() => commitSearch(nome, cpf)}
           onClear={handleClear}
+          onRefresh={() => setAttempt((n) => n + 1)}
         />
 
-        {/* ── Erro ──────────────────────────────────────── */}
         {error && (
           <Card className="border-danger-soft-hover bg-danger/5">
-            <Card.Content className="flex items-center justify-between gap-2 p-3 text-sm text-danger">
-              <span className="flex items-center gap-2" role="alert">
-                <CircleAlert strokeWidth={1.25} />
-                {error}
-              </span>
-              <Button size="sm" variant="secondary" onPress={() => setAttempt((n) => n + 1)}>
-                Tentar de novo
-              </Button>
+            <Card.Content className="flex items-center gap-2 p-3 text-sm text-danger" role="alert">
+              <CircleAlert strokeWidth={1.25} />
+              {error}
             </Card.Content>
           </Card>
         )}
 
-        {/* ── Lista ─────────────────────────────────────── */}
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {isLoading ? (
-            Array.from({ length: 5 }, (_, i) => <MedicalRecordRowSkeleton key={i} />)
+            Array.from({ length: 6 }, (_, i) => <MedicalRecordRowSkeleton key={i} />)
           ) : error ? null : items.length === 0 ? (
-            <EmptyState hasActiveFilters={hasActiveFilters} onClear={handleClear} />
+            <div className="col-span-full">
+              <EmptyState hasActiveFilters={hasActiveFilters} onClear={handleClear} />
+            </div>
           ) : (
             items.map((item) => <MedicalRecordRow key={item.medicalRecord.id} item={item} />)
           )}
         </div>
 
-        {/* ── Paginação (server-side) ───────────────────── */}
         {!error && totalCount > 0 && (
           <Pagination className="w-full">
             <Pagination.Summary>
-              {firstItem}–{lastItem} de {totalCount} resultados
+              {firstItem}-{lastItem} de {totalCount} resultados
             </Pagination.Summary>
             <Pagination.Content>
               <Pagination.Item>
