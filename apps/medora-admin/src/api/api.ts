@@ -1,3 +1,5 @@
+import axios, { AxiosError } from "axios";
+
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "https://localhost:7069/api";
 
 let accessToken: string | null = null;
@@ -30,39 +32,50 @@ export class ApiError extends Error {
 
 const GENERIC_VALIDATION_DETAIL = "Um ou mais erros de validação ocorreram";
 
-/**
- * Chama a API com o token em memória e os cookies (MFA e refresh). Lança ApiError com a
- * mensagem do ProblemDetails do backend.
- */
-export async function request<T>(path: string, options: { method?: string; body?: unknown; token?: string } = {}): Promise<T> {
-  const token = options.token ?? accessToken;
+export const api = axios.create({
+  baseURL: baseUrl,
+  withCredentials: true,
+});
 
-  let response: Response;
-  try {
-    response = await fetch(`${baseUrl}${path}`, {
-      method: options.method ?? "GET",
-      credentials: "include",
-      headers: {
-        ...(options.body !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-    });
-  } catch {
-    throw new ApiError("Não foi possível conectar ao servidor.", 0);
+// coloca o token em toda requisição (a não ser que a chamada mande um próprio)
+api.interceptors.request.use((config) => {
+  if (accessToken && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
+  return config;
+});
 
-  if (response.status === 204) return undefined as T;
+// transforma qualquer erro no mesmo ApiError de antes
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<ProblemDetails>) => {
+    if (!error.response) {
+      return Promise.reject(new ApiError("Não foi possível conectar ao servidor.", 0));
+    }
 
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : undefined;
-
-  if (!response.ok) {
-    const body = data as ProblemDetails | undefined;
+    const body = error.response.data;
     const validation = (body?.Erros ?? []).filter(Boolean).join(" ");
     const detail = body?.detail && body.detail !== GENERIC_VALIDATION_DETAIL ? body.detail : undefined;
-    throw new ApiError(validation || detail || body?.title || "Erro inesperado.", response.status, body);
-  }
 
-  return data as T;
+    return Promise.reject(
+      new ApiError(validation || detail || body?.title || "Erro inesperado.", error.response.status, body),
+    );
+  },
+);
+
+/**
+ * Mantido para as telas existentes: mesma assinatura de antes, agora usando o axios.
+ */
+export async function request<T>(
+  path: string,
+  options: { method?: string; body?: unknown; token?: string } = {},
+): Promise<T> {
+  const response = await api.request<T>({
+    url: path,
+    method: options.method ?? "GET",
+    data: options.body,
+    headers: options.token ? { Authorization: `Bearer ${options.token}` } : undefined,
+  });
+
+  return response.data;
 }
