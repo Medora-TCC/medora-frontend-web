@@ -1,4 +1,4 @@
-import { ApiError, request } from "./api";
+import { ApiError, request } from "./client";
 
 export type LoginResult = { accessToken: string } | { mfaRequired: true };
 
