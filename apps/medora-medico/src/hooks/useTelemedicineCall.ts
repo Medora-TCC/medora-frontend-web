@@ -27,7 +27,7 @@ interface TelemedicineCallState {
 }
 
 // Reaproveita o baseURL já configurado no axios do projeto.
-const API_BASE = "http://localhost:5262";
+const API_BASE = new URL(api.defaults.baseURL!).origin;;
 const HUB_URL = `${API_BASE}/hubs/telemedicine`;
 
 const RECONNECT_GRACE_MS = 4000;
