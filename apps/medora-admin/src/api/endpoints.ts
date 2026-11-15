@@ -21,4 +21,9 @@ export const Endpoints = {
   // Relatos de problema na consulta
   ISSUE_RELEASE: (issueId: number) => `/admin/appointment-issues/${issueId}/release`,
   ISSUE_REFUND: (issueId: number) => `/admin/appointment-issues/${issueId}/refund`,
+
+  // Logs do worker
+  WORKER_LOGS: "/admin/worker-logs",
+  WORKER_LOG: (id: number) => `/admin/worker-logs/${id}`,
+  WORKER_LOG_FILTERS: "/admin/worker-logs/filters",
 } as const;
