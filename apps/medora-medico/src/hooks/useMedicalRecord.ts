@@ -8,7 +8,8 @@ import MedicalRecordsService, {
 import type { AppointmentStatus } from "../api/services/Appointments";
 import { errorMessage } from "../api/errors";
 import type { RichTextEditorRef } from "../components/RichTextEditor/RichTextEditor";
-import type { PatientSummary } from "../pages/MedicalRecordPage/PatientHeader";
+import type { PatientSummary } from "../api/dtos/MedicalRecord/PatientSummary";
+
 
 export type SaveState =
   | { kind: "idle" }

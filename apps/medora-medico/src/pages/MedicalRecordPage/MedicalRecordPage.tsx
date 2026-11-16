@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState, type JSX } from "react";
 import { ToastProvider } from "@heroui/react";
 import { useLocation, useParams } from "react-router";
-import { PatientHeader, type PatientSummary } from "./PatientHeader";
+import { PatientHeader } from "./PatientHeader";
 import { ClinicalSidebar } from "./ClinicalSidebar";
 import { MedicalRecordComponent } from "./MedicalRecordComponent";
 import { useMedicalRecord } from "../../hooks/useMedicalRecord";
+import type { PatientSummary } from "../../api/dtos/MedicalRecord/PatientSummary";
 
 export interface MedicalRecordNavigationState {
   patientName?: string;

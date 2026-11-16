@@ -29,6 +29,7 @@ import PersonalDataSection from './pages/AccountPage/sections/PersonalDataSectio
 import ProfessionalDataSection from './pages/AccountPage/sections/ProfessionalDataSection';
 import SecuritySection from './pages/AccountPage/sections/SecuritySection';
 import PublicProfileSection from './pages/AccountPage/sections/PublicProfileSection';
+import MedicalRecordSearchScreen from './pages/MedicalRecordSearch/MedicalRecordSearchScreen';
 
 function App() {
   return (
@@ -43,7 +44,7 @@ function App() {
                   <Route path="disponibilidade" element={<AvailabilityPage />} />
                   <Route path="agenda" element={<AvailabilityHistorical />} />
                   <Route path="consulta" element={<ConsultaScreen />} />
-                  <Route path="prontuario" element={<MedicalRecordPage />} />
+                  <Route path="busca-prontuario" element={<MedicalRecordSearchScreen />} />
                   <Route path="prontuario/:appointmentId" element={<MedicalRecordPage />} />
                   <Route path="prescricao" element={<PrescriptionPage />} />
                   <Route path="prescricao/:appointmentId" element={<PrescriptionPage />} />

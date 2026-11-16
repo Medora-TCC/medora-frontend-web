@@ -1,7 +1,7 @@
 import { useEffect, useState, type JSX } from "react";
 import { Button, Spinner } from "@heroui/react";
 import { useNavigate } from "react-router";
-import { MedicalRecordModal } from "./MedicalRecordModal";
+import { MedicalRecordModal, formatRecordDate } from "./MedicalRecordModal";
 import type { MedicalRecordDTO } from "../../api/dtos/MedicalRecord/MedicalRecordDTO";
 import { getByPatient as fetchMedicalRecords } from "../../api/services/MedicalRecords";
 
@@ -20,7 +20,6 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    console.log(patientId)
     if (patientId === undefined) return;
     let active = true;
     setIsLoading(true);
@@ -37,7 +36,7 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
     return () => {
       active = false;
     };
-  }, [reloadKey, attempt]);
+  }, [patientId, reloadKey, attempt]);
 
 
   return (
@@ -75,7 +74,7 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
                   variant="ghost"
                   className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
                   onPress={() => navigate("/medico/prontuario", { state: { prontuario: item } })}
-                  aria-label={`Continuar prontuário de ${item.date}`}
+                  aria-label={`Continuar prontuário de ${formatRecordDate(item.dateCreated)}`}
                 >
                   <Entry item={item} />
                 </Button>
@@ -96,7 +95,7 @@ function Entry({ item }: { item: MedicalRecordDTO }): JSX.Element {
   return (
     <span className="flex w-full min-w-0 flex-col items-start gap-0.5">
       <span className="flex items-center gap-2 text-xs tabular-nums text-text-secondary">
-        {item.date.toLocaleDateString('pt-BR')}
+        {formatRecordDate(item.dateCreated)}
         <span className={`rounded-full px-2 py-px font-semibold`}>
           {item.isDeleted ? "Inativado" : item.isFinalized ? "Finalizado" : "Não finalizado"}
         </span>

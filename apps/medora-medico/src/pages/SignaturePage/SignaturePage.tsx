@@ -8,7 +8,7 @@ import MedicalRecordsService from "../../api/services/MedicalRecords";
 import PrescriptionsService from "../../api/services/Prescriptions";
 import { errorMessage } from "../../api/errors";
 
-const PDFViewer = lazy(() => import("./PDFViewer"));
+const PDFViewer = lazy(() => import("../../components/PDF/PDFViewer"));
 
 const POLL_INTERVAL_MS = 15000;
 

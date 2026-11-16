@@ -1,7 +1,7 @@
 export interface MedicalRecordDTO {
   id: number;
   jsonContent: string;
-  date: Date;
+  dateCreated: Date;
   isFinalized: boolean;
   isDeleted: boolean;
 }
