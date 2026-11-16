@@ -3,7 +3,8 @@ import { Endpoints } from '../enums/endpoints';
 import { api } from './api';
 import { toDomainError } from '../errors';
 
-export type DoctorAppointmentsFilter = 'Today' | 'Tomorrow' | 'Week' | 'PendingConfirmation' | 'ToComplete';
+/** Espelha DoctorAppointmentsFilter do backend (default do endpoint: Recent) */
+export type DoctorAppointmentsFilter = 'All' | 'Recent' | 'Today' | 'Tomorrow' | 'Week';
 
 // O backend só aceita cancelamento do médico com 72h de antecedência (ChangeAppointmentStatusUseCase)
 const DOCTOR_CANCEL_NOTICE_MS = 72 * 60 * 60 * 1000;
@@ -15,6 +16,10 @@ export function canDoctorCancel(startDateTime: string): boolean {
 /** Mudanças de status que o PATCH /appointments/{id}/status aceita */
 export type AppointmentStatusChange = 'Confirmed' | 'Completed' | 'Absent' | 'Canceled';
 
+/**
+ * Status de uma consulta. O enum do backend também tem `Available`, que representa
+ * um horário livre (não é uma consulta) e por isso não é exposto nesta listagem.
+ */
 export type AppointmentStatus =
   | 'Scheduled'
   | 'AwaitingPayment'
@@ -42,19 +47,33 @@ export interface DoctorAppointment {
   meetingCode: string | null;
 }
 
-interface DoctorAppointmentsPage {
+/** Query string aceita por GET /appointments/doctor/me */
+export interface DoctorAppointmentsQuery {
+  filter: DoctorAppointmentsFilter;
+  status?: AppointmentStatus;
+  page: number;
+  pageSize: number;
+}
+
+export interface DoctorAppointmentsPage {
   items: DoctorAppointment[];
   page: number;
   pageSize: number;
   totalCount: number;
 }
 
-async function getDoctorAppointments(filter: DoctorAppointmentsFilter): Promise<DoctorAppointment[]> {
+async function getDoctorAppointments(
+  query: DoctorAppointmentsQuery,
+  signal?: AbortSignal,
+): Promise<DoctorAppointmentsPage> {
   try {
+    const { filter, status, page, pageSize } = query;
+    // `status` undefined é omitido da query string pelo Axios
     const res = await api.get<DoctorAppointmentsPage>(Endpoints.DOCTOR_APPOINTMENTS, {
-      params: { filter, pageSize: 100 },
+      params: { filter, status, page, pageSize },
+      signal,
     });
-    return res.data.items;
+    return res.data;
   } catch (error) {
     throw toDomainError(error, 'Erro ao carregar as consultas.');
   }

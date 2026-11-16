@@ -9,7 +9,6 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import { HomePage } from "./pages/HomePage/HomePage";
 import AvailabilityPage from "./pages/AvailabilityPage/AvailabilityPage";
 import MainLayout from "./components/MainLayout/MainLayout";
-import { AvailabilityHistorical } from "./pages/AvailabilityPage/AvailabilitySchedule";
 import { MedicalRecordPage } from "./pages/MedicalRecordPage/MedicalRecordPage";
 import TeleConsultaConfig from './pages/TeleconsultaScreen/TeleConsultaConfig';
 import SalaTeleConsulta from './pages/TeleconsultaScreen/SalaTeleconsulta';
@@ -30,6 +29,7 @@ import ProfessionalDataSection from './pages/AccountPage/sections/ProfessionalDa
 import SecuritySection from './pages/AccountPage/sections/SecuritySection';
 import PublicProfileSection from './pages/AccountPage/sections/PublicProfileSection';
 import MedicalRecordSearchScreen from './pages/MedicalRecordSearch/MedicalRecordSearchScreen';
+import SchedulePage from './pages/SchedulePage/SchedulePage';
 
 function App() {
   return (
@@ -42,7 +42,7 @@ function App() {
                 <Route path="/medico" element={<MainLayout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="disponibilidade" element={<AvailabilityPage />} />
-                  <Route path="agenda" element={<AvailabilityHistorical />} />
+                  <Route path="agenda" element={<SchedulePage />} />
                   <Route path="consulta" element={<ConsultaScreen />} />
                   <Route path="busca-prontuario" element={<MedicalRecordSearchScreen />} />
                   <Route path="prontuario/:appointmentId" element={<MedicalRecordPage />} />
