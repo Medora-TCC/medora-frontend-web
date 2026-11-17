@@ -26,4 +26,8 @@ export const Endpoints = {
   WORKER_LOGS: "/admin/worker-logs",
   WORKER_LOG: (id: number) => `/admin/worker-logs/${id}`,
   WORKER_LOG_FILTERS: "/admin/worker-logs/filters",
+
+  ADMIN_USERS: "/admin/users",
+  ADMIN_USER_STATUS: (id: string) => `/admin/users/${id}/status`,
+  ADMIN_USER_REVOKE_SESSIONS: (id: string) => `/admin/users/${id}/sessions/revoke`,
 } as const;

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { setAccessToken } from "../api/client";
+import { useNavigate } from "react-router";
+import { setAccessToken, setOnSessionExpired } from "../api/client";
 import { logout, refresh } from "../api/auth";
 import { AuthContext } from "./authContextValue";
 
@@ -9,6 +10,7 @@ import { AuthContext } from "./authContextValue";
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   const signIn = useCallback((token: string) => {
     setAccessToken(token);
@@ -27,6 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => undefined)
       .finally(() => setIsLoading(false));
   }, [signIn]);
+
+  useEffect(() => {
+    setOnSessionExpired(() => {
+      setToken(null);
+      navigate("/", { replace: true });
+    });
+    return () => setOnSessionExpired(null);
+  }, [navigate]);
 
   return (
     <AuthContext.Provider value={{ accessToken, isLoading, signIn, signOut }}>

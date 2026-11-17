@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "https://localhost:7069/api";
 
@@ -32,12 +32,43 @@ export class ApiError extends Error {
 
 const GENERIC_VALIDATION_DETAIL = "Um ou mais erros de validação ocorreram";
 
+// ---------- sessão expirada ----------
+
+let onSessionExpired: (() => void) | null = null;
+
+export function setOnSessionExpired(handler: (() => void) | null) {
+  onSessionExpired = handler;
+}
+
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  try {
+    const { data } = await axios.post<{ accessToken: string }>(`${baseUrl}/auth/refresh`, null, {
+      withCredentials: true,
+    });
+    accessToken = data.accessToken;
+    return accessToken;
+  } catch {
+    return null;
+  }
+}
+
+function toApiError(error: AxiosError<ProblemDetails>): ApiError {
+  if (!error.response) return new ApiError("Não foi possível conectar ao servidor.", 0);
+
+  const body = error.response.data;
+  const validation = (body?.Erros ?? []).filter(Boolean).join(" ");
+  const detail = body?.detail && body.detail !== GENERIC_VALIDATION_DETAIL ? body.detail : undefined;
+
+  return new ApiError(validation || detail || body?.title || "Erro inesperado.", error.response.status, body);
+}
+
 export const api = axios.create({
   baseURL: baseUrl,
   withCredentials: true,
 });
 
-// coloca o token em toda requisição (a não ser que a chamada mande um próprio)
 api.interceptors.request.use((config) => {
   if (accessToken && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -45,21 +76,30 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// transforma qualquer erro no mesmo ApiError de antes
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ProblemDetails>) => {
-    if (!error.response) {
-      return Promise.reject(new ApiError("Não foi possível conectar ao servidor.", 0));
+  async (error: AxiosError<ProblemDetails>) => {
+    const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
+    const isAuthCall = original?.url?.startsWith("/auth/") || original?.url?.startsWith("/mfa/");
+
+    if (error.response?.status === 401 && original && !original._retried && !isAuthCall) {
+      original._retried = true;
+
+      refreshPromise ??= refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+      const newToken = await refreshPromise;
+
+      if (newToken) {
+        original.headers.Authorization = `Bearer ${newToken}`;
+        return api(original);
+      }
+
+      accessToken = null;
+      onSessionExpired?.();
     }
 
-    const body = error.response.data;
-    const validation = (body?.Erros ?? []).filter(Boolean).join(" ");
-    const detail = body?.detail && body.detail !== GENERIC_VALIDATION_DETAIL ? body.detail : undefined;
-
-    return Promise.reject(
-      new ApiError(validation || detail || body?.title || "Erro inesperado.", error.response.status, body),
-    );
+    return Promise.reject(toApiError(error));
   },
 );
 
