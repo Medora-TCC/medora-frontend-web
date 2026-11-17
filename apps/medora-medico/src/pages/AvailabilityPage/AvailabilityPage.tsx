@@ -485,9 +485,9 @@ export default function AvailabilityPage() {
                     key={date}
                     onClick={() => setSelectedDate(date)}
                     className={`flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 min-w-12 transition-all
-                      ${isActive ? 'bg-primary text-white shadow-sm' : 'hover:bg-surface-alt text-text-secondary'}`}
+                      ${isActive ? 'bg-primary text-text-primary shadow-sm' : 'hover:bg-surface-alt text-text-secondary'}`}
                   >
-                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${isActive ? 'text-white' : 'text-text-muted'}`}>{top}</span>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${isActive ? 'text-text-primary' : 'text-text-muted'}`}>{top}</span>
                     <span className="text-base font-bold leading-tight">{sub}</span>
                   </button>
                 );

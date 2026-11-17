@@ -52,7 +52,7 @@ function MedicalRecordContent({ medicalRecord }: { medicalRecord: MedicalRecordD
           setPdf(res);
           setMode("pdf");
         } else {
-          setMode("raw"); // PDF ainda não disponível
+          setMode("raw");
         }
       })
       .catch((e: unknown) => {
@@ -134,7 +134,7 @@ export function MedicalRecordModal({ medicalRecord, children }: MedicalRecordMod
       <Button
         variant="ghost"
         className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
-        aria-label={`Abrir consulta de ${formatRecordDate(medicalRecord.dateCreated)}`}
+        aria-label={`Abrir consulta de ${formatRecordDate(medicalRecord.date)}`}
       >
         {children}
       </Button>
@@ -144,7 +144,7 @@ export function MedicalRecordModal({ medicalRecord, children }: MedicalRecordMod
             <Modal.CloseTrigger />
             <Modal.Header>
               <Modal.Heading className="w-full text-center">
-                <p className="font-semibold text-muted">{formatRecordDate(medicalRecord.dateCreated)}</p>
+                <p className="font-semibold text-muted">{formatRecordDate(medicalRecord.date)}</p>
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body>

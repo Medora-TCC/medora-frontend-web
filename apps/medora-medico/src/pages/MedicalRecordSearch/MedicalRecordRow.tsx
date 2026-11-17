@@ -65,7 +65,7 @@ export function MedicalRecordRow({ item }: MedicalRecordRowProps) {
           <span className="text-sm tabular-nums">CPF {formatCpf(patient.cpf)}</span>
           <span className="mt-1 flex items-center gap-1.5 text-xs tabular-nums text-fg-muted">
             <CalendarDays size={14} />
-            {formatDate(medicalRecord.dateCreated)} · {formatTime(medicalRecord.dateCreated)}
+            {formatDate(medicalRecord.date)} · {formatTime(medicalRecord.date)}
           </span>
         </div>
 

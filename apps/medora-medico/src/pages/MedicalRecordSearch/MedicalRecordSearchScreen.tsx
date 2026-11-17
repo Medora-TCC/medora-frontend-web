@@ -15,7 +15,6 @@ import type { MedicalRecordListDTO } from "../../api/dtos/MedicalRecord/MedicalR
 const PAGE_SIZE = 10;
 const DEBOUNCE_MS = 450;
 
-// Fonte única da verdade da requisição: qualquer mudança aqui dispara UMA busca.
 interface Query {
   nome: string;
   cpf: string; // somente dígitos
@@ -34,7 +33,6 @@ const INITIAL_QUERY: Query = {
   page: 1,
 };
 
-// ─── Paginação: janela de páginas com reticências ─────────────────────────────
 function getPageItems(page: number, total: number): (number | "ellipsis")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const items: (number | "ellipsis")[] = [1];
@@ -47,7 +45,6 @@ function getPageItems(page: number, total: number): (number | "ellipsis")[] {
   return items;
 }
 
-// ─── Estado vazio ─────────────────────────────────────────────────────────────
 function EmptyState({
   hasActiveFilters,
   onClear,
@@ -74,22 +71,18 @@ function EmptyState({
   );
 }
 
-// ─── Página ───────────────────────────────────────────────────────────────────
 export function MedicalRecordSearchScreen() {
-  // Valores digitados (atualizam a cada tecla)
   const [nome, setNome] = useState("");
-  const [cpf, setCpf] = useState(""); // já com máscara
+  const [cpf, setCpf] = useState("");
 
-  // Parâmetros efetivamente enviados ao backend
   const [query, setQuery] = useState<Query>(INITIAL_QUERY);
 
   const [items, setItems] = useState<MedicalRecordListDTO[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0); // incrementa para recarregar (botão Atualizar)
+  const [attempt, setAttempt] = useState(0);
 
-  // Aplica nome/CPF na query; só muda o estado (e a página) se algo realmente mudou.
   const commitSearch = useCallback((n: string, c: string) => {
     const name = n.trim();
     const digits = onlyDigits(c);
@@ -98,13 +91,11 @@ export function MedicalRecordSearchScreen() {
     );
   }, []);
 
-  // Debounce da digitação
   useEffect(() => {
     const timer = setTimeout(() => commitSearch(nome, cpf), DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [nome, cpf, commitSearch]);
 
-  // Busca no servidor; cancela a requisição anterior quando a query muda
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
@@ -123,6 +114,7 @@ export function MedicalRecordSearchScreen() {
       controller.signal,
     )
       .then((res) => {
+        console.log(res)
         setItems(res.items);
         setTotalCount(res.totalCount);
       })
@@ -161,7 +153,6 @@ export function MedicalRecordSearchScreen() {
   return (
     <div className="min-h-screen max-w-screen bg-surface">
       <div className="flex flex-col gap-6 px-4 py-8">
-        {/* ── Cabeçalho ─────────────────────────────────── */}
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Prontuários</h1>
           <p className="mt-0.5 text-sm text-fg-muted">
@@ -171,7 +162,6 @@ export function MedicalRecordSearchScreen() {
           </p>
         </div>
 
-        {/* ── Busca + filtros ──────────────────────────── */}
         <MedicalRecordFilters
           nome={nome}
           cpf={cpf}
@@ -190,7 +180,6 @@ export function MedicalRecordSearchScreen() {
           onRefresh={() => setAttempt((n) => n + 1)}
         />
 
-        {/* ── Erro ──────────────────────────────────────── */}
         {error && (
           <Card className="border-danger-soft-hover bg-danger/5">
             <Card.Content className="flex items-center gap-2 p-3 text-sm text-danger" role="alert">
@@ -200,7 +189,6 @@ export function MedicalRecordSearchScreen() {
           </Card>
         )}
 
-        {/* ── Lista ─────────────────────────────────────── */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {isLoading ? (
             Array.from({ length: 6 }, (_, i) => <MedicalRecordRowSkeleton key={i} />)
@@ -213,7 +201,6 @@ export function MedicalRecordSearchScreen() {
           )}
         </div>
 
-        {/* ── Paginação (server-side) ───────────────────── */}
         {!error && totalCount > 0 && (
           <Pagination className="w-full">
             <Pagination.Summary>
