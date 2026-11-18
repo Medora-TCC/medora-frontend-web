@@ -41,7 +41,8 @@ export function calcAge(birthDate?: string): number | null {
   let age = today.getFullYear() - birth.getFullYear();
   const hadBirthday =
     today.getMonth() > birth.getMonth() ||
-    (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+    (today.getMonth() === birth.getMonth() &&
+      today.getDate() >= birth.getDate());
   if (!hadBirthday) age -= 1;
   return age >= 0 ? age : null;
 }
@@ -49,13 +50,28 @@ export function calcAge(birthDate?: string): number | null {
 export function patientMeta(patient: PatientSummary): string {
   const age = calcAge(patient.birthDate);
   const sex = formatSex(patient.sex!);
-  return [age !== null ? `${age} anos` : null, sex].filter(Boolean).join(" · ") || "—";
+  return (
+    [age !== null ? `${age} anos` : null, sex].filter(Boolean).join(" · ") ||
+    "—"
+  );
 }
 
-export const formatDate = (date: Date): string => date.toLocaleDateString("pt-BR");
+export function formatDate(value?: string | Date | null): string {
+  if (!value) return '—';
+  const date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('pt-BR');
+}
 
-export const formatTime = (date: Date): string =>
-  date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+export const formatTime = (date: Date): string => {
+  if (date != null || date != undefined) {
+    return date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+  return "";
+};
 
 export const recordStatus = (r: {
   isDeleted: boolean;

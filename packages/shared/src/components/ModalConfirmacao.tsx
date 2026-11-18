@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { Button, Modal } from "@heroui/react";
 
 const ButtonVariant = ["primary", "danger"] as const;
@@ -10,12 +11,22 @@ interface ModalConfirmacaoProps {
     texto: string;
     textoBotao: string;
     variant?: ButtonVariant;
+    size?: ComponentProps<typeof Button>["size"];
+    className?: string;
 }
 
-export function ModalConfirmacao({ onConfirm, disabled, texto, textoBotao, variant = "primary" }: ModalConfirmacaoProps) {
+export function ModalConfirmacao({
+    onConfirm,
+    disabled,
+    texto,
+    textoBotao,
+    variant = "primary",
+    size,
+    className,
+}: ModalConfirmacaoProps) {
     return (
         <Modal>
-            <Button variant={variant} isDisabled={disabled}>{textoBotao}</Button>
+            <Button variant={variant} size={size} className={className} isDisabled={disabled}>{textoBotao}</Button>
             <Modal.Backdrop>
                 <Modal.Container>
                     <Modal.Dialog className="bg-surface">
