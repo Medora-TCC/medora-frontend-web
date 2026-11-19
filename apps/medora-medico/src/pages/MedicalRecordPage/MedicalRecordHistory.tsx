@@ -74,7 +74,7 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
                   variant="ghost"
                   className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
                   onPress={() => navigate("/medico/prontuario", { state: { prontuario: item } })}
-                  aria-label={`Continuar prontuário de ${formatRecordDate(item.dateCreated)}`}
+                  aria-label={`Continuar prontuário de ${formatRecordDate(item.date)}`}
                 >
                   <Entry item={item} />
                 </Button>
@@ -95,7 +95,7 @@ function Entry({ item }: { item: MedicalRecordDTO }): JSX.Element {
   return (
     <span className="flex w-full min-w-0 flex-col items-start gap-0.5">
       <span className="flex items-center gap-2 text-xs tabular-nums text-text-secondary">
-        {formatRecordDate(item.dateCreated)}
+        {formatRecordDate(item.date)}
         <span className={`rounded-full px-2 py-px font-semibold`}>
           {item.isDeleted ? "Inativado" : item.isFinalized ? "Finalizado" : "Não finalizado"}
         </span>
