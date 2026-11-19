@@ -63,6 +63,8 @@ export const Endpoints = {
 
     DOCTOR_ADDRESS: '/v1/Doctor/me/address',
 
+    PROFILE_PHOTO: '/v1/profile-photo',
+
     GET_DOCTOR_APPOINTMENT_MEETINGCODE: (meetingCode: string) => `/appointments/${meetingCode}/details`,
 
     GET_MY_PUBLIC_PAGE: '/v1/Doctor/me/public-page',
