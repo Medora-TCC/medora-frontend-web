@@ -8,6 +8,8 @@ import type { WeekFlowDto, WeekFlowPeriod } from "../dtos/Doctors/WeekFlowDto";
 import { Endpoints } from "../enums/endpoints";
 import { api } from "./api";
 import { isAxiosError } from "axios";
+import { toDomainError } from "../errors";
+import type { DoctorAddressDto, DoctorAddressRequestDto } from "../dtos/Doctors/DoctorAddressDto";
 import type { DoctorPublicPageDto, EducationRequestDto, ExperienceRequestDto, UpdateAboutDto } from "../dtos/Doctors/DoctorPublicPageDto";
 
 interface RegisterResponse {
@@ -208,5 +210,25 @@ export async function removeExperience(id: number): Promise<void> {
     await api.delete(`${Endpoints.EXPERIENCES}/${id}`);
   } catch (error) {
     throw toServiceError(error, "Não foi possível remover a experiência.");
+  }
+}
+
+// null enquanto o médico não cadastrou endereço (a API responde 204)
+export async function getDoctorAddress(): Promise<DoctorAddressDto | null> {
+  try {
+    const response = await api.get<DoctorAddressDto | "">(Endpoints.DOCTOR_ADDRESS);
+    return response.status === 204 || !response.data ? null : response.data;
+  } catch (error) {
+    throw toDomainError(error, "Erro ao carregar o endereço.");
+  }
+}
+
+// a API busca as coordenadas do endereço; responde 400 se não achar o endereço no mapa
+export async function updateDoctorAddress(body: DoctorAddressRequestDto): Promise<DoctorAddressDto> {
+  try {
+    const response = await api.put<DoctorAddressDto>(Endpoints.DOCTOR_ADDRESS, body);
+    return response.data;
+  } catch (error) {
+    throw toDomainError(error, "Não foi possível salvar o endereço.");
   }
 }

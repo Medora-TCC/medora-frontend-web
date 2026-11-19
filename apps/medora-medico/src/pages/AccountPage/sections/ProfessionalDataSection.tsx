@@ -5,6 +5,7 @@ import { useMainLayout } from "../../../components/MainLayout/mainLayoutContext"
 import VerificationBadge from "../../../components/VerificationBadge/VerificationBadge";
 import { getProfessionalData } from "../../../api/services/DoctorService";
 import type { ProfessionalDataDto } from "../../../api/dtos/Doctors/ProfessionalRegistrationDto";
+import AddressCard from "./professional/AddressCard";
 
 export default function ProfessionalDataSection() {
   const { doctorRqes, openSpecialtiesModal } = useMainLayout();
@@ -124,6 +125,8 @@ export default function ProfessionalDataSection() {
           </ul>
         )}
       </div>
+
+      <AddressCard />
     </div>
   );
 }
