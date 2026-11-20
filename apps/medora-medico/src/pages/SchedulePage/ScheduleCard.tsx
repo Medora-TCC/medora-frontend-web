@@ -90,7 +90,7 @@ export function ScheduleCard({ appointment, now, onCardClick, muted = false }: S
                 size="sm"
                 variant="primary"
                 onPress={() =>
-                  navigate(`/medico/teleconsulta/${appointment.appointmentId}/pre-sala`, {
+                  navigate(`/medico/teleconsulta/${appointment.meetingCode ?? appointment.appointmentId}/pre-sala`, {
                     state: { appointmentId: appointment.appointmentId, patientName: appointment.patientName },
                   })
                 }
