@@ -107,6 +107,7 @@ function ParticipantTile({
   mirrored = false,
   large = false,
   isLocal = false,
+  fill = false,
 }: {
   stream: MediaStream | null;
   name: string;
@@ -115,6 +116,8 @@ function ParticipantTile({
   mirrored?: boolean;
   large?: boolean;
   isLocal?: boolean;
+  // preenche o quadro cortando as bordas, em vez de mostrar o vídeo inteiro
+  fill?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [audioBlocked, setAudioBlocked] = useState(false);
@@ -161,7 +164,7 @@ function ParticipantTile({
         muted={isLocal}
         // O vídeo aparece inteiro (sem corte): o celular do paciente filma em pé e, cortado
         // para preencher o quadro, parecia ter muito zoom. A sobra fica no fundo do quadro.
-        className={`absolute inset-0 w-full h-full object-contain ${
+        className={`absolute inset-0 w-full h-full ${fill ? "object-cover" : "object-contain"} ${
           mirrored ? "scale-x-[-1]" : ""
         } ${showVideo ? "" : "invisible"}`}
       />
@@ -865,6 +868,7 @@ export default function SalaTeleConsulta() {
                 muted={!remoteMedia.mic}
                 camOff={!remoteCamOn}
                 large
+                fill
               />
             ) : (
               <div className="w-full h-full rounded-2xl bg-surface border border-ring flex flex-col items-center justify-center gap-4">
