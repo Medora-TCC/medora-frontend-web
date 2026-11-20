@@ -34,6 +34,7 @@ export interface AuditFilter {
   to?: string;
   process?: string;
   result?: AuditResult;
+  userId?: string;
   resourceType?: string;
   resourceId?: string;
   traceId?: string;

@@ -63,12 +63,6 @@ export default function MainLayout() {
                 href="/admin/payouts" />
 
               <Sidebar.Item
-                icon={UserPen}
-                label="Perfil"
-                isActive={location.pathname.startsWith('/admin/profile')}
-                href="/admin/profile" />
-
-              <Sidebar.Item
                 icon={ShieldCheck}
                 label="Auditoria"
                 isActive={location.pathname.startsWith('/admin/audit')}

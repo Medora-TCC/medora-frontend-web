@@ -1,14 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Spinner } from "@heroui/react";
+import { useSearchParams } from "react-router";
 import { ChevronDown, ChevronUp, Link2, ScrollText, Search, X } from "lucide-react";
-import {
-  getAuditProcesses,
-  searchAuditEntries,
-  type AuditEntry,
-  type AuditFilter,
-  type AuditProcessInfo,
-  type AuditResult,
-} from "../../api/dtos/audit";
+import { getAuditProcesses, searchAuditEntries } from "../../api/services/AuditService";
+import type { AuditEntry, AuditFilter, AuditProcessInfo, AuditResult } from "../../api/dtos/audit";
 import { OPERATION_LABEL, RESULT_CONFIG } from "../../api/mappers/auditLabels";
 
 const PAGE_SIZE = 25;
@@ -32,6 +27,21 @@ const EMPTY_FORM: FilterForm = {
 };
 
 const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+const WRITE_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
+const RESULTS: AuditResult[] = ["Success", "Failure", "Denied"];
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+// filtros que chegam pela URL (os links do dashboard); valores inválidos são ignorados
+function formFromParams(params: URLSearchParams): FilterForm {
+  const result = params.get("result");
+  const from = params.get("from");
+
+  return {
+    ...EMPTY_FORM,
+    result: result && RESULTS.includes(result as AuditResult) ? (result as AuditResult) : "",
+    from: from && DATE.test(from) ? from : "",
+  };
+}
 
 function startOfDayUtc(date: string) {
   return new Date(`${date}T00:00:00`).toISOString();
@@ -46,6 +56,7 @@ function toApiFilter(form: FilterForm, page: number): AuditFilter {
     to: nextDay ? nextDay.toISOString() : undefined,
     process: form.process || undefined,
     result: form.result || undefined,
+    userId: form.userId || undefined,
     resourceType: form.resourceType.trim() || undefined,
     resourceId: form.resourceId.trim() || undefined,
     traceId: form.traceId.trim() || undefined,
@@ -64,8 +75,9 @@ const inputClassName = "h-9 px-3 rounded-lg border border-divider bg-surface tex
 const RESULT_OPTIONS = Object.entries(RESULT_CONFIG) as [AuditResult, { label: string }][];
 
 export default function AuditPage() {
-  const [form, setForm] = useState<FilterForm>(EMPTY_FORM);
-  const [applied, setApplied] = useState<FilterForm>(EMPTY_FORM);
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState<FilterForm>(() => formFromParams(searchParams));
+  const [applied, setApplied] = useState<FilterForm>(() => formFromParams(searchParams));
   const [page, setPage] = useState(1);
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [total, setTotal] = useState(0);
@@ -176,21 +188,21 @@ export default function AuditPage() {
             </select>
           </Labeled>
           <Labeled label="Endpoint (contém)">
-              <input
-                value={form.endpoint}
-                onChange={(e) => setField("endpoint", e.target.value)}
-                placeholder="Ex: educations"
-                className={inputClassName}
-              />
-            </Labeled>
-            <Labeled label="Método">
-              <select value={form.httpMethod} onChange={(e) => setField("httpMethod", e.target.value)} className={inputClassName}>
-                <option value="">Todos</option>
-                {HTTP_METHODS.map((method) => (
-                  <option key={method} value={method}>{method}</option>
-                ))}
-              </select>
-            </Labeled>
+            <input
+              value={form.endpoint}
+              onChange={(e) => setField("endpoint", e.target.value)}
+              placeholder="Ex: educations"
+              className={inputClassName}
+            />
+          </Labeled>
+          <Labeled label="Método">
+            <select value={form.httpMethod} onChange={(e) => setField("httpMethod", e.target.value)} className={inputClassName}>
+              <option value="">Todos</option>
+              {HTTP_METHODS.map((method) => (
+                <option key={method} value={method}>{method}</option>
+              ))}
+            </select>
+          </Labeled>
           <Labeled label="Tipo do recurso">
             <input value={form.resourceType} onChange={(e) => setField("resourceType", e.target.value)} placeholder="Ex: MedicalRecord" className={inputClassName} />
           </Labeled>
@@ -246,7 +258,6 @@ export default function AuditPage() {
     </div>
   );
 }
-const WRITE_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 
 function AuditRow({ entry, labelOf, expanded, onToggle, onFilter }: {
   entry: AuditEntry;
@@ -257,7 +268,7 @@ function AuditRow({ entry, labelOf, expanded, onToggle, onFilter }: {
 }) {
   const result = RESULT_CONFIG[entry.result];
   const title = labelOf(entry.process) ?? `${entry.httpMethod ?? ""} ${entry.endpoint ?? ""}`.trim();
-    
+
   const isDataChange = entry.process === "DataChange";
   const isWrite = entry.httpMethod !== null && WRITE_METHODS.includes(entry.httpMethod);
   const hasEndpoint = entry.endpoint !== null && entry.endpoint !== "(sem rota)";
