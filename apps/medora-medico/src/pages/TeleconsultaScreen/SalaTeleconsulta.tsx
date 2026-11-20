@@ -152,16 +152,16 @@ function ParticipantTile({
   const showVideo = !camOff && !!stream;
 
   return (
-    <div className="relative w-full h-full bg-surface-overlay rounded-2xl overflow-hidden group">
+    <div className="relative w-full h-full bg-surface border border-ring rounded-2xl overflow-hidden group">
       <video
         ref={videoRef}
         autoPlay
         playsInline
         // Só o self-view fica mudo — evita eco. O remoto precisa tocar o áudio.
         muted={isLocal}
-        // O vídeo grande aparece inteiro: o celular do paciente filma em pé e, cortado
-        // para preencher o quadro largo, parecia ter muito zoom. O quadro pequeno preenche.
-        className={`absolute inset-0 w-full h-full ${large ? "object-contain bg-black" : "object-cover"} ${
+        // O vídeo aparece inteiro (sem corte): o celular do paciente filma em pé e, cortado
+        // para preencher o quadro, parecia ter muito zoom. A sobra fica no fundo do quadro.
+        className={`absolute inset-0 w-full h-full object-contain ${
           mirrored ? "scale-x-[-1]" : ""
         } ${showVideo ? "" : "invisible"}`}
       />
@@ -192,9 +192,7 @@ function ParticipantTile({
       )}
 
       <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between">
-        <span
-          className={`text-xs font-medium truncate ${name === "Você" ? "text-white" : "text-text-primary"}`}
-        >
+        <span className="text-xs font-medium truncate text-text-primary bg-surface/80 rounded-md px-2 py-0.5">
           {name}
         </span>
         {muted && (
@@ -858,7 +856,8 @@ export default function SalaTeleConsulta() {
             </div>
           )}
 
-          <div className="relative w-full h-full">
+          <div className="grid w-full h-full gap-3 grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1">
+            <div className="relative min-h-0 min-w-0">
             {remoteConnected ? (
               <ParticipantTile
                 stream={remoteStream}
@@ -868,9 +867,9 @@ export default function SalaTeleConsulta() {
                 large
               />
             ) : (
-              <div className="w-full h-full rounded-2xl bg-surface flex flex-col items-center justify-center gap-4">
-                <div className="flex items-center justify-center size-20 rounded-full bg-white/5">
-                  <Users size={32} className="text-white/30" />
+              <div className="w-full h-full rounded-2xl bg-surface border border-ring flex flex-col items-center justify-center gap-4">
+                <div className="flex items-center justify-center size-20 rounded-full bg-accent-soft">
+                  <Users size={32} className="text-accent" />
                 </div>
                 <div className="text-center px-6">
                   <p className="text-text-primary text-sm font-medium">
@@ -894,14 +893,16 @@ export default function SalaTeleConsulta() {
               </div>
             )}
 
-            {/* Self-view dentro da área de vídeo (não invade a barra de controles) */}
-            <div className="absolute bottom-3 right-3 w-40 aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10 z-10">
+            </div>
+
+            <div className="relative min-h-0 min-w-0">
               <ParticipantTile
                 stream={localStream}
                 name="Você"
                 muted={!micOn}
                 camOff={!camOn}
                 mirrored
+                large
                 isLocal
               />
             </div>
