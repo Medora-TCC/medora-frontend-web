@@ -30,4 +30,5 @@ export const Endpoints = {
   ADMIN_USERS: "/admin/users",
   ADMIN_USER_STATUS: (id: string) => `/admin/users/${id}/status`,
   ADMIN_USER_REVOKE_SESSIONS: (id: string) => `/admin/users/${id}/sessions/revoke`,
+  ADMIN_DASHBOARD_CREDENTIALS: "/admin/dashboard/credentials",
 } as const;

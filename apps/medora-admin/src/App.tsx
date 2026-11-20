@@ -4,7 +4,6 @@ import MainLayout from './components/MainLayout/MainLayout'
 import AdminLoginScreen from './pages/LoginScreen/LoginScreen'
 import Dashboard from './pages/Dashboard/Dashboard'
 import WorkerLogs from './pages/WorkerLogs/WorkerLogs'
-import ProfilePage from './pages/ProfilePage/ProfilePage'
 import UserManagementPage from './pages/ManageUsers/ManageUsers'
 import PayoutsPage from './pages/Payouts/PayoutsPage'
 import MfaPage from './pages/MfaPage/MfaPage'
@@ -24,7 +23,6 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/admin" element={<MainLayout />}>
                 <Route path="/admin" element={<Dashboard />} />
-                <Route path="/admin/profile" element={<ProfilePage />} />
                 <Route path="/admin/manage-users" element={<UserManagementPage />} />
                 <Route path="/admin/logs" element={<WorkerLogs />} />
                 <Route path="/admin/audit" element={<AuditPage />} />
