@@ -160,7 +160,9 @@ function ParticipantTile({
         playsInline
         // Só o self-view fica mudo — evita eco. O remoto precisa tocar o áudio.
         muted={isLocal}
-        className={`absolute inset-0 w-full h-full object-cover ${
+        // O vídeo grande aparece inteiro: o celular do paciente filma em pé e, cortado
+        // para preencher o quadro largo, parecia ter muito zoom. O quadro pequeno preenche.
+        className={`absolute inset-0 w-full h-full ${large ? "object-contain bg-black" : "object-cover"} ${
           mirrored ? "scale-x-[-1]" : ""
         } ${showVideo ? "" : "invisible"}`}
       />
