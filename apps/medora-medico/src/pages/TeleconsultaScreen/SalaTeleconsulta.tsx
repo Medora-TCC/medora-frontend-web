@@ -859,7 +859,12 @@ export default function SalaTeleConsulta() {
             </div>
           )}
 
-          <div className="grid w-full h-full gap-3 grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1">
+          {/* com prontuário ou receita aberto, o paciente ocupa o espaço e a câmera do médico vira miniatura */}
+          <div
+            className={`grid w-full h-full gap-3 ${
+              sidePanel ? "grid-cols-1 grid-rows-1" : "grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1"
+            }`}
+          >
             <div className="relative min-h-0 min-w-0">
             {remoteConnected ? (
               <ParticipantTile
@@ -899,14 +904,21 @@ export default function SalaTeleConsulta() {
 
             </div>
 
-            <div className="relative min-h-0 min-w-0">
+            {/* o mesmo elemento muda de lugar (sem desmontar), para o vídeo não piscar */}
+            <div
+              className={
+                sidePanel
+                  ? "absolute top-3 right-3 z-10 w-40 aspect-video shadow-lg rounded-2xl"
+                  : "relative min-h-0 min-w-0"
+              }
+            >
               <ParticipantTile
                 stream={localStream}
                 name="Você"
                 muted={!micOn}
                 camOff={!camOn}
                 mirrored
-                large
+                large={!sidePanel}
                 isLocal
               />
             </div>
