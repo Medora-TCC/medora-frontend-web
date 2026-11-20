@@ -10,7 +10,6 @@ import {
   Users,
   Maximize2,
   Minimize2,
-  MonitorUp,
   Stethoscope,
   Clock,
   ClipboardClock,
@@ -321,16 +320,13 @@ export default function SalaTeleConsulta() {
 
   const [camOn, setCamOn] = useState(state.camOn ?? true);
   const [micOn, setMicOn] = useState(state.micOn ?? true);
-  // trilha da tela compartilhada: o hook manda no lugar da câmera enquanto existir
-  const [screenTrack, setScreenTrack] = useState<MediaStreamTrack | null>(null);
-  const screenSharing = screenTrack !== null;
 
   const hasVideo = (localStream?.getVideoTracks().length ?? 0) > 0;
   const hasAudio = (localStream?.getAudioTracks().length ?? 0) > 0;
 
   const mediaState = useMemo(
-    () => ({ camera: camOn && hasVideo, mic: micOn && hasAudio, screen: screenSharing }),
-    [camOn, hasVideo, micOn, hasAudio, screenSharing],
+    () => ({ camera: camOn && hasVideo, mic: micOn && hasAudio }),
+    [camOn, hasVideo, micOn, hasAudio],
   );
 
   const {
@@ -346,15 +342,12 @@ export default function SalaTeleConsulta() {
     token: accessToken,
     role: role,
     localStream: localStream,
-    screenTrack,
     mediaState,
   });
 
   const timer = useCallTimer();
 
   const mountedRef = useRef(true);
-  const screenTrackRef = useRef<MediaStreamTrack | null>(null);
-  screenTrackRef.current = screenTrack;
   // Tracks reais da chamada. O MediaStream (localStream) é remontado a partir
   // delas quando o dispositivo troca, sem parar a track que continua em uso.
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
@@ -393,7 +386,7 @@ export default function SalaTeleConsulta() {
 
   const remoteName = state.patientName ?? "Paciente";
   // o paciente avisa pelo sinal "media-state" quando desliga a câmera ou o microfone
-  const remoteCamOn = remoteMedia.camera || remoteMedia.screen;
+  const remoteCamOn = remoteMedia.camera;
 
   // Mensagem mostrada nos painéis enquanto não há appointmentId
   const semConsultaMsg = erroConsulta
@@ -559,15 +552,13 @@ export default function SalaTeleConsulta() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Libera câmera, microfone e tela ao desmontar
+  // Libera câmera e microfone ao desmontar
   useEffect(() => {
     return () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       videoTrackRef.current?.stop();
       // eslint-disable-next-line react-hooks/exhaustive-deps
       audioTrackRef.current?.stop();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      screenTrackRef.current?.stop();
     };
   }, []);
 
@@ -635,31 +626,6 @@ export default function SalaTeleConsulta() {
     setSwitching(null);
     void refreshDevices();
   }
-
-  // A tela vai para o paciente no lugar da câmera (o hook troca a trilha) e
-  // aparece no quadro pequeno; ao parar, a câmera volta.
-  async function toggleScreenShare() {
-    if (screenSharing) {
-      screenTrack?.stop();
-      setScreenTrack(null);
-      return;
-    }
-    try {
-      const screen = await navigator.mediaDevices.getDisplayMedia({ video: true });
-      const track = screen.getVideoTracks()[0];
-      if (!track) return;
-      // o "Parar compartilhamento" do próprio navegador também volta para a câmera
-      track.addEventListener("ended", () => setScreenTrack((t) => (t === track ? null : t)));
-      setScreenTrack(track);
-    } catch {
-      // usuário cancelou
-    }
-  }
-
-  const screenPreview = useMemo(
-    () => (screenTrack ? new MediaStream([screenTrack]) : null),
-    [screenTrack],
-  );
 
   // ── Auto-hide dos controles (não esconde com painel/menu aberto) ──────────
   const resetHide = useCallback(() => {
@@ -734,7 +700,6 @@ export default function SalaTeleConsulta() {
     hangUp();
     videoTrackRef.current?.stop();
     audioTrackRef.current?.stop();
-    screenTrack?.stop();
     navigate(`../../consulta`);
   }
 
@@ -932,11 +897,11 @@ export default function SalaTeleConsulta() {
             {/* Self-view dentro da área de vídeo (não invade a barra de controles) */}
             <div className="absolute bottom-3 right-3 w-40 aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10 z-10">
               <ParticipantTile
-                stream={screenPreview ?? localStream}
-                name={screenSharing ? "Sua tela" : "Você"}
+                stream={localStream}
+                name="Você"
                 muted={!micOn}
-                camOff={!screenSharing && !camOn}
-                mirrored={!screenSharing}
+                camOff={!camOn}
+                mirrored
                 isLocal
               />
             </div>
@@ -969,14 +934,6 @@ export default function SalaTeleConsulta() {
               label={camOn ? "Desativar cam" : "Ativar cam"}
             >
               {camOn ? <Video size={20} /> : <VideoOff size={20} />}
-            </ControlBtn>
-
-            <ControlBtn
-              onClick={toggleScreenShare}
-              active={screenSharing}
-              label={screenSharing ? "Parar exib." : "Apresentar"}
-            >
-              <MonitorUp size={20} />
             </ControlBtn>
 
             <div className="flex flex-col items-center gap-1 mx-1">

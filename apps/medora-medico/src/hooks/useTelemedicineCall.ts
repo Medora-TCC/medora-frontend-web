@@ -4,12 +4,11 @@ import { api } from "../api/services/api";
 
 type Role = "doctor" | "patient";
 
-// estado de câmera, microfone e tela de um participante, trocado pelo sinal "media-state"
+// estado de câmera e microfone de um participante, trocado pelo sinal "media-state"
 // (o hub só repassa o sinal; quem não conhece o tipo ignora)
 export interface MediaState {
   camera: boolean;
   mic: boolean;
-  screen: boolean;
 }
 
 interface UseTelemedicineCallParams {
@@ -17,8 +16,6 @@ interface UseTelemedicineCallParams {
   token: string | null;
   role: Role | null;
   localStream: MediaStream | null;
-  // trilha da tela compartilhada: enquanto existir, vai no lugar da câmera
-  screenTrack?: MediaStreamTrack | null;
   // o que este lado está mandando, avisado ao outro participante
   mediaState: MediaState;
 }
@@ -48,14 +45,13 @@ const HUB_URL = `${API_BASE}/hubs/telemedicine`;
 const RECONNECT_GRACE_MS = 4000;
 const MAX_AUTO_RECONNECT_ATTEMPTS = 3;
 
-const DEFAULT_REMOTE_MEDIA: MediaState = { camera: true, mic: true, screen: false };
+const DEFAULT_REMOTE_MEDIA: MediaState = { camera: true, mic: true };
 
 export function useTelemedicineCall({
   meetingCode,
   token,
   role,
   localStream,
-  screenTrack = null,
   mediaState,
 }: UseTelemedicineCallParams): TelemedicineCallState & {
   hangUp: () => void;
@@ -81,8 +77,6 @@ export function useTelemedicineCall({
   // o efeito principal lê sempre o valor atual destes, sem recriar a chamada quando mudam
   const localStreamRef = useRef(localStream);
   localStreamRef.current = localStream;
-  const screenTrackRef = useRef(screenTrack);
-  screenTrackRef.current = screenTrack;
   const mediaStateRef = useRef(mediaState);
   mediaStateRef.current = mediaState;
 
@@ -95,13 +89,12 @@ export function useTelemedicineCall({
       .catch(() => { });
   }, []);
 
-  // trilhas que saem para o outro participante: a tela, quando compartilhada, substitui a câmera
+  // trilhas que saem para o outro participante
   const outgoingTrack = useCallback((kind: "audio" | "video") => {
-    if (kind === "video" && screenTrackRef.current) return screenTrackRef.current;
     return localStreamRef.current?.getTracks().find((t) => t.kind === kind) ?? null;
   }, []);
 
-  // troca a trilha na conexão já aberta (trocar a câmera, o microfone ou começar a apresentar),
+  // troca a trilha na conexão já aberta (trocar a câmera ou o microfone),
   // sem renegociar nem derrubar a chamada
   const syncSenders = useCallback(() => {
     const pc = pcRef.current;
@@ -118,11 +111,11 @@ export function useTelemedicineCall({
 
   useEffect(() => {
     syncSenders();
-  }, [localStream, screenTrack, syncSenders]);
+  }, [localStream, syncSenders]);
 
   useEffect(() => {
     sendMediaState();
-  }, [mediaState.camera, mediaState.mic, mediaState.screen, sendMediaState]);
+  }, [mediaState.camera, mediaState.mic, sendMediaState]);
 
   const hangUp = useCallback(() => {
     joinedRoomRef.current = false;
