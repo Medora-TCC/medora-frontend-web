@@ -73,7 +73,7 @@ export function MedicalRecordHistory({ reloadKey, patientId }: MedicalRecordHist
                 <Button
                   variant="ghost"
                   className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
-                  onPress={() => navigate("/medico/prontuario", { state: { prontuario: item } })}
+                  onPress={() => navigate(`/medico/prontuario/${item.appointmentId}`)}
                   aria-label={`Continuar prontuário de ${formatRecordDate(item.date)}`}
                 >
                   <Entry item={item} />
