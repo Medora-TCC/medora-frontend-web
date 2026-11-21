@@ -105,12 +105,11 @@ export default function Header({
                 </div>
 
                 {/* Alternador de Tema */}
-                <Button isIconOnly variant="ghost" className="text-text-muted">
-                    <ThemeToggle />
-                </Button>
+                <ThemeToggle />
+
 
                 {/* Divisor Visual */}
-                <div className="h-5 w-[1px] bg-divider mx-1" />
+                <div className="h-5 w-px bg-divider mx-1" />
 
                 {/* Dropdown do Perfil do Médico */}
                 <div className="relative" ref={profileRef}>

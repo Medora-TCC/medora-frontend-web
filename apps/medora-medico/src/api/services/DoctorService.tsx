@@ -11,6 +11,11 @@ import { isAxiosError } from "axios";
 import { toDomainError } from "../errors";
 import type { DoctorAddressDto, DoctorAddressRequestDto } from "../dtos/Doctors/DoctorAddressDto";
 import type { DoctorPublicPageDto, EducationRequestDto, ExperienceRequestDto, UpdateAboutDto } from "../dtos/Doctors/DoctorPublicPageDto";
+import type {
+  CorrectRegistrationDto,
+  CorrectRegistrationResponseDto,
+  VerificationStatusDto,
+} from "../dtos/Doctors/VerificationDto";
 
 interface RegisterResponse {
   userId: string;
@@ -23,7 +28,7 @@ export async function registerDoctor(props: RegisterDoctorDto): Promise<Register
     return { userId: response.data.data.id, status: response.data.data.doctorStatus };
   } catch (error) {
     if (isAxiosError(error) && error.response) {
-      throw new Error(error.response.data?.title ?? "Erro ao cadastrar médico.");
+      throw new Error(error.response.data?.detail ?? "Erro ao cadastrar médico.");
     }
     throw new Error("Erro de conexão. Tente novamente.");
   }
@@ -213,6 +218,34 @@ export async function removeExperience(id: number): Promise<void> {
   }
 }
 
+function correctionError(error: unknown, fallback: string): Error {
+  if (isAxiosError(error) && error.response) {
+    const data = error.response.data;
+    const list: unknown = data?.Erros;
+    if (Array.isArray(list) && list.length > 0) return new Error(list.join(" "));
+    return new Error(data?.detail ?? data?.title ?? fallback);
+  }
+  return new Error("Erro de conexão. Tente novamente.");
+}
+
+export async function getVerificationStatus(): Promise<VerificationStatusDto | null> {
+  try {
+    const response = await api.get<VerificationStatusDto>(Endpoints.GET_VERIFICATION_STATUS);
+    return response.data;
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 404) return null;
+    throw correctionError(error, "Erro ao carregar a situação da verificação.");
+  }
+}
+
+export async function correctRegistration(body: CorrectRegistrationDto): Promise<CorrectRegistrationResponseDto> {
+  try {
+    const response = await api.post<CorrectRegistrationResponseDto>(Endpoints.CORRECT_REGISTRATION, body);
+    return response.data;
+  } catch (error) {
+    throw correctionError(error, "Não foi possível enviar a correção. Tente novamente.");
+  }
+}
 // null enquanto o médico não cadastrou endereço (a API responde 204)
 export async function getDoctorAddress(): Promise<DoctorAddressDto | null> {
   try {

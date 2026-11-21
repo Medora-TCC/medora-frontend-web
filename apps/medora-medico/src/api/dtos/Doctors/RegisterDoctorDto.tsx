@@ -1,4 +1,3 @@
-
 export interface RegisterDoctorDto {
     fullName: string;
     email: string;
@@ -19,9 +18,9 @@ export interface RegisterDoctorDto {
 
 export interface ForeignerDto {
     birthCountry: string;
-    naturalizationDate?: Date;
+    naturalizationDate?: string;
     passportNumber: string;
     passportIssuerCountry: string;
-    passportIssueDate: Date;
-    passportExpirationDate: Date;
+    passportIssueDate: string;
+    passportExpirationDate: string;
 }
