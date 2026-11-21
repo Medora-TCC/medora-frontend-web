@@ -9,6 +9,7 @@ import { api } from "../api/services/api";
 import { useNavigate } from "react-router";
 import { Endpoints } from "../api/enums/endpoints";
 import { markSessionClosedByUser, markSessionLost, markSessionStarted } from "@medora_web/shared";
+import { MfaAction } from "../api/enums/mfaAction";
 
 interface AuthContextType {
   accessToken: string | null;
@@ -80,7 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const requestIntercept = api.interceptors.request.use(
       (config) => {
-        if (tokenRef.current) {
+        // Login e código de verificação usam o token temporário do cookie mfa_token. O backend só lê
+        // esse cookie quando a requisição não traz outro token: com o token de uma sessão anterior
+        // (outra aba, o admin no mesmo localhost) o código era recusado com 403.
+        const loginStep =
+          config.url === Endpoints.LOGIN ||
+          config.url === Endpoints.VERIFY_AUTH_CODE ||
+          (config.url === Endpoints.INIT_MFA && config.data?.Action === MfaAction.LOGIN);
+        if (tokenRef.current && !loginStep) {
           config.headers.Authorization = `Bearer ${tokenRef.current}`;
         }
         return config;

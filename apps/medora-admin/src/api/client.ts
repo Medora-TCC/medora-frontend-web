@@ -69,8 +69,16 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+// Login e código de verificação usam o token temporário do cookie mfa_token. O backend só lê esse
+// cookie quando a requisição não traz outro token: com o token de uma sessão anterior (o portal do
+// médico no mesmo localhost) o código era recusado com 403.
+const isLoginStep = (config: InternalAxiosRequestConfig) =>
+  config.url === "/auth/login" ||
+  config.url === "/mfa/auth/verify" ||
+  (config.url === "/mfa/" && config.data?.Action === "Login");
+
 api.interceptors.request.use((config) => {
-  if (accessToken && !config.headers.Authorization) {
+  if (accessToken && !config.headers.Authorization && !isLoginStep(config)) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
