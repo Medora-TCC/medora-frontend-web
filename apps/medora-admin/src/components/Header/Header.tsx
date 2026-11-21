@@ -3,9 +3,11 @@ import { Bell, LogOut, Settings, ShieldCheck, User } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { useNavigate } from 'react-router';
 import { ThemeToggle } from '@medora_web/shared';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AdminHeader() {
     const navigate = useNavigate();
+    const { signOut } = useAuth();
     
     const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -13,8 +15,13 @@ export default function AdminHeader() {
     const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null); 
 
-    const handleLogout = () => {
-        navigate("/");
+    // antes só voltava para o login e a sessão continuava aberta no backend
+    const handleLogout = async () => {
+        try {
+            await signOut();
+        } finally {
+            navigate("/");
+        }
     };
 
     useEffect(() => {

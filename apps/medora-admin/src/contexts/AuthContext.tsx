@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
+import { markSessionClosedByUser, markSessionLost, markSessionStarted } from "@medora_web/shared";
 import { setAccessToken, setOnSessionExpired } from "../api/client";
 import { logout, refresh } from "../api/auth";
 import { AuthContext } from "./authContextValue";
@@ -15,23 +16,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback((token: string) => {
     setAccessToken(token);
     setToken(token);
+    markSessionStarted();
   }, []);
 
   const signOut = useCallback(async () => {
-    await logout();
-    setAccessToken(null);
-    setToken(null);
+    markSessionClosedByUser();
+    try {
+      await logout();
+    } finally {
+      setAccessToken(null);
+      setToken(null);
+    }
   }, []);
 
   useEffect(() => {
     refresh()
       .then(signIn)
-      .catch(() => undefined)
+      // sem sessão ao abrir: se havia uma antes, ela caiu (inatividade ou encerrada) e o login avisa
+      .catch(() => markSessionLost())
       .finally(() => setIsLoading(false));
   }, [signIn]);
 
   useEffect(() => {
     setOnSessionExpired(() => {
+      markSessionLost();
       setToken(null);
       navigate("/", { replace: true });
     });

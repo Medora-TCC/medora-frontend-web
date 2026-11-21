@@ -12,3 +12,4 @@ export * from "./Sidebar/Sidebar";
 export * from "./Sidebar/SidebarToggle";
 export * from "./ModalCarregamento";
 export * from "./ModalConfirmacao";
+export * from "./SessionEndedNotice";

@@ -8,6 +8,7 @@ import {
 import { api } from "../api/services/api";
 import { useNavigate } from "react-router";
 import { Endpoints } from "../api/enums/endpoints";
+import { markSessionClosedByUser, markSessionLost, markSessionStarted } from "@medora_web/shared";
 
 interface AuthContextType {
   accessToken: string | null;
@@ -61,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         processQueue(null, newAccessToken);
 
       } catch (error) {
+        // sem sessão ao abrir: se havia uma antes, ela caiu (inatividade ou encerrada) e o login avisa
+        markSessionLost();
         setAccessToken(null);
         tokenRef.current = null;
         processQueue(error, null);
@@ -126,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return api(originalRequest);
           } catch (refreshError) {
             processQueue(refreshError, null);
+            markSessionLost();
             setAccessToken(null);
 
             navigate("/login");
@@ -147,11 +151,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = (token: string) => {
     setAccessToken(token);
     tokenRef.current = token;
+    markSessionStarted();
   };
 
   const signOut = async () => {
-    await api.post(Endpoints.LOGOUT);
-    setAccessToken(null);
+    markSessionClosedByUser();
+    try {
+      await api.post(Endpoints.LOGOUT);
+    } finally {
+      setAccessToken(null);
+    }
   };
 
   return (
