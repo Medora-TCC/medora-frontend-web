@@ -21,7 +21,7 @@ export async function registerDoctor(props: RegisterDoctorDto): Promise<Register
     return { userId: response.data.data.id, status: response.data.data.doctorStatus };
   } catch (error) {
     if (isAxiosError(error) && error.response) {
-      throw new Error(error.response.data?.title ?? "Erro ao cadastrar médico.");
+      throw new Error(error.response.data?.detail ?? "Erro ao cadastrar médico.");
     }
     throw new Error("Erro de conexão. Tente novamente.");
   }

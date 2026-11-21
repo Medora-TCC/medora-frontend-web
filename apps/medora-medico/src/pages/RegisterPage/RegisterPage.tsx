@@ -5,7 +5,7 @@ import { FloatingCard, FormStepper, PasswordInput, FieldWrapper } from "@medora_
 import doctorImage from '../../assets/medicoSegurandoTable.png';
 import type { RegisterDoctorDto } from "../../api/dtos/Doctors/RegisterDoctorDto";
 import { registerDoctor } from "../../api/services/DoctorService";
-import { Activity, ChevronDown, Loader2 } from "lucide-react";
+import { Activity, AlertCircle, ChevronDown, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import RejectedVerificationDialog from "../../components/RejectedVerificationDialog/RejectedVerificationDialog";
 import {
@@ -18,6 +18,7 @@ import {
     normalizePhonePaste,
     onlyDigits,
 } from "../../utils/masks";
+import { parseRegisterError } from "../../utils/registerErrors";
 
 const TOTAL_STEPS = 4;
 
@@ -52,8 +53,8 @@ const initialFormData: FormState = {
     fullName: '',
     nationality: 'BR',
     birthDate: '',
-    sex: 0,   // 0 = não selecionado (obriga o usuário a escolher)
-    race: 0,  // 0 = não selecionado
+    sex: 0,
+    race: 0,  
     phone: '',
     cpf: '',
     gender: undefined,
@@ -153,6 +154,7 @@ export function RegisterPage() {
     const [currentStep, setCurrentStep] = useState(1);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     const [isRejectedOpen, setIsRejectedOpen] = useState(false);
     const [rejectionReason] = useState("");
@@ -282,11 +284,13 @@ export function RegisterPage() {
             return;
         }
         setErrors({});
+        setSubmitError(null);
         setCurrentStep((step) => Math.min(step + 1, TOTAL_STEPS));
     };
 
     const goBack = () => {
         setErrors({});
+        setSubmitError(null);
         setCurrentStep((step) => Math.max(step - 1, 1));
     };
 
@@ -335,6 +339,7 @@ export function RegisterPage() {
             }
         }
 
+        setSubmitError(null);
         setIsSubmitting(true);
         try {
             const result = await registerDoctor(buildPayload());
@@ -342,7 +347,17 @@ export function RegisterPage() {
             navigate("/verify-email", { state: { userId: result.userId } });
         } catch (error) {
             console.error('Erro ao registrar médico:', error);
-            toast.warning(error instanceof Error ? error.message : 'Erro de conexão. Tente novamente.');
+
+            const friendly = parseRegisterError(error);
+
+            if (friendly.fieldErrors && friendly.step) {
+                // O backend apontou o campo: leva o usuário até ele, com o erro ao lado.
+                showErrors(friendly.fieldErrors, friendly.step);
+            } else {
+                if (friendly.step) setCurrentStep(friendly.step);
+                setSubmitError(friendly.message);
+            }
+            toast.warning(friendly.message);
         } finally {
             setIsSubmitting(false);
         }
@@ -378,6 +393,16 @@ export function RegisterPage() {
                             <h2 className="text-primary-text text-2xl font-bold mb-1">{header.title}</h2>
                             <p className="text-text-secondary text-sm">{header.subtitle}</p>
                         </div>
+
+                        {submitError && (
+                            <div
+                                role="alert"
+                                className="flex items-start gap-3 rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger animate-appearance-in"
+                            >
+                                <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                                <span>{submitError}</span>
+                            </div>
+                        )}
 
                         <form onSubmit={handleFormSubmit} noValidate className="relative min-h-105 w-full">
 
@@ -687,6 +712,7 @@ export function RegisterPage() {
                                 </div>
                             )}
 
+                            {/* ETAPA 4 — Dados profissionais */}
                             {currentStep === 4 && (
                                 <div className="flex flex-col gap-4 animate-appearance-in">
                                     <FieldWrapper
