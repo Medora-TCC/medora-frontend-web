@@ -87,11 +87,9 @@ export function MedicalRecordRow({ item }: MedicalRecordRowProps) {
               Abrir prontuário
             </Button>
           ) : (
-            <MedicalRecordModal medicalRecord={medicalRecord}>
-              <span className="flex items-center justify-center gap-2 text-sm font-medium">
-                <FolderOpen size={16} />
-                Abrir prontuário
-              </span>
+            <MedicalRecordModal medicalRecord={medicalRecord} asButton>
+              <FolderOpen size={16} />
+              Abrir prontuário
             </MedicalRecordModal>
           )}
         </div>
