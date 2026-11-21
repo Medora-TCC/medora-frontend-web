@@ -18,6 +18,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { getDoctorRqes } from "../../api/services/DoctorService";
+import { getMyPhoto } from "../../api/services/ProfilePhotoService";
 import type { DoctorRqesDto } from "../../api/dtos/Doctors/DoctorRqesDto";
 import MainSpecialtiesModal from "../../modals/MainSpecialtiesModal/MainSpecialtiesModal";
 import type { RqeItemDto } from "../../api/dtos/Doctors/DoctorRqesDto";
@@ -35,6 +36,29 @@ export default function MainLayout() {
   const [isSpecialtiesModalOpen, setIsSpecialtiesModalOpen] = useState(false);
   const { accessToken } = useAuth();
   const [isLoadingRqes, setIsLoadingRqes] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  // a foto vira um endereço local (blob:); o anterior é liberado para não acumular memória
+  const setPhoto = useCallback((photo: Blob | null) => {
+    setPhotoUrl((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return photo ? URL.createObjectURL(photo) : null;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!accessToken) return;
+    let active = true;
+    // sem foto (ou se falhar) ficam as iniciais
+    getMyPhoto()
+      .then((photo) => active && setPhoto(photo))
+      .catch((error) => console.error(error));
+    return () => {
+      active = false;
+    };
+  }, [accessToken, setPhoto]);
+
+  useEffect(() => () => setPhoto(null), [setPhoto]);
 
   const loadRqes = useCallback(async () => {
     if (!accessToken) return null;
@@ -176,6 +200,7 @@ export default function MainLayout() {
           mainSpecialty={mainSpecialty}
           extraSpecialtiesCount={extraSpecialtiesCount}
           onOpenSpecialties={openSpecialtiesModal}
+          photoUrl={photoUrl}
         />
         <MainSpecialtiesModal
           isOpen={isSpecialtiesModalOpen}
@@ -187,7 +212,7 @@ export default function MainLayout() {
         <main className="flex-1 w-full">
           <Outlet
             context={
-              { doctorRqes, openSpecialtiesModal } satisfies MainLayoutContext
+              { doctorRqes, openSpecialtiesModal, photoUrl, setPhoto } satisfies MainLayoutContext
             }
           />
         </main>

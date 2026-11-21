@@ -10,6 +10,7 @@ interface HeaderProps {
     mainSpecialty: string | null;
     extraSpecialtiesCount: number;
     onOpenSpecialties: () => void;
+    photoUrl: string | null;
 }
 
 function getInitials(name: string | null): string {
@@ -30,6 +31,7 @@ export default function Header({
     mainSpecialty,
     extraSpecialtiesCount,
     onOpenSpecialties,
+    photoUrl,
 }: HeaderProps) {
     const navigate = useNavigate();
 
@@ -130,8 +132,10 @@ export default function Header({
                                     : <span className="text-orange-500">Sem especialidade</span>}
                             </p>
                         </div>
-                        <div className="h-8 w-8 rounded-full bg-primary-color flex items-center justify-center text-white text-xs font-bold shadow-sm border border-surface">
-                            {getInitials(doctorName)}
+                        <div className="h-8 w-8 rounded-full bg-primary-color flex items-center justify-center text-white text-xs font-bold shadow-sm border border-surface overflow-hidden">
+                            {photoUrl
+                                ? <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+                                : getInitials(doctorName)}
                         </div>
                     </button>
 
