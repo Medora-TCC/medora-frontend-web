@@ -46,7 +46,7 @@ export default function MainLayout() {
                 
               <Sidebar.Item
                 icon={FolderCog}
-                label="Logs do Worker"
+                label="Verificação de médicos"
                 isActive={location.pathname.startsWith('/admin/logs')}
                 href="/admin/logs" />
 

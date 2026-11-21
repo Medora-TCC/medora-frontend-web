@@ -98,9 +98,9 @@ export default function WorkerLogs() {
         <header>
           <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
             <Cpu className="text-primary-color" />
-            Logs do Worker
+            Verificação de médicos
           </h1>
-          <p className="text-sm text-text-muted mt-1">Eventos das tarefas executadas em segundo plano.</p>
+          <p className="text-sm text-text-muted mt-1">Histórico da verificação automática do cadastro dos médicos junto ao conselho.</p>
         </header>
 
         <div className="flex flex-wrap gap-2">
