@@ -7,6 +7,7 @@ import { getProfessionalData, getVerificationStatus } from "../../../api/service
 import type { ProfessionalDataDto } from "../../../api/dtos/Doctors/ProfessionalRegistrationDto";
 import type { VerificationStatusDto } from "../../../api/dtos/Doctors/VerificationDto";
 import CorrectRegistrationModal from "./CorrectRegistrationModal";
+import AddressCard from "./professional/AddressCard";
 
 export default function ProfessionalDataSection() {
   const { doctorRqes, openSpecialtiesModal } = useMainLayout();
@@ -180,7 +181,8 @@ export default function ProfessionalDataSection() {
           </ul>
         )}
       </div>
-
+      <AddressCard />
+      
       {isCorrectionOpen && verification && (
         <CorrectRegistrationModal
           status={verification}
@@ -191,6 +193,7 @@ export default function ProfessionalDataSection() {
           }}
         />
       )}
+      
     </div>
   );
 }

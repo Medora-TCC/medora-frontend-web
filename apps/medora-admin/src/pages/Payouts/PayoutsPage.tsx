@@ -11,41 +11,25 @@ import {
   holdPayout,
   listClosings,
   markClosingAsPaid,
-  refundIssuePatient,
-  releaseIssuePayout,
   releasePayout,
-  type AppointmentIssueReason,
-  type PayoutAttentionItem,
-  type PayoutClosingDetail,
-  type PayoutClosingStatus,
-  type PayoutClosingSummary,
-  type PayoutPreviewConsultation,
-  type PayoutPreviewItem,
-  type PixKeyType,
-} from "../../api/payouts";
-
-const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const money = (value: number) => currency.format(value);
-const date = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
-
-const statusLabel: Record<PayoutClosingStatus, { label: string; className: string }> = {
-  PendingApproval: { label: "Aguardando aprovação", className: "bg-amber-100 text-amber-700" },
-  Approved: { label: "Aprovado", className: "bg-blue-100 text-blue-700" },
-  Paid: { label: "Pago", className: "bg-emerald-100 text-emerald-700" },
-};
-
-const issueLabel: Record<AppointmentIssueReason, string> = {
-  DoctorNoShow: "Médico não compareceu",
-  CallDropped: "Chamada caiu",
-  AudioOrVideoProblem: "Problema de áudio ou vídeo",
-  DoctorLate: "Médico atrasou muito",
-  EndedEarly: "Consulta encerrada antes do tempo",
-};
-
-const pixKeyLabel: Record<PixKeyType, string> = {
-  Cnpj: "CNPJ",
-  Random: "Aleatória",
-};
+} from "../../api/services/PayoutService";
+import { refundIssuePatient, releaseIssuePayout } from "../../api/services/AppointmentIssueService";
+import type {
+  PayoutAttentionItem,
+  PayoutClosingDetail,
+  PayoutClosingSummary,
+  PayoutPreviewConsultation,
+  PayoutPreviewItem,
+} from "../../api/dtos/payouts";
+import {
+  ISSUE_REASON_LABEL,
+  PAYOUT_ITEM_TYPE_LABEL,
+  PAYOUT_STATUS_CONFIG,
+  PIX_KEY_TYPE_LABEL,
+} from "../../api/mappers/payoutLabels";
+import { formatDate, formatMoney } from "../../api/mappers/formatters";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
+import { useConfirm, type ConfirmOptions } from "../../components/ConfirmDialog/useConfirm";
 
 function previousMonth() {
   const now = new Date();
@@ -60,6 +44,7 @@ export default function PayoutsPage() {
   const [attention, setAttention] = useState<PayoutAttentionItem[]>([]);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const { confirm, dialogProps } = useConfirm();
 
   const load = useCallback(async () => {
     try {
@@ -76,19 +61,21 @@ export default function PayoutsPage() {
     load();
   }, [load]);
 
-  async function run(action: () => Promise<unknown>, success: string) {
-    setBusy(true);
-    setMessage(null);
-    try {
-      await action();
-      setMessage({ type: "success", text: success });
-      await load();
-    } catch (error) {
-      setMessage({ type: "error", text: (error as Error).message });
-    } finally {
-      setBusy(false);
-    }
+async function run(action: () => Promise<unknown>, success: string, confirmation?: ConfirmOptions) {
+  if (confirmation && !(await confirm(confirmation))) return;
+
+  setBusy(true);
+  setMessage(null);
+  try {
+    await action();
+    setMessage({ type: "success", text: success });
+    await load();
+  } catch (error) {
+    setMessage({ type: "error", text: (error as Error).message });
+  } finally {
+    setBusy(false);
   }
+}
 
   const pendingTotal = preview.filter((p) => !p.alreadyClosed && p.totalAmount > 0).reduce((sum, p) => sum + p.totalAmount, 0);
   const inReview = attention.filter((a) => a.heldAt !== null || a.issueId !== null);
@@ -96,6 +83,7 @@ export default function PayoutsPage() {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
+      <ConfirmDialog {...dialogProps} />
       <main className="py-4 px-6 space-y-5 max-w-7xl mx-auto w-full">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -119,7 +107,7 @@ export default function PayoutsPage() {
         </header>
 
         {message && (
-          <p className={`px-4 py-3 rounded-lg text-sm ${message.type === "error" ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
+          <p className={`px-4 py-3 rounded-lg text-sm ${message.type === "error" ? "bg-danger-subtle text-danger-text" : "bg-success-subtle text-success-text"}`}>
             {message.text}
           </p>
         )}
@@ -134,7 +122,7 @@ export default function PayoutsPage() {
               isDisabled={busy || pendingTotal <= 0}
               onPress={() => run(() => generateClosings(month), "Fechamentos gerados. Revise e aprove cada um.")}
             >
-              Gerar fechamentos ({money(pendingTotal)})
+              Gerar fechamentos ({formatMoney(pendingTotal)})
             </Button>
           }
         >
@@ -190,7 +178,7 @@ export default function PayoutsPage() {
                   key={a.appointmentId}
                   item={a}
                   icon={<Clock size={16} className="text-text-muted" />}
-                  detail={date(a.appointmentStartDateTime)}
+                  detail={formatDate(a.appointmentStartDateTime)}
                 />
               ))}
             </div>
@@ -201,13 +189,13 @@ export default function PayoutsPage() {
   );
 }
 
-type Run = (action: () => Promise<unknown>, success: string) => Promise<void>;
+type Run = (action: () => Promise<unknown>, success: string, confirmation?: ConfirmOptions) => Promise<void>;
 
 function ClosingRow({ closing, busy, run }: { closing: PayoutClosingSummary; busy: boolean; run: Run }) {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<PayoutClosingDetail | null>(null);
   const [reference, setReference] = useState("");
-  const status = statusLabel[closing.status];
+  const status = PAYOUT_STATUS_CONFIG[closing.status];
 
   function toggle() {
     setOpen((v) => !v);
@@ -225,7 +213,7 @@ function ClosingRow({ closing, busy, run }: { closing: PayoutClosingSummary; bus
         </button>
 
         <div className="flex flex-wrap items-center gap-2">
-          <strong className="text-text-primary mr-2">{money(closing.totalAmount)}</strong>
+          <strong className="text-text-primary mr-2">{formatMoney(closing.totalAmount)}</strong>
 
           {closing.status === "PendingApproval" && (
             <Button size="sm" className="bg-blue-600 text-white rounded-lg" isDisabled={busy}
@@ -236,8 +224,10 @@ function ClosingRow({ closing, busy, run }: { closing: PayoutClosingSummary; bus
 
           {closing.status === "Approved" && (
             <>
-              <span className={`text-xs ${closing.pixKey ? "text-text-muted" : "text-amber-600"}`}>
-                {closing.pixKey && closing.pixKeyType ? `Pix (${pixKeyLabel[closing.pixKeyType]}): ${closing.pixKey}` : "Médico sem chave Pix"}
+              <span className={`text-xs ${closing.pixKey ? "text-text-muted" : "text-warning-text"}`}>
+                {closing.pixKey && closing.pixKeyType
+                  ? `Pix (${PIX_KEY_TYPE_LABEL[closing.pixKeyType]}): ${closing.pixKey}`
+                  : "Médico sem chave Pix"}
               </span>
               <input
                 value={reference}
@@ -254,18 +244,21 @@ function ClosingRow({ closing, busy, run }: { closing: PayoutClosingSummary; bus
 
           {closing.status !== "Paid" && (
             <Button size="sm" variant="outline" className="rounded-lg border-divider" isDisabled={busy}
-              onPress={() => {
-                if (window.confirm("Descartar este fechamento? Os itens voltam para o próximo fechamento.")) {
-                  run(() => discardClosing(closing.id), `Fechamento #${closing.id} descartado.`);
-                }
-              }}>
+              onPress={() =>
+                run(() => discardClosing(closing.id), `Fechamento #${closing.id} descartado.`, {
+                  title: "Descartar fechamento?",
+                  description: `O fechamento #${closing.id} de ${closing.doctorName} será descartado. Os itens voltam para o próximo fechamento.`,
+                  confirmLabel: "Descartar",
+                  tone: "danger",
+                })
+              }>
               <Trash2 size={14} /> Descartar
             </Button>
           )}
 
           {closing.status === "Paid" && (
             <span className="text-xs text-text-muted">
-              Pago em {closing.paidAt && date(closing.paidAt)} · ref. {closing.paymentReference}
+              Pago em {closing.paidAt && formatDate(closing.paidAt)} · ref. {closing.paymentReference}
             </span>
           )}
         </div>
@@ -276,8 +269,12 @@ function ClosingRow({ closing, busy, run }: { closing: PayoutClosingSummary; bus
           {!detail && <p>Carregando…</p>}
           {detail?.items.map((item) => (
             <div key={`${item.paymentId}-${item.type}`} className="flex justify-between max-w-md">
-              <span>{item.type === "Debit" ? "Estorno · " : ""}Consulta #{item.appointmentId} · {date(item.appointmentStartDateTime)}</span>
-              <span className={item.type === "Debit" ? "text-red-600" : ""}>{item.type === "Debit" ? "− " : ""}{money(item.amount)}</span>
+              <span>
+                {item.type === "Debit" ? `${PAYOUT_ITEM_TYPE_LABEL.Debit} · ` : ""}Consulta #{item.appointmentId} · {formatDate(item.appointmentStartDateTime)}
+              </span>
+              <span className={item.type === "Debit" ? "text-danger-text" : ""}>
+                {item.type === "Debit" ? "− " : ""}{formatMoney(item.amount)}
+              </span>
             </div>
           ))}
         </div>
@@ -299,14 +296,14 @@ function PreviewRow({ item, busy, run }: { item: PayoutPreviewItem; busy: boolea
           </button>
         </Td>
         <Td right>{item.creditCount}</Td>
-        <Td right>{item.debitAmount > 0 ? `− ${money(item.debitAmount)}` : "—"}</Td>
-        <Td right><strong>{money(item.totalAmount)}</strong></Td>
+        <Td right>{item.debitAmount > 0 ? `− ${formatMoney(item.debitAmount)}` : "—"}</Td>
+        <Td right><strong>{formatMoney(item.totalAmount)}</strong></Td>
         <Td>
           {item.alreadyClosed
             ? <span className="text-text-muted">Já fechado neste mês</span>
             : item.totalAmount <= 0
-              ? <span className="text-amber-600">Fica para o próximo mês</span>
-              : <span className="text-emerald-600">Pronto para fechar</span>}
+              ? <span className="text-warning-text">Fica para o próximo mês</span>
+              : <span className="text-success-text">Pronto para fechar</span>}
         </Td>
       </tr>
       {open && (
@@ -331,7 +328,7 @@ function ConsultationRow({ consultation, busy, run }: { consultation: PayoutPrev
 
   return (
     <div className="py-2 flex flex-wrap items-center justify-between gap-3">
-      <span className="text-text-muted">Consulta #{appointmentId} · {date(appointmentStartDateTime)} · {money(amount)}</span>
+      <span className="text-text-muted">Consulta #{appointmentId} · {formatDate(appointmentStartDateTime)} · {formatMoney(amount)}</span>
 
       {holding ? (
         <div className="flex items-center gap-2">
@@ -367,18 +364,21 @@ function ReviewRow({ item, busy, run }: { item: PayoutAttentionItem; busy: boole
       <AppointmentLine
         item={item}
         icon={<MessageSquareWarning size={16} className="text-red-500" />}
-        detail={`${date(item.appointmentStartDateTime)} · Relato do paciente: ${issueReason ? issueLabel[issueReason] : "—"}`}
+        detail={`${formatDate(item.appointmentStartDateTime)} · Relato do paciente: ${issueReason ? ISSUE_REASON_LABEL[issueReason] : "—"}`}
       >
         <Button size="sm" variant="outline" className="rounded-lg border-divider" isDisabled={busy}
           onPress={() => run(() => releaseIssuePayout(issueId), `Relato da consulta #${appointmentId} recusado: repasse liberado.`)}>
           <Unlock size={14} /> Liberar repasse
         </Button>
         <Button size="sm" className="bg-red-600 text-white rounded-lg" isDisabled={busy}
-          onPress={() => {
-            if (window.confirm(`Estornar ${money(item.amount)} ao paciente? O médico não recebe por esta consulta.`)) {
-              run(() => refundIssuePatient(issueId), `Paciente da consulta #${appointmentId} estornado.`);
-            }
-          }}>
+          onPress={() =>
+            run(() => refundIssuePatient(issueId), `Paciente da consulta #${appointmentId} estornado.`, {
+              title: "Estornar o paciente?",
+              description: `${formatMoney(item.amount)} serão devolvidos ao paciente da consulta #${appointmentId}. O médico não recebe por esta consulta, e o estorno não pode ser desfeito.`,
+              confirmLabel: "Estornar",
+              tone: "danger",
+            })
+          }>
           <Undo2 size={14} /> Estornar paciente
         </Button>
       </AppointmentLine>
@@ -389,7 +389,7 @@ function ReviewRow({ item, busy, run }: { item: PayoutAttentionItem; busy: boole
     <AppointmentLine
       item={item}
       icon={<Lock size={16} className="text-orange-500" />}
-      detail={`${date(item.appointmentStartDateTime)} · Retido: ${item.holdReason}`}
+      detail={`${formatDate(item.appointmentStartDateTime)} · Retido: ${item.holdReason}`}
     >
       <Button size="sm" variant="outline" className="rounded-lg border-divider" isDisabled={busy}
         onPress={() => run(() => releasePayout(appointmentId), `Repasse da consulta #${appointmentId} liberado.`)}>
@@ -406,7 +406,7 @@ function AppointmentLine({ item, icon, detail, children }: { item: PayoutAttenti
         {icon}
         <div>
           <p className="text-sm font-semibold text-text-primary">
-            Consulta #{item.appointmentId} · {item.doctorName} · {money(item.amount)}
+            Consulta #{item.appointmentId} · {item.doctorName} · {formatMoney(item.amount)}
           </p>
           <p className="text-xs text-text-muted">{detail}</p>
         </div>

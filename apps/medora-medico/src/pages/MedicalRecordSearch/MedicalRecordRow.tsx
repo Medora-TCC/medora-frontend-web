@@ -76,7 +76,10 @@ export function MedicalRecordRow({ item }: MedicalRecordRowProps) {
               variant="primary"
               className="w-full"
               onPress={() =>
-                navigate("/medico/prontuario", { state: { prontuario: medicalRecord } })
+                // a rota do prontuário é pela consulta; sem o id caía no "não encontrado"
+                navigate(`/medico/prontuario/${medicalRecord.appointmentId}`, {
+                  state: { patient, patientName: patient.name },
+                })
               }
               aria-label={`Continuar prontuário de ${patient.name}`}
             >
@@ -84,11 +87,9 @@ export function MedicalRecordRow({ item }: MedicalRecordRowProps) {
               Abrir prontuário
             </Button>
           ) : (
-            <MedicalRecordModal medicalRecord={medicalRecord}>
-              <span className="flex items-center justify-center gap-2 text-sm font-medium">
-                <FolderOpen size={16} />
-                Abrir prontuário
-              </span>
+            <MedicalRecordModal medicalRecord={medicalRecord} asButton>
+              <FolderOpen size={16} />
+              Abrir prontuário
             </MedicalRecordModal>
           )}
         </div>

@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Info,
 } from "lucide-react";
 import { PixKeyModal } from "./PixKeyModal";
 import { getMyPayoutClosing, getMyPayoutStatement, getMyPixKey } from "../../api/services/PayoutService";
@@ -80,6 +81,10 @@ export default function FinancialManagement() {
             </h1>
             <p className="mt-1 mb-0 text-xs text-text-secondary">
               Repasses das teleconsultas, fechados mensalmente até o 5º dia útil do mês seguinte.
+            </p>
+            <p className="mt-1.5 mb-0 flex items-center gap-1.5 text-xs text-text-secondary">
+              <Info size={13} className="shrink-0" aria-hidden />
+              Valores brutos das consultas, sem descontar as taxas do Mercado Pago.
             </p>
           </div>
 

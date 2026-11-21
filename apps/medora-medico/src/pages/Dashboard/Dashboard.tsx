@@ -17,6 +17,7 @@ import { getDashboard } from "../../api/services/DoctorService";
 import type { DoctorDashboardDto, UpcomingAppointmentDto } from "../../api/dtos/Doctors/DoctorDashboardDto";
 import { appointmentStatusLabel, appointmentTypeLabel } from "../../api/mappers/appointmentLabels";
 import WeeklyFlowCard from "./WeeklyFlowCard";
+import { ROOM_LEAD_MINUTES } from "../SchedulePage/scheduleModel";
 
 const TELE_SHOW_BEFORE_MS = 15 * 60 * 1000;
 
@@ -94,10 +95,22 @@ export default function Dashboard() {
     now.getTime() >= new Date(tele.startDateTime).getTime() - TELE_SHOW_BEFORE_MS &&
     now.getTime() < new Date(tele.endDateTime).getTime();
 
+  // mesma regra da agenda: a sala só abre ROOM_LEAD_MINUTES antes do início (o backend recusa antes)
+  const roomOpensAt = (startDateTime: string) =>
+    new Date(startDateTime).getTime() - ROOM_LEAD_MINUTES * 60_000;
+  const teleRoomOpen =
+    !!tele &&
+    now.getTime() >= roomOpensAt(tele.startDateTime) &&
+    now.getTime() < new Date(tele.endDateTime).getTime();
+
   const openAppointment = (appointment: UpcomingAppointmentDto) => {
-    // só teleconsulta confirmada abre a sala; as outras vão para o prontuário
-    if (appointment.type === "Online" && appointment.status === "Confirmed") {
-      navigate(`teleconsulta/${appointment.id}/pre-sala`, {
+    // só teleconsulta confirmada com a sala já liberada abre a sala; o resto vai para o prontuário
+    if (
+      appointment.type === "Online" &&
+      appointment.status === "Confirmed" &&
+      now.getTime() >= roomOpensAt(appointment.startDateTime)
+    ) {
+      navigate(`teleconsulta/${appointment.meetingCode ?? appointment.id}/pre-sala`, {
         state: { appointmentId: appointment.id, patientName: appointment.patientName },
       });
       return;
@@ -192,9 +205,14 @@ export default function Dashboard() {
                 <p className="text-xs opacity-90 mb-2.5">
                   Inicie sua sala virtual para receber o paciente <span className="font-bold">{tele.patientName}</span> às {formatTime(tele.startDateTime)}.
                 </p>
-                <Button size="sm" className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs" onPress={() => navigate(`teleconsulta/${tele.appointmentId}/pre-sala`, { state: { appointmentId: tele.appointmentId, patientName: tele.patientName } })}>
+                <Button size="sm" className="bg-white text-primary-color font-bold w-full shadow-md h-8 text-xs" isDisabled={!teleRoomOpen} onPress={() => navigate(`teleconsulta/${tele.meetingCode}/pre-sala`, { state: { appointmentId: tele.appointmentId, patientName: tele.patientName } })}>
                   Abrir Sala Virtual
                 </Button>
+                {!teleRoomOpen && (
+                  <p className="text-[11px] opacity-90 mt-1.5 mb-0">
+                    A sala é liberada {ROOM_LEAD_MINUTES} min antes da consulta ({formatTime(new Date(roomOpensAt(tele.startDateTime)).toISOString())}).
+                  </p>
+                )}
               </div>
             )}
 

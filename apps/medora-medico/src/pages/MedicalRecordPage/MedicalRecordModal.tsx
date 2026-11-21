@@ -32,6 +32,8 @@ type Mode = "loading" | "pdf" | "raw";
 interface MedicalRecordModalProps {
   medicalRecord: MedicalRecordDTO;
   children: ReactNode;
+  /** Gatilho como botão cheio (cards da busca), igual ao do prontuário em andamento; senão, item de lista. */
+  asButton?: boolean;
 }
 
 function MedicalRecordContent({ medicalRecord }: { medicalRecord: MedicalRecordDTO }): JSX.Element {
@@ -128,12 +130,17 @@ function MedicalRecordContent({ medicalRecord }: { medicalRecord: MedicalRecordD
   );
 }
 
-export function MedicalRecordModal({ medicalRecord, children }: MedicalRecordModalProps): JSX.Element {
+export function MedicalRecordModal({
+  medicalRecord,
+  children,
+  asButton = false,
+}: MedicalRecordModalProps): JSX.Element {
   return (
     <Modal>
       <Button
-        variant="ghost"
-        className="h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"
+        variant={asButton ? "primary" : "ghost"}
+        size={asButton ? "sm" : undefined}
+        className={asButton ? "w-full" : "h-auto min-h-0 w-full justify-start rounded-md px-2 py-1.5 text-left"}
         aria-label={`Abrir consulta de ${formatRecordDate(medicalRecord.date)}`}
       >
         {children}

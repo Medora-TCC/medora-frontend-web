@@ -1,4 +1,5 @@
 import type { IConsultaDetailed } from "@medora_web/shared";
+import { ROOM_LEAD_MINUTES } from "../SchedulePage/scheduleModel";
 
 export function PatientInitials(nome: string) {
   return nome
@@ -13,7 +14,8 @@ export function PatientInitials(nome: string) {
 export function canEnter(c: IConsultaDetailed): boolean {
   if (!c) return false;
   if (c.status !== "confirmado" && c.status !== "em_atendimento") return false;  
-  const inicio = new Date(c.startDateTime).getTime() - 15 * 60 * 1000;
+  // mesma regra da agenda: a sala abre ROOM_LEAD_MINUTES antes (o backend recusa antes disso)
+  const inicio = new Date(c.startDateTime).getTime() - ROOM_LEAD_MINUTES * 60 * 1000;
   const fim = new Date(c.endDateTime).getTime();
   const agora = Date.now();
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useContext } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, useContext } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
 import { Button, Chip, Modal, useOverlayState } from "@heroui/react";
 import {
@@ -10,7 +10,6 @@ import {
   Users,
   Maximize2,
   Minimize2,
-  MonitorUp,
   Stethoscope,
   Clock,
   ClipboardClock,
@@ -51,9 +50,6 @@ interface DeviceInfo {
 }
 
 // ─── Helpers de mídia ─────────────────────────────────────────────────────────
-function stopStream(stream: MediaStream | null | undefined) {
-  stream?.getTracks().forEach((t) => t.stop());
-}
 
 function errorName(e: unknown): string {
   return typeof e === "object" && e !== null && "name" in e
@@ -111,6 +107,7 @@ function ParticipantTile({
   mirrored = false,
   large = false,
   isLocal = false,
+  fill = false,
 }: {
   stream: MediaStream | null;
   name: string;
@@ -119,6 +116,8 @@ function ParticipantTile({
   mirrored?: boolean;
   large?: boolean;
   isLocal?: boolean;
+  // preenche o quadro cortando as bordas, em vez de mostrar o vídeo inteiro
+  fill?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [audioBlocked, setAudioBlocked] = useState(false);
@@ -156,14 +155,16 @@ function ParticipantTile({
   const showVideo = !camOff && !!stream;
 
   return (
-    <div className="relative w-full h-full bg-surface-overlay rounded-2xl overflow-hidden group">
+    <div className="relative w-full h-full bg-surface border border-ring rounded-2xl overflow-hidden group">
       <video
         ref={videoRef}
         autoPlay
         playsInline
         // Só o self-view fica mudo — evita eco. O remoto precisa tocar o áudio.
         muted={isLocal}
-        className={`absolute inset-0 w-full h-full object-cover ${
+        // O vídeo aparece inteiro (sem corte): o celular do paciente filma em pé e, cortado
+        // para preencher o quadro, parecia ter muito zoom. A sobra fica no fundo do quadro.
+        className={`absolute inset-0 w-full h-full ${fill ? "object-cover" : "object-contain"} ${
           mirrored ? "scale-x-[-1]" : ""
         } ${showVideo ? "" : "invisible"}`}
       />
@@ -194,9 +195,7 @@ function ParticipantTile({
       )}
 
       <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between">
-        <span
-          className={`text-xs font-medium truncate ${name === "Você" ? "text-white" : "text-text-primary"}`}
-        >
+        <span className="text-xs font-medium truncate text-text-primary bg-surface/80 rounded-md px-2 py-0.5">
           {name}
         </span>
         {muted && (
@@ -320,9 +319,22 @@ export default function SalaTeleConsulta() {
   const { accessToken } = useContext(AuthContext);
   const role = "doctor";
 
+  const [camOn, setCamOn] = useState(state.camOn ?? true);
+  const [micOn, setMicOn] = useState(state.micOn ?? true);
+
+  const hasVideo = (localStream?.getVideoTracks().length ?? 0) > 0;
+  const hasAudio = (localStream?.getAudioTracks().length ?? 0) > 0;
+
+  const mediaState = useMemo(
+    () => ({ camera: camOn && hasVideo, mic: micOn && hasAudio }),
+    [camOn, hasVideo, micOn, hasAudio],
+  );
+
   const {
     remoteStream,
     remoteConnected,
+    remoteLeft,
+    remoteMedia,
     callState,
     hangUp,
     reconnect,
@@ -331,12 +343,12 @@ export default function SalaTeleConsulta() {
     token: accessToken,
     role: role,
     localStream: localStream,
+    mediaState,
   });
 
   const timer = useCallTimer();
 
   const mountedRef = useRef(true);
-  const screenStreamRef = useRef<MediaStream | null>(null);
   // Tracks reais da chamada. O MediaStream (localStream) é remontado a partir
   // delas quando o dispositivo troca, sem parar a track que continua em uso.
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
@@ -374,17 +386,14 @@ export default function SalaTeleConsulta() {
   const appointmentId = consulta?.id;
 
   const remoteName = state.patientName ?? "Paciente";
-  /* TODO: Hub ainda não propaga estado de câmera do remoto */
-  const remoteCamOn = true;
+  // o paciente avisa pelo sinal "media-state" quando desliga a câmera ou o microfone
+  const remoteCamOn = remoteMedia.camera;
 
   // Mensagem mostrada nos painéis enquanto não há appointmentId
   const semConsultaMsg = erroConsulta
     ? `Não foi possível carregar a consulta: ${erroConsulta}`
     : "Carregando consulta…";
 
-  const [camOn, setCamOn] = useState(state.camOn ?? true);
-  const [micOn, setMicOn] = useState(state.micOn ?? true);
-  const [screenSharing, setScreenSharing] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
 
@@ -407,9 +416,6 @@ export default function SalaTeleConsulta() {
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
-
-  const hasVideo = (localStream?.getVideoTracks().length ?? 0) > 0;
-  const hasAudio = (localStream?.getAudioTracks().length ?? 0) > 0;
 
   // ── Reconexão automática: 15s entre uma tentativa e outra ─────────────────
   const reconnectRef = useRef(reconnect);
@@ -547,15 +553,13 @@ export default function SalaTeleConsulta() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Libera câmera, microfone e tela ao desmontar
+  // Libera câmera e microfone ao desmontar
   useEffect(() => {
     return () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       videoTrackRef.current?.stop();
       // eslint-disable-next-line react-hooks/exhaustive-deps
       audioTrackRef.current?.stop();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      stopStream(screenStreamRef.current);
     };
   }, []);
 
@@ -577,10 +581,8 @@ export default function SalaTeleConsulta() {
   }
 
   // ── Troca de dispositivo (menu "Mais") ────────────────────────────────────
-  // IMPORTANTE: isto cria um novo MediaStream. O useTelemedicineCall precisa
-  // reagir à mudança de `localStream` trocando a track no peer
-  // (RTCRtpSender.replaceTrack); se ele só lê o stream na conexão inicial, o
-  // participante remoto continuará recebendo o dispositivo antigo.
+  // Cria um novo MediaStream; o useTelemedicineCall troca a trilha na conexão
+  // aberta (replaceTrack), sem derrubar a chamada.
   async function changeDevice(kind: MediaKind, deviceId: string) {
     if (!deviceId || switching) return;
     const ref = kind === "video" ? videoTrackRef : audioTrackRef;
@@ -624,29 +626,6 @@ export default function SalaTeleConsulta() {
     rebuildStream(); // o efeito de camOn/micOn reaplica `enabled` no novo stream
     setSwitching(null);
     void refreshDevices();
-  }
-
-  // TODO: o stream de tela ainda NÃO é enviado ao participante remoto nem
-  // exibido localmente; falta publicá-lo no useTelemedicineCall (replaceTrack
-  // ou nova track no peer connection).
-  async function toggleScreenShare() {
-    if (screenSharing) {
-      stopStream(screenStreamRef.current);
-      screenStreamRef.current = null;
-      setScreenSharing(false);
-      return;
-    }
-    try {
-      const screen = await navigator.mediaDevices.getDisplayMedia({ video: true });
-      screenStreamRef.current = screen;
-      screen.getVideoTracks()[0]?.addEventListener("ended", () => {
-        screenStreamRef.current = null;
-        setScreenSharing(false);
-      });
-      setScreenSharing(true);
-    } catch {
-      // usuário cancelou
-    }
   }
 
   // ── Auto-hide dos controles (não esconde com painel/menu aberto) ──────────
@@ -722,7 +701,6 @@ export default function SalaTeleConsulta() {
     hangUp();
     videoTrackRef.current?.stop();
     audioTrackRef.current?.stop();
-    stopStream(screenStreamRef.current);
     navigate(`../../consulta`);
   }
 
@@ -789,8 +767,17 @@ export default function SalaTeleConsulta() {
 
           <div className="flex items-center gap-3 text-text-secondary text-xs">
             <div className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-success animate-pulse" />
-              <span>Ao vivo</span>
+              {remoteConnected ? (
+                <>
+                  <span className="size-1.5 rounded-full bg-success animate-pulse" />
+                  <span>Ao vivo</span>
+                </>
+              ) : (
+                <>
+                  <span className="size-1.5 rounded-full bg-warning animate-pulse" />
+                  <span>Aguardando paciente</span>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <Clock size={12} />
@@ -872,22 +859,36 @@ export default function SalaTeleConsulta() {
             </div>
           )}
 
-          <div className="relative w-full h-full">
+          {/* com prontuário ou receita aberto, o paciente ocupa o espaço e a câmera do médico vira miniatura */}
+          <div
+            className={`grid w-full h-full gap-3 ${
+              sidePanel ? "grid-cols-1 grid-rows-1" : "grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1"
+            }`}
+          >
+            <div className="relative min-h-0 min-w-0">
             {remoteConnected ? (
               <ParticipantTile
                 stream={remoteStream}
                 name={remoteName}
-                muted={false}
+                muted={!remoteMedia.mic}
                 camOff={!remoteCamOn}
                 large
+                fill
               />
             ) : (
-              <div className="w-full h-full rounded-2xl bg-surface flex flex-col items-center justify-center gap-4">
-                <div className="flex items-center justify-center size-20 rounded-full bg-white/5">
-                  <Users size={32} className="text-white/30" />
+              <div className="w-full h-full rounded-2xl bg-surface border border-ring flex flex-col items-center justify-center gap-4">
+                <div className="flex items-center justify-center size-20 rounded-full bg-accent-soft">
+                  <Users size={32} className="text-accent" />
                 </div>
-                <div className="text-center">
-                  <p className="text-white/60 text-sm">Aguardando o outro participante…</p>
+                <div className="text-center px-6">
+                  <p className="text-text-primary text-sm font-medium">
+                    {remoteLeft ? `${remoteName} saiu da sala` : `Aguardando ${remoteName} entrar na sala…`}
+                  </p>
+                  <p className="text-text-secondary text-xs mt-1">
+                    {remoteLeft
+                      ? "A chamada volta sozinha quando o paciente entrar de novo."
+                      : "A chamada começa sozinha assim que o paciente entrar."}
+                  </p>
                 </div>
                 <div className="flex gap-1.5 mt-2">
                   {[0, 1, 2].map((i) => (
@@ -901,14 +902,23 @@ export default function SalaTeleConsulta() {
               </div>
             )}
 
-            {/* Self-view dentro da área de vídeo (não invade a barra de controles) */}
-            <div className="absolute bottom-3 right-3 w-40 aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10 z-10">
+            </div>
+
+            {/* o mesmo elemento muda de lugar (sem desmontar), para o vídeo não piscar */}
+            <div
+              className={
+                sidePanel
+                  ? "absolute top-3 right-3 z-10 w-40 aspect-video shadow-lg rounded-2xl"
+                  : "relative min-h-0 min-w-0"
+              }
+            >
               <ParticipantTile
                 stream={localStream}
                 name="Você"
                 muted={!micOn}
                 camOff={!camOn}
                 mirrored
+                large={!sidePanel}
                 isLocal
               />
             </div>
@@ -941,14 +951,6 @@ export default function SalaTeleConsulta() {
               label={camOn ? "Desativar cam" : "Ativar cam"}
             >
               {camOn ? <Video size={20} /> : <VideoOff size={20} />}
-            </ControlBtn>
-
-            <ControlBtn
-              onClick={toggleScreenShare}
-              active={screenSharing}
-              label={screenSharing ? "Parar exib." : "Apresentar"}
-            >
-              <MonitorUp size={20} />
             </ControlBtn>
 
             <div className="flex flex-col items-center gap-1 mx-1">

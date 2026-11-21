@@ -63,6 +63,9 @@ export const Endpoints = {
 
     GET_VERIFICATION_STATUS: "v1/doctor/me/verification-status",
     CORRECT_REGISTRATION: "v1/doctor/me/verification/correction",
+    DOCTOR_ADDRESS: '/v1/Doctor/me/address',
+
+    PROFILE_PHOTO: '/v1/profile-photo',
 
     GET_DOCTOR_APPOINTMENT_MEETINGCODE: (meetingCode: string) => `/appointments/${meetingCode}/details`,
 
