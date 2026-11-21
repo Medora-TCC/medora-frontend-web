@@ -23,6 +23,13 @@ export interface WorkerLogPage {
   total: number;
 }
 
+// Resposta do disparo manual de um job; requestId vira a correlação dos eventos no log do worker
+export interface JobTriggerResponse {
+  requestId: string;
+  jobNames: string[];
+  requestedAt: string;
+}
+
 export interface WorkerLogFilterOptions {
   sources: string[];
   eventTypes: string[];

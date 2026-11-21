@@ -1,11 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Spinner } from "@heroui/react";
-import { ChevronDown, ChevronUp, Cpu, Link2, Search, X } from "lucide-react";
-import { getWorkerLog, getWorkerLogFilters, searchWorkerLogs } from "../../api/services/WorkerLogService";
+import { ChevronDown, ChevronUp, Cpu, Link2, Search, ShieldCheck, X } from "lucide-react";
+import { getWorkerLog, getWorkerLogFilters, searchWorkerLogs, triggerDoctorVerification } from "../../api/services/WorkerLogService";
 import type { WorkerLogDetail, WorkerLogFilter, WorkerLogFilterOptions, WorkerLogItem } from "../../api/dtos/workerLogs";
 import { levelConfig } from "../../api/mappers/workerLogLabels";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
+import { useConfirm } from "../../components/ConfirmDialog/useConfirm";
 
 const PAGE_SIZE = 25;
+
+// tempo para o worker receber o pedido e gravar os primeiros eventos antes de recarregar a lista
+const TRIGGER_REFRESH_DELAY_MS = 3000;
+
+interface TriggerMessage {
+  type: "error" | "success";
+  text: string;
+  correlationId?: string;
+}
 
 interface FilterForm {
   from: string;
@@ -54,6 +65,9 @@ export default function WorkerLogs() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [isTriggering, setIsTriggering] = useState(false);
+  const [triggerMessage, setTriggerMessage] = useState<TriggerMessage | null>(null);
+  const { confirm, dialogProps } = useConfirm();
 
   useEffect(() => {
     getWorkerLogFilters().then(setOptions).catch(() => setOptions(EMPTY_OPTIONS));
@@ -89,19 +103,74 @@ export default function WorkerLogs() {
 
   const quickFilter = (patch: Partial<FilterForm>) => applyFilters({ ...EMPTY_FORM, ...patch });
 
+  const verifyPendingDoctors = async () => {
+    const confirmed = await confirm({
+      title: "Verificar médicos pendentes agora?",
+      description:
+        "O worker vai enviar para a fila de verificação no CFM os cadastros novos ainda não verificados e os médicos com verificação vencida ou pendente, sem esperar o agendamento de hora em hora.",
+      confirmLabel: "Verificar agora",
+      tone: "primary",
+    });
+    if (!confirmed) return;
+
+    setIsTriggering(true);
+    setTriggerMessage(null);
+    try {
+      const response = await triggerDoctorVerification();
+      // o worker grava a correlação sem hífens (Guid "N")
+      const correlationId = response.requestId.replaceAll("-", "");
+      setTriggerMessage({
+        type: "success",
+        text: "Verificação solicitada ao worker. Os eventos aparecem nesta lista em instantes.",
+        correlationId,
+      });
+      setTimeout(load, TRIGGER_REFRESH_DELAY_MS);
+    } catch (error) {
+      setTriggerMessage({ type: "error", text: error instanceof Error ? error.message : "Não foi possível solicitar a verificação." });
+    } finally {
+      setIsTriggering(false);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasFilters = Object.values(applied).some(Boolean);
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
+      <ConfirmDialog {...dialogProps} />
       <main className="py-4 px-6 space-y-5 max-w-7xl mx-auto w-full">
-        <header>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <Cpu className="text-primary-color" />
-            Logs do Worker
-          </h1>
-          <p className="text-sm text-text-muted mt-1">Eventos das tarefas executadas em segundo plano.</p>
+        <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+              <Cpu className="text-primary-color" />
+              Logs do Worker
+            </h1>
+            <p className="text-sm text-text-muted mt-1">Eventos das tarefas executadas em segundo plano.</p>
+          </div>
+          <Button
+            size="sm"
+            className="bg-primary-color text-text-inverse font-semibold"
+            isDisabled={isTriggering}
+            onPress={verifyPendingDoctors}
+          >
+            {isTriggering ? <Spinner size="sm" /> : <ShieldCheck size={14} />} Verificar médicos pendentes
+          </Button>
         </header>
+
+        {triggerMessage && (
+          <div className={`px-4 py-3 rounded-lg text-sm flex flex-wrap items-center justify-between gap-2 ${triggerMessage.type === "error" ? "bg-danger-subtle text-danger-text" : "bg-success-subtle text-success-text"}`}>
+            <span>{triggerMessage.text}</span>
+            {triggerMessage.correlationId && (
+              <button
+                type="button"
+                onClick={() => quickFilter({ correlationId: triggerMessage.correlationId! })}
+                className="inline-flex items-center gap-1 font-semibold hover:underline"
+              >
+                <Link2 size={13} /> Ver eventos deste disparo
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2">
           {options.levels.map((level) => (

@@ -1,6 +1,6 @@
 import { api } from "../client";
 import { Endpoints } from "../endpoints";
-import type { WorkerLogDetail, WorkerLogFilter, WorkerLogFilterOptions, WorkerLogPage } from "../dtos/workerLogs";
+import type { JobTriggerResponse, WorkerLogDetail, WorkerLogFilter, WorkerLogFilterOptions, WorkerLogPage } from "../dtos/workerLogs";
 
 export async function searchWorkerLogs(filter: WorkerLogFilter): Promise<WorkerLogPage> {
   const params = Object.fromEntries(
@@ -12,6 +12,11 @@ export async function searchWorkerLogs(filter: WorkerLogFilter): Promise<WorkerL
 
 export async function getWorkerLog(id: number): Promise<WorkerLogDetail> {
   const { data } = await api.get<WorkerLogDetail>(Endpoints.WORKER_LOG(id));
+  return data;
+}
+
+export async function triggerDoctorVerification(): Promise<JobTriggerResponse> {
+  const { data } = await api.post<JobTriggerResponse>(Endpoints.WORKER_JOB_DOCTOR_VERIFICATION);
   return data;
 }
 
