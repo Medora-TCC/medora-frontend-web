@@ -61,6 +61,9 @@ export const Endpoints = {
     UPDATE_DOCTOR_COMPLEMENTARY: '/v1/Doctor/me/personal-data/complementary',
     UPDATE_DOCTOR_PASSPORT: '/v1/Doctor/me/personal-data/passport',
 
+    GET_VERIFICATION_STATUS: "v1/doctor/me/verification-status",
+    CORRECT_REGISTRATION: "v1/doctor/me/verification/correction",
+
     GET_DOCTOR_APPOINTMENT_MEETINGCODE: (meetingCode: string) => `/appointments/${meetingCode}/details`,
 
     GET_MY_PUBLIC_PAGE: '/v1/Doctor/me/public-page',

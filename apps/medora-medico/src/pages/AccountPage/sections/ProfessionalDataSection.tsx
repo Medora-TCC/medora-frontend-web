@@ -1,23 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Spinner } from "@heroui/react";
-import { AlertTriangle, Award, IdCard, Stethoscope } from "lucide-react";
+import { AlertTriangle, Award, Clock, IdCard, Stethoscope } from "lucide-react";
 import { useMainLayout } from "../../../components/MainLayout/mainLayoutContext";
 import VerificationBadge from "../../../components/VerificationBadge/VerificationBadge";
-import { getProfessionalData } from "../../../api/services/DoctorService";
+import { getProfessionalData, getVerificationStatus } from "../../../api/services/DoctorService";
 import type { ProfessionalDataDto } from "../../../api/dtos/Doctors/ProfessionalRegistrationDto";
+import type { VerificationStatusDto } from "../../../api/dtos/Doctors/VerificationDto";
+import CorrectRegistrationModal from "./CorrectRegistrationModal";
 
 export default function ProfessionalDataSection() {
   const { doctorRqes, openSpecialtiesModal } = useMainLayout();
 
   const [professional, setProfessional] = useState<ProfessionalDataDto | null>(null);
+  const [verification, setVerification] = useState<VerificationStatusDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isCorrectionOpen, setIsCorrectionOpen] = useState(false);
+  const [justSubmitted, setJustSubmitted] = useState(false);
 
   const loadProfessionalData = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage("");
     try {
-      setProfessional(await getProfessionalData());
+      const [data, status] = await Promise.all([
+        getProfessionalData(),
+        getVerificationStatus().catch(() => null),
+      ]);
+      setProfessional(data);
+      setVerification(status);
+      if (status?.canCorrect) setJustSubmitted(false);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Erro ao carregar dados profissionais.");
     } finally {
@@ -34,6 +45,10 @@ export default function ProfessionalDataSection() {
     if (b.priority === null) return -1;
     return a.priority - b.priority;
   });
+
+  const rejectionReason = verification?.rejectionReason ?? null;
+  const canCorrect = verification?.canCorrect === true;
+  const correctionExhausted = rejectionReason !== null && !canCorrect;
 
   return (
     <div className="space-y-6">
@@ -58,6 +73,47 @@ export default function ProfessionalDataSection() {
           <IdCard size={18} className="text-primary-color" />
           <h3 className="font-semibold text-text-primary">Registro profissional</h3>
         </div>
+
+        {canCorrect && verification && (
+          <div className="flex items-start gap-3 p-4 bg-red-50 border-b border-red-200">
+            <AlertTriangle size={18} className="text-red-600 mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-red-800">Verificação não aprovada</p>
+              <p className="text-sm text-red-700 mt-0.5 line-clamp-2">{rejectionReason}</p>
+            </div>
+            <Button size="sm" className="bg-primary-color text-white font-bold shrink-0" onPress={() => setIsCorrectionOpen(true)}>
+              Corrigir dados
+            </Button>
+          </div>
+        )}
+
+        {correctionExhausted && (
+          <div className="flex items-start gap-3 p-4 bg-red-50 border-b border-red-200">
+            <AlertTriangle size={18} className="text-red-600 mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-red-800">Verificação não aprovada</p>
+              <p className="text-sm text-red-700 mt-0.5">{rejectionReason}</p>
+              <p className="text-xs text-red-700 mt-1">
+                Você atingiu o limite de correções. Entre em contato com o suporte.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {justSubmitted && !canCorrect && !correctionExhausted && (
+          <div className="flex items-start gap-3 p-4 bg-primary-subtle border-b border-divider">
+            <Clock size={18} className="text-primary-color mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-primary-text">Verificação em andamento</p>
+              <p className="text-sm text-text-secondary mt-0.5">
+                Estamos consultando o CFM (de 1 a 5 minutos). Você receberá o resultado por e-mail.
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="shrink-0" onPress={loadProfessionalData}>
+              Atualizar
+            </Button>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="p-6 flex justify-center"><Spinner size="sm" /></div>
@@ -124,6 +180,17 @@ export default function ProfessionalDataSection() {
           </ul>
         )}
       </div>
+
+      {isCorrectionOpen && verification && (
+        <CorrectRegistrationModal
+          status={verification}
+          onClose={() => setIsCorrectionOpen(false)}
+          onSubmitted={() => {
+            setJustSubmitted(true);
+            loadProfessionalData();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -9,6 +9,11 @@ import { Endpoints } from "../enums/endpoints";
 import { api } from "./api";
 import { isAxiosError } from "axios";
 import type { DoctorPublicPageDto, EducationRequestDto, ExperienceRequestDto, UpdateAboutDto } from "../dtos/Doctors/DoctorPublicPageDto";
+import type {
+  CorrectRegistrationDto,
+  CorrectRegistrationResponseDto,
+  VerificationStatusDto,
+} from "../dtos/Doctors/VerificationDto";
 
 interface RegisterResponse {
   userId: string;
@@ -208,5 +213,34 @@ export async function removeExperience(id: number): Promise<void> {
     await api.delete(`${Endpoints.EXPERIENCES}/${id}`);
   } catch (error) {
     throw toServiceError(error, "Não foi possível remover a experiência.");
+  }
+}
+
+function correctionError(error: unknown, fallback: string): Error {
+  if (isAxiosError(error) && error.response) {
+    const data = error.response.data;
+    const list: unknown = data?.Erros;
+    if (Array.isArray(list) && list.length > 0) return new Error(list.join(" "));
+    return new Error(data?.detail ?? data?.title ?? fallback);
+  }
+  return new Error("Erro de conexão. Tente novamente.");
+}
+
+export async function getVerificationStatus(): Promise<VerificationStatusDto | null> {
+  try {
+    const response = await api.get<VerificationStatusDto>(Endpoints.GET_VERIFICATION_STATUS);
+    return response.data;
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 404) return null;
+    throw correctionError(error, "Erro ao carregar a situação da verificação.");
+  }
+}
+
+export async function correctRegistration(body: CorrectRegistrationDto): Promise<CorrectRegistrationResponseDto> {
+  try {
+    const response = await api.post<CorrectRegistrationResponseDto>(Endpoints.CORRECT_REGISTRATION, body);
+    return response.data;
+  } catch (error) {
+    throw correctionError(error, "Não foi possível enviar a correção. Tente novamente.");
   }
 }
