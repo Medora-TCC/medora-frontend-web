@@ -75,7 +75,7 @@ function AppointmentRow({ entry, now, compact, onClick }: AppointmentRowProps) {
               variant="primary"
               isDisabled={!room.open}
               onPress={() =>
-                navigate(`/medico/teleconsulta/${appointment.appointmentId}/pre-sala`, {
+                navigate(`/medico/teleconsulta/${appointment.meetingCode ?? appointment.appointmentId}/pre-sala`, {
                   state: { appointmentId: appointment.appointmentId, patientName: appointment.patientName },
                 })
               }

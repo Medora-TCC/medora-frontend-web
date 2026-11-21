@@ -4,7 +4,8 @@ import { Calendar, Video } from 'lucide-react';
 import type { AppointmentStatus, DoctorAppointment } from '../../api/services/Appointments';
 import { TipoConsultaTag } from '../../components/Consulta/ConsultaModal';
 import { PatientInitials } from '../ConsultaScreen/ConsultaHelpers';
-import { STATUS_CFG, canEnterRoom, dayLabel, isTeleconsultation, localTime } from './ScheduleConfig';
+import { STATUS_CFG, dayLabel, isTeleconsultation, localTime } from './ScheduleConfig';
+import { getRoomAccess } from './scheduleModel';
 
 export function StatusBadge({ status }: { status: AppointmentStatus }) {
   const { label, badge, icon: Icon } = STATUS_CFG[status];
@@ -27,7 +28,9 @@ interface ScheduleCardProps {
 export function ScheduleCard({ appointment, now, onCardClick, muted = false }: ScheduleCardProps) {
   const navigate = useNavigate();
   const isTele = isTeleconsultation(appointment);
-  const showEnter = canEnterRoom(appointment);
+  // mesma regra da lista: some depois do fim e fica desligado até a sala abrir
+  const room = getRoomAccess(appointment, now);
+  const showEnter = room.eligible;
   const day = dayLabel(appointment, now);
 
   const stripe = showEnter ? 'bg-success' : isTele ? 'bg-violet-500' : 'bg-teal-500';
@@ -85,12 +88,13 @@ export function ScheduleCard({ appointment, now, onCardClick, muted = false }: S
           </div>
 
           {showEnter && (
-            <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+            <div className="shrink-0" title={room.hint ?? undefined} onClick={(e) => e.stopPropagation()}>
               <Button
                 size="sm"
                 variant="primary"
+                isDisabled={!room.open}
                 onPress={() =>
-                  navigate(`/medico/teleconsulta/${appointment.appointmentId}/pre-sala`, {
+                  navigate(`/medico/teleconsulta/${appointment.meetingCode ?? appointment.appointmentId}/pre-sala`, {
                     state: { appointmentId: appointment.appointmentId, patientName: appointment.patientName },
                   })
                 }
