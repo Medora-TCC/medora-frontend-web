@@ -98,7 +98,10 @@ export default function Dashboard() {
   // mesma regra da agenda: a sala só abre ROOM_LEAD_MINUTES antes do início (o backend recusa antes)
   const roomOpensAt = (startDateTime: string) =>
     new Date(startDateTime).getTime() - ROOM_LEAD_MINUTES * 60_000;
-  const teleRoomOpen = !!tele && now.getTime() >= roomOpensAt(tele.startDateTime);
+  const teleRoomOpen =
+    !!tele &&
+    now.getTime() >= roomOpensAt(tele.startDateTime) &&
+    now.getTime() < new Date(tele.endDateTime).getTime();
 
   const openAppointment = (appointment: UpcomingAppointmentDto) => {
     // só teleconsulta confirmada com a sala já liberada abre a sala; o resto vai para o prontuário

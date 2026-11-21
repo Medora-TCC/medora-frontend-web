@@ -219,6 +219,8 @@ export interface RoomAccess {
 
 export function getRoomAccess(a: DoctorAppointment, now: number): RoomAccess {
   if (!canEnterRoom(a)) return { eligible: false, open: false, hint: null };
+  // passou do fim: o backend recusa a entrada ("already ended"), então o botão some
+  if (now >= new Date(a.endDateTime).getTime()) return { eligible: false, open: false, hint: null };
 
   const opensAt = new Date(a.startDateTime).getTime() - ROOM_LEAD_MINUTES * 60_000;
   if (now >= opensAt) return { eligible: true, open: true, hint: null };
