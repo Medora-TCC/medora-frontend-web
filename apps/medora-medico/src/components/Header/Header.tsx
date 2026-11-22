@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Activity, Bell, LogOut, Settings, User, Stethoscope } from 'lucide-react';
-import { Button } from '@heroui/react';
+import { Activity, LogOut, Settings, User, Stethoscope } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ThemeToggle } from '@medora_web/shared';
 import { useAuth } from '../../hooks/useAuth';
@@ -37,10 +36,8 @@ export default function Header({
 
     const { signOut } = useAuth()
     
-    const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
 
-    const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
 
     const handleLogout = async () => {
@@ -50,9 +47,6 @@ export default function Header({
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-                setNotifOpen(false);
-            }
             if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
                 setProfileOpen(false);
             }
@@ -72,38 +66,6 @@ export default function Header({
             {/* Ações da Direita */}
             <div className="flex items-center gap-3">
                 
-                {/* Dropdown de Notificações */}
-                <div className="relative" ref={notifRef}>
-                    <Button 
-                        isIconOnly 
-                        variant="ghost" 
-                        className="text-text-muted"
-                        onPress={() => {
-                            setNotifOpen(!notifOpen);
-                            setProfileOpen(false);
-                        }}
-                    >
-                        <Bell size={18} />
-                    </Button>
-
-                    {/* Menu Flutuante de Notificações */}
-                    {notifOpen && (
-                        <div className="absolute right-0 mt-2 w-64 bg-surface border border-divider rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                            <div className="px-4 py-2 hover:bg-muted/50 cursor-pointer border-b border-divider/50">
-                                <p className="text-sm text-text-primary">Prontuário atualizado</p>
-                                <p className="text-xs text-text-muted mt-0.5">Há 1 hora</p>
-                            </div>
-                            <div className="px-4 py-2 hover:bg-muted/50 cursor-pointer">
-                                <p className="text-sm text-text-primary">Nova consulta agendada</p>
-                                <p className="text-xs text-text-muted mt-0.5">Há 2 horas</p>
-                            </div>
-                            <button className="w-full text-center text-primary-600 font-semibold text-xs pt-2 pb-1 border-t border-divider/50 hover:underline">
-                                Ver todas as notificações
-                            </button>
-                        </div>
-                    )}
-                </div>
-
                 {/* Alternador de Tema */}
                 <ThemeToggle />
 
@@ -115,10 +77,7 @@ export default function Header({
                 <div className="relative" ref={profileRef}>
                     <button
                         type="button"
-                        onClick={() => {
-                            setProfileOpen(!profileOpen);
-                            setNotifOpen(false);
-                        }}
+                        onClick={() => setProfileOpen(!profileOpen)}
                         className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none select-none"
                     >
                         <div className="hidden md:block text-right">
