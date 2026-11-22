@@ -1,7 +1,7 @@
 import { Form, Link, Button, Spinner, Alert, InputOTP, REGEXP_ONLY_DIGITS, ToastProvider, toast } from "@heroui/react";
 import { CircleCheckBig, MailQuestionMark } from "lucide-react";
 import { Link as RouterLink } from "react-router"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export interface VerifyMfaScreenProps {
   onInitMfa: () => Promise<{ useAuthenticationApp: boolean; sentTo?: string }>;
@@ -19,10 +19,14 @@ export function VerifyMfaScreen({ onInitMfa, onVerify, onComplete, backupLoginHr
   const [mfaData, setMfaData] = useState<{ useAuthenticationApp: boolean; sentTo?: string } | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
+  // o envio do código acontece uma vez só: no StrictMode (dev) o efeito roda duas vezes e chegavam 2 e-mails
+  const initRequest = useRef<ReturnType<VerifyMfaScreenProps["onInitMfa"]> | null>(null);
+
   useEffect(() => {
     let isMounted = true;
 
-    onInitMfa()
+    initRequest.current ??= onInitMfa();
+    initRequest.current
       .then((data) => {
         if (isMounted) setMfaData(data);
       })
