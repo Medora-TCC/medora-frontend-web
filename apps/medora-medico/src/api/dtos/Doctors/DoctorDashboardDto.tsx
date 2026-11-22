@@ -28,6 +28,8 @@ export interface PendingMedicalRecordItemDto {
   medicalRecordId: number | null;
   patientName: string;
   appointmentDate: string;
+  /** Draft = não finalizado; AwaitingSignature = "Assinar depois"; SignatureFailed = assinatura falhou. */
+  reason: "Draft" | "AwaitingSignature" | "SignatureFailed";
 }
 
 export interface PendingMedicalRecordsDto {

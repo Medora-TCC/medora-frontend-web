@@ -12,6 +12,7 @@ import {
 } from "./MedicalRecordHelper";
 import type { MedicalRecordListDTO } from "../../api/dtos/MedicalRecord/MedicalRecordListDTO";
 import { MedicalRecordModal } from "../MedicalRecordPage/MedicalRecordModal";
+import { PrescriptionModal } from "./PrescriptionModal";
 
 export function MedicalRecordRowSkeleton() {
   return (
@@ -69,7 +70,8 @@ export function MedicalRecordRow({ item }: MedicalRecordRowProps) {
           </span>
         </div>
 
-        <div className="mt-auto w-full">
+        {/* com receita, os dois botões dividem a linha */}
+        <div className={`mt-auto grid w-full gap-2 ${medicalRecord.prescriptionPublicId ? "grid-cols-2" : "grid-cols-1"}`}>
           {!medicalRecord.isFinalized ? (
             <Button
               size="sm"
@@ -84,13 +86,16 @@ export function MedicalRecordRow({ item }: MedicalRecordRowProps) {
               aria-label={`Continuar prontuário de ${patient.name}`}
             >
               <FolderOpen size={16} />
-              Abrir prontuário
+              Continuar
             </Button>
           ) : (
             <MedicalRecordModal medicalRecord={medicalRecord} asButton>
               <FolderOpen size={16} />
-              Abrir prontuário
+              Prontuário
             </MedicalRecordModal>
+          )}
+          {medicalRecord.prescriptionPublicId && (
+            <PrescriptionModal publicId={medicalRecord.prescriptionPublicId} patientName={patient.name} />
           )}
         </div>
       </Card.Content>

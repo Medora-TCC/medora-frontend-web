@@ -4,13 +4,12 @@ import { Pencil, Phone } from "lucide-react";
 import { FieldWrapper } from "@medora_web/shared";
 import { InfoCard, InfoGrid, InfoItem } from "../../../../components/Profile/InfoCard";
 import { updateContact } from "../../../../api/services/DoctorService";
-import type { PersonalDataDto, Race, UpdateContactDto } from "../../../../api/dtos/Doctors/PersonalDataDto";
+import type { PersonalDataDto, UpdateContactDto } from "../../../../api/dtos/Doctors/PersonalDataDto";
 import {
   TIME_ZONE_OPTIONS,
   formatPhone,
   formatTimeZone,
   onlyDigits,
-  raceLabel,
 } from "../../../../api/mappers/personLabels";
 
 interface ContactForm {
@@ -18,7 +17,6 @@ interface ContactForm {
   phone2: string;
   socialName: string;
   gender: string;
-  race: Race;
   timeZoneId: string;
 }
 
@@ -28,12 +26,9 @@ function toForm(data: PersonalDataDto): ContactForm {
     phone2: formatPhone(data.phone2) ?? "",
     socialName: data.socialName ?? "",
     gender: data.gender ?? "",
-    race: data.race,
     timeZoneId: data.timeZoneId ?? "",
   };
 }
-
-const RACE_OPTIONS = Object.entries(raceLabel) as [Race, string][];
 
 const selectClassName =
   "w-full h-10 px-3 rounded-lg border border-border bg-surface text-text-primary text-sm";
@@ -81,7 +76,6 @@ export default function ContactCard({ data, onSaved }: ContactCardProps) {
       phone2: phone2 || null,
       socialName: form.socialName.trim() || null,
       gender: form.gender.trim() || null,
-      race: form.race,
       timeZoneId: form.timeZoneId || null,
     };
 
@@ -123,7 +117,6 @@ export default function ContactCard({ data, onSaved }: ContactCardProps) {
           <InfoItem label="Telefone 2" value={formatPhone(data.phone2)} />
           <InfoItem label="Nome social" value={data.socialName} />
           <InfoItem label="Gênero" value={data.gender} />
-          <InfoItem label="Raça/cor" value={raceLabel[data.race]} />
           <InfoItem label="Fuso horário" value={formatTimeZone(data.timeZoneId)} />
         </InfoGrid>
       ) : (
@@ -168,18 +161,6 @@ export default function ContactCard({ data, onSaved }: ContactCardProps) {
                 onChange={(e) => setField("gender", e.target.value)}
                 placeholder="Opcional"
               />
-            </FieldWrapper>
-
-            <FieldWrapper label="Raça/cor">
-              <select
-                value={form.race}
-                onChange={(e) => setField("race", e.target.value as Race)}
-                className={selectClassName}
-              >
-                {RACE_OPTIONS.map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
             </FieldWrapper>
 
             <FieldWrapper label="Fuso horário">

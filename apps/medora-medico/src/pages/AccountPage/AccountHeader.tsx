@@ -98,7 +98,7 @@ export default function AccountHeader() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-text-secondary">
               <span className="inline-flex items-center gap-1.5">
                 <Stethoscope size={14} />
-                {mainSpecialty ?? "Sem especialidade principal"}
+                {mainSpecialty ?? (doctorRqes.rqes.length === 0 ? "Clínico geral" : "Sem especialidade principal")}
               </span>
               <span className="inline-flex items-center gap-1.5 min-w-0">
                 <Mail size={14} />

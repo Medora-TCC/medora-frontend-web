@@ -6,4 +6,6 @@ export interface MedicalRecordDTO {
   date: Date;
   isFinalized: boolean;
   isDeleted: boolean;
+  /** Receita mais recente da consulta (só vem na busca); null = consulta sem receita. */
+  prescriptionPublicId?: string | null;
 }

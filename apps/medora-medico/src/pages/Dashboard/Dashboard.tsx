@@ -103,21 +103,21 @@ export default function Dashboard() {
     now.getTime() >= roomOpensAt(tele.startDateTime) &&
     now.getTime() < new Date(tele.endDateTime).getTime();
 
+  // a lista só tem consultas que ainda vão acontecer: só a teleconsulta confirmada com a sala
+  // liberada é atendida daqui; as outras (ainda marcadas) levam para a agenda
+  const canAttendNow = (appointment: UpcomingAppointmentDto) =>
+    appointment.type === "Online" &&
+    appointment.status === "Confirmed" &&
+    now.getTime() >= roomOpensAt(appointment.startDateTime);
+
   const openAppointment = (appointment: UpcomingAppointmentDto) => {
-    // só teleconsulta confirmada com a sala já liberada abre a sala; o resto vai para o prontuário
-    if (
-      appointment.type === "Online" &&
-      appointment.status === "Confirmed" &&
-      now.getTime() >= roomOpensAt(appointment.startDateTime)
-    ) {
+    if (canAttendNow(appointment)) {
       navigate(`teleconsulta/${appointment.meetingCode ?? appointment.id}/pre-sala`, {
         state: { appointmentId: appointment.id, patientName: appointment.patientName },
       });
       return;
     }
-    navigate(`prontuario/${appointment.id}`, {
-      state: { patientName: appointment.patientName, appointmentDate: formatDateTime(appointment.startDateTime) },
-    });
+    navigate("/medico/agenda");
   };
 
   return (
@@ -188,6 +188,7 @@ export default function Dashboard() {
                     <CompactPatientItem
                       key={appointment.id}
                       appointment={appointment}
+                      canAttend={canAttendNow(appointment)}
                       onAction={() => openAppointment(appointment)}
                     />
                   ))}
@@ -238,10 +239,13 @@ export default function Dashboard() {
                         key={item.appointmentId}
                         patient={item.patientName}
                         date={formatDateTime(item.appointmentDate)}
+                        reason={pendingReasonLabel[item.reason] ?? "Pendente"}
                         onPress={() =>
-                          navigate(`prontuario/${item.appointmentId}`, {
-                            state: { patientName: item.patientName, appointmentDate: formatDateTime(item.appointmentDate) },
-                          })
+                          item.reason === "Draft"
+                            ? navigate(`prontuario/${item.appointmentId}`, {
+                                state: { patientName: item.patientName, appointmentDate: formatDateTime(item.appointmentDate) },
+                              })
+                            : navigate("/medico/assinatura")
                         }
                       />
                     ))}
@@ -278,13 +282,13 @@ function StatBox({ icon, label, value, subtext }: StatBoxProps) {
 
 interface CompactPatientItemProps {
   appointment: UpcomingAppointmentDto;
+  canAttend: boolean;
   onAction: () => void;
 }
 
-function CompactPatientItem({ appointment, onAction }: CompactPatientItemProps) {
+function CompactPatientItem({ appointment, canAttend, onAction }: CompactPatientItemProps) {
   const isOnline = appointment.type === "Online";
   const isWaiting = appointment.status === "Scheduled";
-  const canAttend = isOnline && appointment.status === "Confirmed";
 
   return (
     <div className="flex items-center justify-between py-2 px-3 hover:bg-surface/50 transition-colors">
@@ -307,21 +311,31 @@ function CompactPatientItem({ appointment, onAction }: CompactPatientItemProps) 
           {appointmentStatusLabel[appointment.status]}
         </span>
         <Button size="sm" variant={canAttend ? "secondary" : "primary"} onPress={onAction} className="flex items-center gap-1 h-8 text-xs px-3 font-medium">
-          {canAttend ? "Atender" : "Prontuário"}
-          <ArrowUpRight size={13} />
+          {canAttend ? (
+            <>Atender <ArrowUpRight size={13} /></>
+          ) : (
+            <><Calendar size={13} /> Agenda</>
+          )}
         </Button>
       </div>
     </div>
   );
 }
 
+const pendingReasonLabel: Record<string, string> = {
+  Draft: "Não finalizado",
+  AwaitingSignature: "Aguardando sua assinatura",
+  SignatureFailed: "Assinatura falhou",
+};
+
 interface PendingDocumentItemProps {
   patient: string;
   date: string;
+  reason: string;
   onPress: () => void;
 }
 
-function PendingDocumentItem({ patient, date, onPress }: PendingDocumentItemProps) {
+function PendingDocumentItem({ patient, date, reason, onPress }: PendingDocumentItemProps) {
   return (
     <button
       type="button"
@@ -331,6 +345,7 @@ function PendingDocumentItem({ patient, date, onPress }: PendingDocumentItemProp
       <div>
         <p className="text-sm font-medium text-text-primary leading-tight">{patient}</p>
         <p className="text-[10px] text-text-muted mt-0.5">Atendimento em: {date}</p>
+        <p className="text-[10px] font-semibold text-orange-600 mt-0.5">{reason}</p>
       </div>
       <ChevronRight size={14} className="text-text-muted" />
     </button>

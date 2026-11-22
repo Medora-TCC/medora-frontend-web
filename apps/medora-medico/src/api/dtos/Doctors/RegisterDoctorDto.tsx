@@ -5,7 +5,6 @@ export interface RegisterDoctorDto {
     nationality: string;
     birthDate: string;
     sex: number;
-    race: number;
     phone: string;
     cpf?: string;
     gender?: string;
