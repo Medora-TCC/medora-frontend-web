@@ -1,19 +1,10 @@
-import type { Race, Sex } from "../dtos/Doctors/PersonalDataDto";
+import type { Sex } from "../dtos/Doctors/PersonalDataDto";
 
 export const sexLabel: Record<Sex, string> = {
   Unknown: "Não informado",
   Male: "Masculino",
   Female: "Feminino",
   Intersex: "Intersexo",
-};
-
-export const raceLabel: Record<Race, string> = {
-  None: "Não informada",
-  White: "Branca",
-  Black: "Preta",
-  Yellow: "Amarela",
-  Brown: "Parda",
-  Indigenous: "Indígena",
 };
 
 export function formatCpf(cpf: string | null): string | null {

@@ -34,7 +34,6 @@ const FIELD_BY_PROPERTY: Record<string, Target> = {
     birthdate: { field: 'birthDate', step: 2 },
     phone: { field: 'phone', step: 2 },
     sex: { field: 'sex', step: 2 },
-    race: { field: 'race', step: 2 },
     cpf: { field: 'cpf', step: 3 },
     nationality: { field: 'nationality', step: 3 },
     foreigner: { field: 'nationality', step: 3 },

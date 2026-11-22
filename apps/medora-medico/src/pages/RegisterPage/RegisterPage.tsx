@@ -54,7 +54,6 @@ const initialFormData: FormState = {
     nationality: 'BR',
     birthDate: '',
     sex: 0,
-    race: 0,  
     phone: '',
     cpf: '',
     gender: undefined,
@@ -98,14 +97,6 @@ const states = [
 const sexOptions = [
     { label: 'Masculino', value: 1 },
     { label: 'Feminino', value: 2 },
-];
-
-const raceOptions = [
-    { label: 'Branca', value: 1 },
-    { label: 'Preta', value: 2 },
-    { label: 'Parda', value: 3 },
-    { label: 'Amarela', value: 4 },
-    { label: 'Indígena', value: 5 },
 ];
 
 const passwordRules = [
@@ -225,7 +216,6 @@ export function RegisterPage() {
         if (!formData.phone) next.phone = 'Informe seu telefone com DDD';
         else if (!isValidPhone(formData.phone)) next.phone = 'Telefone inválido. Use o formato (00) 00000-0000';
         if (!formData.sex) next.sex = 'Selecione uma opção';
-        if (!formData.race) next.race = 'Selecione uma opção';
         return next;
     };
 
@@ -301,7 +291,6 @@ export function RegisterPage() {
         nationality: isForeigner ? formData.nationality.trim().toUpperCase() : 'BR',
         birthDate: formData.birthDate,
         sex: formData.sex,
-        race: formData.race,
         phone: onlyDigits(formData.phone),
         cpf: !isForeigner && formData.cpf ? onlyDigits(formData.cpf) : undefined,
         gender: formData.gender || undefined,
@@ -501,7 +490,7 @@ export function RegisterPage() {
                                         </FieldWrapper>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 gap-3">
                                         <FieldWrapper label="Sexo" description={fieldError('sex')}>
                                             <select
                                                 id="sex"
@@ -512,21 +501,6 @@ export function RegisterPage() {
                                             >
                                                 <option value="" disabled>Selecione</option>
                                                 {sexOptions.map((o) => (
-                                                    <option key={o.value} value={o.value}>{o.label}</option>
-                                                ))}
-                                            </select>
-                                        </FieldWrapper>
-
-                                        <FieldWrapper label="Raça/Cor" description={fieldError('race')}>
-                                            <select
-                                                id="race"
-                                                aria-invalid={!!errors.race}
-                                                value={formData.race || ''}
-                                                onChange={(e) => setField('race', Number(e.target.value))}
-                                                className={selectClass(!!errors.race)}
-                                            >
-                                                <option value="" disabled>Selecione</option>
-                                                {raceOptions.map((o) => (
                                                     <option key={o.value} value={o.value}>{o.label}</option>
                                                 ))}
                                             </select>

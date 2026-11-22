@@ -1,5 +1,4 @@
 export type Sex = "Unknown" | "Male" | "Female" | "Intersex";
-export type Race = "None" | "White" | "Black" | "Yellow" | "Brown" | "Indigenous";
 
 export interface ForeignerDataDto {
   birthCountry: string;
@@ -22,7 +21,6 @@ export interface PersonalDataDto {
   phone2: string | null;
   socialName: string | null;
   gender: string | null;
-  race: Race;
   timeZoneId: string | null;
 
   isMotherUnknown: boolean | null;
@@ -42,7 +40,6 @@ export interface UpdateContactDto {
   phone2: string | null;
   socialName: string | null;
   gender: string | null;
-  race: Race;
   timeZoneId: string | null;
 }
 
