@@ -88,7 +88,9 @@ export default function MainLayout() {
   const rankedRqes = (doctorRqes?.rqes ?? [])
     .filter((r) => r.priority !== null)
     .sort((a, b) => a.priority! - b.priority!);
-  const mainSpecialty = rankedRqes[0]?.specialtyName ?? null;
+  // sem nenhum RQE no CFM: "Clínico geral" é só rótulo; com RQE e sem principal, o cabeçalho avisa
+  const mainSpecialty = rankedRqes[0]?.specialtyName
+    ?? (doctorRqes && doctorRqes.rqes.length === 0 ? "Clínico geral" : null);
   const extraSpecialtiesCount = Math.max(rankedRqes.length - 1, 0);
   // Liste os caminhos completos como eles aparecem na URL
   const locationsSidebar = ["/", "/home", "/medico/teleconsulta"];
