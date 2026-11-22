@@ -3,12 +3,8 @@
   <head>
     <script>
       (function () {
-        const storedTheme = localStorage.getItem("app-theme");
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)",
-        ).matches;
-        const theme = storedTheme || (prefersDark ? "dark" : "light");
-        document.documentElement.setAttribute("data-theme", theme);
+        // o painel sempre abre no modo claro; o botão de tema troca só enquanto a página está aberta
+        document.documentElement.setAttribute("data-theme", "light");
       })();
     </script>
     <meta charset="UTF-8" />

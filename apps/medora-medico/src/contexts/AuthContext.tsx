@@ -8,6 +8,8 @@ import {
 import { api } from "../api/services/api";
 import { useNavigate } from "react-router";
 import { Endpoints } from "../api/enums/endpoints";
+import { markSessionClosedByUser, markSessionLost, markSessionStarted } from "@medora_web/shared";
+import { MfaAction } from "../api/enums/mfaAction";
 
 interface AuthContextType {
   accessToken: string | null;
@@ -61,6 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         processQueue(null, newAccessToken);
 
       } catch (error) {
+        // sem sessão ao abrir: se havia uma antes, ela caiu (inatividade ou encerrada) e o login avisa
+        markSessionLost();
         setAccessToken(null);
         tokenRef.current = null;
         processQueue(error, null);
@@ -77,7 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const requestIntercept = api.interceptors.request.use(
       (config) => {
-        if (tokenRef.current) {
+        // Login e código de verificação usam o token temporário do cookie mfa_token. O backend só lê
+        // esse cookie quando a requisição não traz outro token: com o token de uma sessão anterior
+        // (outra aba, o admin no mesmo localhost) o código era recusado com 403.
+        const loginStep =
+          config.url === Endpoints.LOGIN ||
+          config.url === Endpoints.VERIFY_AUTH_CODE ||
+          (config.url === Endpoints.INIT_MFA && config.data?.Action === MfaAction.LOGIN);
+        if (tokenRef.current && !loginStep) {
           config.headers.Authorization = `Bearer ${tokenRef.current}`;
         }
         return config;
@@ -126,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return api(originalRequest);
           } catch (refreshError) {
             processQueue(refreshError, null);
+            markSessionLost();
             setAccessToken(null);
 
             navigate("/login");
@@ -147,11 +159,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = (token: string) => {
     setAccessToken(token);
     tokenRef.current = token;
+    markSessionStarted();
   };
 
   const signOut = async () => {
-    await api.post(Endpoints.LOGOUT);
-    setAccessToken(null);
+    markSessionClosedByUser();
+    try {
+      await api.post(Endpoints.LOGOUT);
+    } finally {
+      setAccessToken(null);
+    }
   };
 
   return (

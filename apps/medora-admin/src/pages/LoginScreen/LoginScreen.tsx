@@ -3,6 +3,7 @@ import { Activity } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { SessionEndedNotice } from "@medora_web/shared";
 import { login } from "../../api/auth";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -50,6 +51,8 @@ export default function AdminLoginScreen() {
                         <p className="text-text-muted text-sm text-center">Painel administrativo. Insira suas credenciais para continuar.</p>
                     </div>
                     
+                    <SessionEndedNotice />
+
                     <Form className="w-full flex flex-col gap-5" onSubmit={onSubmit}>
                         <TextField className="flex flex-col gap-1 w-full" name="email" type="email">
                             <Label className="text-text-muted">Email Corporativo</Label>

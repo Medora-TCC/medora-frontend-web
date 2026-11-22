@@ -13,6 +13,7 @@ import type { LoginInput } from "../../api/dtos/Auth/LoginInput";
 import { useState } from "react";
 import { loginService } from "../../api/services/Auth";
 import { useAuth } from "../../hooks/useAuth";
+import { SessionEndedNotice } from "@medora_web/shared";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
@@ -95,6 +96,7 @@ export default function LoginScreen() {
             </p>
           </div>
           <Form className="w-full flex flex-col gap-5" onSubmit={onSubmit}>
+            <SessionEndedNotice />
             {errorMessage && (
               <div className="bg-red-100 text-red-600 p-2 rounded-lg text-sm text-center w-full">
                 {errorMessage}
