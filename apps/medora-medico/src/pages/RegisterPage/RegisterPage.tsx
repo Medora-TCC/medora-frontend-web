@@ -122,6 +122,38 @@ const selectClass = (hasError: boolean) =>
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
+type DemoDoctor = Partial<Omit<FormState, 'foreigner'>>;
+
+// Cadastro de demonstração para a apresentação: só existe no `npm run dev` e só se o
+// VITE_DEMO_DOCTOR estiver no .env.local (os dados reais não vão para o repositório).
+function readDemoDoctor(): DemoDoctor | null {
+    if (!import.meta.env.DEV || !import.meta.env.VITE_DEMO_DOCTOR) return null;
+    try {
+        return JSON.parse(import.meta.env.VITE_DEMO_DOCTOR) as DemoDoctor;
+    } catch {
+        console.warn('VITE_DEMO_DOCTOR não é um JSON válido');
+        return null;
+    }
+}
+
+const demoDoctor = readDemoDoctor();
+
+// Com o demo configurado, o formulário já abre preenchido (máscaras aplicadas).
+const startingFormData: FormState = demoDoctor
+    ? {
+          ...initialFormData,
+          ...demoDoctor,
+          nationality: 'BR',
+          foreigner: null,
+          cpf: maskCpf(demoDoctor.cpf ?? ''),
+          phone: maskPhone(demoDoctor.phone ?? ''),
+          crm: maskCrm(demoDoctor.crm ?? ''),
+          gender: demoDoctor.gender ?? undefined,
+          mothersName: demoDoctor.mothersName ?? undefined,
+          isMotherUnknown: demoDoctor.isMotherUnknown ?? undefined,
+      }
+    : initialFormData;
+
 function getBirthDateError(value: string): string | null {
     if (!value) return 'Informe sua data de nascimento';
     const date = new Date(`${value}T00:00:00`);
@@ -138,8 +170,8 @@ function getBirthDateError(value: string): string | null {
 }
 
 export function RegisterPage() {
-    const [formData, setFormData] = useState<FormState>(initialFormData);
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const [formData, setFormData] = useState<FormState>(startingFormData);
+    const [confirmPassword, setConfirmPassword] = useState(demoDoctor?.password ?? '');
     const [isForeigner, setIsForeigner] = useState(false);
     const [errors, setErrors] = useState<Errors>({});
     const [currentStep, setCurrentStep] = useState(1);
@@ -380,8 +412,7 @@ export function RegisterPage() {
 
                         <div className="text-center">
                             <h2 className="text-primary-text text-2xl font-bold mb-1">{header.title}</h2>
-                            <p className="text-text-secondary text-sm">{header.subtitle}</p>
-                        </div>
+                            <p className="text-text-secondary text-sm">{header.subtitle}</p>                        </div>
 
                         {submitError && (
                             <div
