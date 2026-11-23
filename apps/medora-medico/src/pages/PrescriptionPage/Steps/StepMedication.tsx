@@ -28,6 +28,206 @@ const MEDICAMENTOS_MOCK: Medicamento[] = [
     formaFarmaceutica: "Comprimido gastrorresistente", tipo: "generico",
     nomeComercial: undefined, classe: "B01AC06", interacoes: [], restricoes: ["gestantes"],
   },
+  {
+    id: "m6", principioAtivo: "Paracetamol", concentracao: "750 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "N02BE01",
+    nomeComercial: undefined, interacoes: [], restricoes: ["hepatopatas"],
+  },
+  {
+    id: "m7", principioAtivo: "Paracetamol", concentracao: "750 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "referencia", classe: "N02BE01",
+    nomeComercial: "Tylenol®", interacoes: [], restricoes: ["hepatopatas"],
+  },
+  {
+    id: "m8", principioAtivo: "Paracetamol", concentracao: "200 mg/mL",
+    formaFarmaceutica: "Solução oral (gotas)", tipo: "generico", classe: "N02BE01",
+    nomeComercial: undefined, interacoes: [], restricoes: ["hepatopatas"],
+  },
+  {
+    id: "m9", principioAtivo: "Dipirona monoidratada", concentracao: "500 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "N02BB02",
+    nomeComercial: undefined, interacoes: [], restricoes: ["alergia a dipirona"],
+  },
+  {
+    id: "m10", principioAtivo: "Dipirona monoidratada", concentracao: "1 g",
+    formaFarmaceutica: "Comprimido", tipo: "referencia", classe: "N02BB02",
+    nomeComercial: "Novalgina®", interacoes: [], restricoes: ["alergia a dipirona"],
+  },
+  {
+    id: "m11", principioAtivo: "Dipirona monoidratada", concentracao: "500 mg/mL",
+    formaFarmaceutica: "Solução oral (gotas)", tipo: "generico", classe: "N02BB02",
+    nomeComercial: undefined, interacoes: [], restricoes: ["alergia a dipirona"],
+  },
+  {
+    id: "m12", principioAtivo: "Dipirona + orfenadrina + cafeína", concentracao: "300 mg + 35 mg + 50 mg",
+    formaFarmaceutica: "Comprimido", tipo: "referencia", classe: "M03BC51",
+    nomeComercial: "Dorflex®", interacoes: [], restricoes: ["alergia a dipirona","glaucoma"],
+  },
+  {
+    id: "m13", principioAtivo: "Ibuprofeno", concentracao: "600 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "generico", classe: "M01AE01",
+    nomeComercial: undefined, interacoes: ["m5","m30"], restricoes: ["gestantes","úlcera péptica"],
+  },
+  {
+    id: "m14", principioAtivo: "Ibuprofeno", concentracao: "400 mg",
+    formaFarmaceutica: "Cápsula gelatinosa mole", tipo: "referencia", classe: "M01AE01",
+    nomeComercial: "Advil®", interacoes: ["m5","m30"], restricoes: ["gestantes","úlcera péptica"],
+  },
+  {
+    id: "m15", principioAtivo: "Nimesulida", concentracao: "100 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "M01AX17",
+    nomeComercial: undefined, interacoes: [], restricoes: ["hepatopatas","gestantes"],
+  },
+  {
+    id: "m16", principioAtivo: "Cetoprofeno", concentracao: "100 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "referencia", classe: "M01AE03",
+    nomeComercial: "Profenid®", interacoes: ["m5","m30"], restricoes: ["úlcera péptica"],
+  },
+  {
+    id: "m17", principioAtivo: "Amoxicilina", concentracao: "500 mg",
+    formaFarmaceutica: "Cápsula", tipo: "generico", classe: "J01CA04",
+    nomeComercial: undefined, interacoes: [], restricoes: ["alergia a penicilina"],
+  },
+  {
+    id: "m18", principioAtivo: "Amoxicilina + clavulanato de potássio", concentracao: "875 mg + 125 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "generico", classe: "J01CR02",
+    nomeComercial: undefined, interacoes: [], restricoes: ["alergia a penicilina"],
+  },
+  {
+    id: "m19", principioAtivo: "Azitromicina", concentracao: "500 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "generico", classe: "J01FA10",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m20", principioAtivo: "Cefalexina", concentracao: "500 mg",
+    formaFarmaceutica: "Cápsula", tipo: "generico", classe: "J01DB01",
+    nomeComercial: undefined, interacoes: [], restricoes: ["alergia a cefalosporinas"],
+  },
+  {
+    id: "m21", principioAtivo: "Ciprofloxacino", concentracao: "500 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "generico", classe: "J01MA02",
+    nomeComercial: undefined, interacoes: [], restricoes: ["gestantes"],
+  },
+  {
+    id: "m22", principioAtivo: "Metronidazol", concentracao: "400 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "P01AB01",
+    nomeComercial: undefined, interacoes: [], restricoes: ["gestantes (1º trimestre)","não ingerir álcool"],
+  },
+  {
+    id: "m23", principioAtivo: "Sulfametoxazol + trimetoprima", concentracao: "400 mg + 80 mg",
+    formaFarmaceutica: "Comprimido", tipo: "referencia", classe: "J01EE01",
+    nomeComercial: "Bactrim®", interacoes: [], restricoes: ["gestantes"],
+  },
+  {
+    id: "m24", principioAtivo: "Omeprazol", concentracao: "20 mg",
+    formaFarmaceutica: "Cápsula", tipo: "generico", classe: "A02BC01",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m25", principioAtivo: "Pantoprazol", concentracao: "40 mg",
+    formaFarmaceutica: "Comprimido gastrorresistente", tipo: "generico", classe: "A02BC02",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m26", principioAtivo: "Ondansetrona", concentracao: "8 mg",
+    formaFarmaceutica: "Comprimido orodispersível", tipo: "generico", classe: "A04AA01",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m27", principioAtivo: "Metoclopramida", concentracao: "10 mg",
+    formaFarmaceutica: "Comprimido", tipo: "referencia", classe: "A03FA01",
+    nomeComercial: "Plasil®", interacoes: [], restricoes: ["menores de 1 ano"],
+  },
+  {
+    id: "m28", principioAtivo: "Butilbrometo de escopolamina", concentracao: "10 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "referencia", classe: "A03BB01",
+    nomeComercial: "Buscopan®", interacoes: [], restricoes: ["glaucoma"],
+  },
+  {
+    id: "m29", principioAtivo: "Simeticona", concentracao: "40 mg",
+    formaFarmaceutica: "Comprimido", tipo: "referencia", classe: "A03AX13",
+    nomeComercial: "Luftal®", interacoes: [], restricoes: [],
+  },
+  {
+    id: "m30", principioAtivo: "Enoxaparina sódica", concentracao: "40 mg/0,4 mL",
+    formaFarmaceutica: "Solução injetável (seringa)", tipo: "generico", classe: "B01AB05",
+    nomeComercial: undefined, interacoes: ["m5","m13","m14","m16"], restricoes: ["sangramento ativo"],
+  },
+  {
+    id: "m31", principioAtivo: "Tramadol", concentracao: "50 mg",
+    formaFarmaceutica: "Cápsula", tipo: "generico", classe: "N02AX02",
+    nomeComercial: undefined, interacoes: ["m39","m40"], restricoes: ["receita de controle especial"],
+  },
+  {
+    id: "m32", principioAtivo: "Prednisona", concentracao: "20 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "H02AB07",
+    nomeComercial: undefined, interacoes: [], restricoes: ["diabéticos (monitorar glicemia)"],
+  },
+  {
+    id: "m33", principioAtivo: "Dexametasona", concentracao: "4 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "H02AB02",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m34", principioAtivo: "Loratadina", concentracao: "10 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "R06AX13",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m35", principioAtivo: "Dexclorfeniramina", concentracao: "2 mg",
+    formaFarmaceutica: "Comprimido", tipo: "referencia", classe: "R06AB02",
+    nomeComercial: "Polaramine®", interacoes: [], restricoes: ["causa sonolência"],
+  },
+  {
+    id: "m36", principioAtivo: "Salbutamol", concentracao: "100 mcg/dose",
+    formaFarmaceutica: "Aerossol oral", tipo: "referencia", classe: "R03AC02",
+    nomeComercial: "Aerolin®", interacoes: [], restricoes: [],
+  },
+  {
+    id: "m37", principioAtivo: "Metformina", concentracao: "850 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "A10BA02",
+    nomeComercial: undefined, interacoes: [], restricoes: ["insuficiência renal"],
+  },
+  {
+    id: "m38", principioAtivo: "Sinvastatina", concentracao: "20 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "generico", classe: "C10AA01",
+    nomeComercial: undefined, interacoes: [], restricoes: ["gestantes"],
+  },
+  {
+    id: "m39", principioAtivo: "Sertralina", concentracao: "50 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "generico", classe: "N06AB06",
+    nomeComercial: undefined, interacoes: ["m31"], restricoes: [],
+  },
+  {
+    id: "m40", principioAtivo: "Clonazepam", concentracao: "2 mg",
+    formaFarmaceutica: "Comprimido", tipo: "referencia", classe: "N03AE01",
+    nomeComercial: "Rivotril®", interacoes: ["m31"], restricoes: ["receita de controle especial (B1)"],
+  },
+  {
+    id: "m41", principioAtivo: "Fluconazol", concentracao: "150 mg",
+    formaFarmaceutica: "Cápsula", tipo: "generico", classe: "J02AC01",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m42", principioAtivo: "Albendazol", concentracao: "400 mg",
+    formaFarmaceutica: "Comprimido mastigável", tipo: "generico", classe: "P02CA03",
+    nomeComercial: undefined, interacoes: [], restricoes: ["gestantes"],
+  },
+  {
+    id: "m43", principioAtivo: "Ivermectina", concentracao: "6 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "P02CF01",
+    nomeComercial: undefined, interacoes: [], restricoes: [],
+  },
+  {
+    id: "m44", principioAtivo: "Losartana potássica", concentracao: "50 mg",
+    formaFarmaceutica: "Comprimido revestido", tipo: "referencia", classe: "C09CA01",
+    nomeComercial: "Cozaar®", interacoes: ["m3"], restricoes: [],
+  },
+  {
+    id: "m45", principioAtivo: "Enalapril", concentracao: "10 mg",
+    formaFarmaceutica: "Comprimido", tipo: "generico", classe: "C09AA02",
+    nomeComercial: undefined, interacoes: [], restricoes: ["gestantes"],
+  },
 ];
 
 function BadgeTipo({ tipo }: { tipo: Medicamento["tipo"] }) {
